@@ -1,0 +1,35 @@
+---
+alwaysApply: true
+---
+  ratings:
+    visibility:
+      CUSTOMER:
+        allowed:
+          - CREATE_RATING
+          - READ_PUBLIC_RATING
+      BUSINESS:
+        allowed:
+          - READ_RATING
+          - MODERATE_RATING
+
+    privileges:
+      CREATE_RATING:
+        context: CUSTOMER
+        requires:
+          - prior_purchase
+
+      READ_PUBLIC_RATING:
+        context: CUSTOMER
+
+      READ_RATING:
+        context: BUSINESS
+
+      MODERATE_RATING:
+        context: BUSINESS
+
+    invariants:
+      - id: MDC-RATING-1
+        assertion: rating_requires_prior_purchase
+
+      - id: MDC-RATING-2
+        assertion: one_rating_per_order

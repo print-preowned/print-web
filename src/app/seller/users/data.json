@@ -1,0 +1,62 @@
+[
+  {
+    "id": "1",
+    "role_id": "2",
+    "first_name": "Sarah",
+    "last_name": "Chen",
+    "middle_name": "Marie",
+    "country_code": "US",
+    "phone_number": "+1-555-0123",
+    "email": "sarah.chen@rarebooksltd.com",
+    "profile_image": "https://example.com/profiles/sarah_chen.jpg",
+    "password": "$2b$12$hashed_password_1",
+    "status": "active",
+    "created_at": "2024-01-15T09:30:00Z",
+    "updated_at": "2024-08-15T14:22:00Z"
+  },
+  {
+    "id": "2",
+    "role_id": "2",
+    "first_name": "Marcus",
+    "last_name": "Rodriguez",
+    "middle_name": null,
+    "country_code": "US",
+    "phone_number": "+1-555-0456",
+    "email": "marcus@campus-books.com",
+    "profile_image": "https://example.com/profiles/marcus_rodriguez.jpg",
+    "password": "$2b$12$hashed_password_2",
+    "status": "active",
+    "created_at": "2024-02-20T11:15:00Z",
+    "updated_at": "2024-08-10T16:45:00Z"
+  },
+  {
+    "id": "3",
+    "role_id": "3",
+    "first_name": "Emma",
+    "last_name": "Thompson",
+    "middle_name": "Jane",
+    "country_code": "CA",
+    "phone_number": "+1-604-555-7890",
+    "email": "emma.thompson@email.com",
+    "profile_image": "https://example.com/profiles/emma_thompson.jpg",
+    "password": "$2b$12$hashed_password_3",
+    "status": "active",
+    "created_at": "2024-03-10T08:20:00Z",
+    "updated_at": "2024-08-18T10:30:00Z"
+  },
+  {
+    "id": "4",
+    "role_id": "3",
+    "first_name": "David",
+    "last_name": "Kim",
+    "middle_name": null,
+    "country_code": "US",
+    "phone_number": "+1-555-0321",
+    "email": "david.kim@student.edu",
+    "profile_image": null,
+    "password": "$2b$12$hashed_password_4",
+    "status": "active",
+    "created_at": "2024-06-01T12:00:00Z",
+    "updated_at": "2024-08-17T09:15:00Z"
+  }
+]

@@ -1,0 +1,38 @@
+---
+alwaysApply: true
+---
+  inventory:
+    visibility:
+      CUSTOMER:
+        allowed:
+          - READ_PUBLIC_INVENTORY
+      BUSINESS:
+        allowed:
+          - READ_INVENTORY
+          - CREATE_INVENTORY_ITEM
+          - UPDATE_INVENTORY_ITEM
+          - DELETE_INVENTORY_ITEM
+
+    privileges:
+      READ_PUBLIC_INVENTORY:
+        context: CUSTOMER
+
+      READ_INVENTORY:
+        context: BUSINESS
+
+      CREATE_INVENTORY_ITEM:
+        context: BUSINESS
+
+      UPDATE_INVENTORY_ITEM:
+        context: BUSINESS
+
+      DELETE_INVENTORY_ITEM:
+        context: BUSINESS
+        owner_only: true
+
+    invariants:
+      - id: MDC-INVENTORY-1
+        assertion: inventory_items_are_business_scoped
+
+      - id: MDC-INVENTORY-2
+        assertion: inventory_mutation_requires_business_context

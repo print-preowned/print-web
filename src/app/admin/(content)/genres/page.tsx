@@ -1,0 +1,289 @@
+"use client"
+
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DataTable,
+  DrawerContentType,
+  DataTableRef,
+} from "@/components/data-table";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { readGenresListUrl, Genre, deleteGenre } from "@/lib/api/genre";
+import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
+import { Plus, EllipsisVertical } from "lucide-react";
+import usePagination from "@/lib/pagination/usePagination";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { BulkUpload } from "@/components/bulk-upload";
+import { parseCSV } from "@/lib/utils/csv";
+import { createGenre } from "@/lib/api/genre";
+
+type GenreCSVRow = {
+  name: string;
+  description?: string;
+  status?: string;
+};
+
+
+
+export default function AdminGenresPage() {
+  const queryClient = useQueryClient();
+  const dataTableRef = useRef<DataTableRef>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const {
+    data: serverGenres,
+    isLoading,
+    pagination,
+    setPagination,
+    totalPages,
+  } = usePagination<Genre>({
+    queryKey: ["genres", debouncedSearch, statusFilter],
+    getUrl: ({ page, size, search: s, status }) =>
+      readGenresListUrl({
+        page,
+        size,
+        filter: {
+          search: (s as string) || undefined,
+          status: status !== "all" ? (status as string) : undefined,
+        },
+      }),
+    initialPageSize: 10,
+    params: { search: debouncedSearch, status: statusFilter },
+  });
+
+  const genres = serverGenres || [];
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [debouncedSearch, statusFilter]);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { endpoint } = deleteGenre(id);
+      return apiFetch(endpoint, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["genres"] });
+      toast.success("Genre deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete genre");
+    },
+  });
+
+  const columns: ColumnDef<Genre & { id: string }>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => (
+        <span className="max-w-md truncate block">
+          {row.original.description || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge
+          variant="outline"
+          className={`text-xs ${
+            row.original.status === "ACTIVE"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "created_at",
+      header: "Created",
+      cell: ({ row }) => (
+        <span>{new Date(row.original.created_at).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row, table }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end"
+              size="icon"
+            >
+              <EllipsisVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem
+              onClick={() =>
+                table.options.meta?.onDrawerChange?.(
+                  DrawerContentType.AdminGenreForm,
+                  row.original
+                )
+              }
+            >
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                if (confirm("Are you sure you want to delete this genre?")) {
+                  deleteMutation.mutate(row.original.id);
+                }
+              }}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  return (
+    <div className="container mx-auto py-4 px-4">
+      <div className="space-y-4 mb-6">
+        <div className="flex gap-8 justify-between">
+          <div className="flex gap-4">
+            <SearchInput
+              wrapperClassName="flex-1"
+              placeholder="Search genres..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <Button
+              onClick={() =>
+                dataTableRef.current?.openDrawer(DrawerContentType.AdminGenreForm, undefined)
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Genre
+            </Button>
+            <BulkUpload<GenreCSVRow>
+              title="Bulk Upload Genres"
+              description="Upload multiple genres from a CSV file. Each row should contain: name, description (optional), and optional status."
+              sampleHeaders={["name", "description", "status"]}
+              sampleRow={["Fiction", "Literary works of imagination", "ACTIVE"]}
+              parseCSV={(csvText) => {
+                const rows = parseCSV(csvText);
+                if (rows.length < 2) throw new Error("CSV must have header row and at least one data row");
+                const headers = rows[0].map(h => h.trim().toLowerCase());
+                return rows.slice(1).map(row => {
+                  const obj: any = {};
+                  headers.forEach((header, idx) => {
+                    obj[header] = row[idx]?.trim() || "";
+                  });
+                  return obj as GenreCSVRow;
+                });
+              }}
+              validateItem={(item, index) => {
+                if (!item.name?.trim()) {
+                  return { valid: false, error: "Name is required" };
+                }
+                return { valid: true };
+              }}
+              onUpload={async (items) => {
+                let success = 0;
+                let failed = 0;
+                const errors: string[] = [];
+                
+                for (let i = 0; i < items.length; i++) {
+                  try {
+                    const item = items[i];
+                    const request = await createGenre({
+                      name: item.name,
+                      description: item.description || null,
+                      status: item.status || "ACTIVE",
+                    });
+                    
+                    await apiFetch(request.endpoint, {
+                      method: request.method,
+                      body: request.body,
+                    });
+                    
+                    success++;
+                  } catch (error) {
+                    failed++;
+                    errors.push(`Row ${i + 2}: ${error instanceof Error ? error.message : "Unknown error"}`);
+                  }
+                }
+                
+                if (success > 0) {
+                  queryClient.invalidateQueries({ queryKey: ["genres"] });
+                }
+                
+                return { success, failed, errors };
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {!genres.length && isLoading ? (
+        <div className="text-center py-8">Loading...</div>
+      ) : (
+        <DataTable
+          ref={dataTableRef}
+          data={genres.map((genre) => ({ ...genre, id: genre.id }))}
+          columns={columns}
+          meta={{
+            onDelete: (id: string) => deleteMutation.mutate(id),
+          }}
+          totalPages={totalPages}
+          pageIndex={pagination.pageIndex}
+          pageSize={pagination.pageSize}
+          onPaginationChange={setPagination}
+          isLoading={isLoading}
+        />
+      )}
+    </div>
+  );
+}

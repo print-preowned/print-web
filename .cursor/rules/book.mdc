@@ -1,0 +1,41 @@
+---
+alwaysApply: true
+---
+modules:
+  books:
+    visibility:
+      CUSTOMER:
+        allowed:
+          - READ_PUBLIC_BOOK
+      BUSINESS:
+        allowed:
+          - READ_BOOK
+          - CREATE_BOOK
+          - UPDATE_BOOK
+          - DELETE_BOOK
+
+    privileges:
+      READ_PUBLIC_BOOK:
+        context: CUSTOMER
+        description: Read public book catalog data
+
+      READ_BOOK:
+        context: BUSINESS
+        description: Read book data within a business
+
+      CREATE_BOOK:
+        context: BUSINESS
+
+      UPDATE_BOOK:
+        context: BUSINESS
+
+      DELETE_BOOK:
+        context: BUSINESS
+        owner_only: true
+
+    invariants:
+      - id: MDC-BOOK-1
+        assertion: book_visibility_is_public_or_business_scoped
+
+      - id: MDC-BOOK-2
+        assertion: deleting_book_requires_owner

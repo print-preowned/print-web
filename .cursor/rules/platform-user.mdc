@@ -1,0 +1,67 @@
+---
+alwaysApply: true
+---
+platform_user:
+  version: v1
+  status: canonical
+
+  principles:
+    - no_public_admin_signup
+    - admin_defines_authority
+    - user_defines_identity
+    - acceptance_is_explicit
+
+  routes:
+
+    admin_invite_create:
+      path: /admin/users/invite
+      context: PLATFORM
+      behavior:
+        - collect_email
+        - select_privilege_set
+        - submit_to_server
+
+    invite_accept:
+      path: /admin/invite/accept
+      context: unauthenticated
+      input:
+        - token
+      behavior:
+        - validate_token_with_server
+        - if_invalid_show_error
+        - if_valid_render_accept_form
+
+    invite_accept_form:
+      fields:
+        - password
+        - confirm_password
+        - required_profile_fields
+      behavior:
+        - submit_acceptance
+        - redirect_to_admin_login_on_success
+
+    invite_reject:
+      path: /admin/invite/reject
+      context: unauthenticated
+      behavior:
+        - submit_rejection
+        - show_confirmation
+
+  ui_rules:
+    - never_show_admin_signup
+    - never_show_role_selector_to_invitee
+    - never_allow_editing_privilege_set_on_acceptance
+
+  state_rules:
+    - do_not_store_invite_token_persistently
+    - clear_token_after_accept_or_reject
+
+  accessibility:
+    - invite_accept_page_must_be_keyboard_navigable
+    - error_states_must_be_announced
+
+  final_rule:
+    statement: >
+      Admin UI only allows inviting by email and privilege set.
+      Invitee UI only allows entering personal details and password.
+      Authority is never editable by the invitee.

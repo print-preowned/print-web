@@ -1,0 +1,136 @@
+---
+alwaysApply: true
+---
+mdc:
+  name: PRINT Authorization & Context Rules
+  version: v1
+  status: enforced
+
+entities:
+  context:
+    enum: [CUSTOMER, BUSINESS]
+
+  token:
+    required_base_fields: [iss, aud, sub, iat, exp, jti, ctx]
+
+rules:
+
+  identity:
+    - id: MDC-IDENTITY-1
+      type: invariant
+      assertion: single_global_identity
+
+    - id: MDC-IDENTITY-2
+      type: prohibition
+      forbid:
+        - separate_business_login
+        - separate_customer_login
+
+  context:
+    - id: MDC-CONTEXT-1
+      type: invariant
+      assertion: single_execution_context
+
+    - id: MDC-CONTEXT-2
+      type: prohibition
+      forbid:
+        - mixed_context_execution
+        - implicit_context_inference
+
+    - id: MDC-CONTEXT-3
+      type: requirement
+      require:
+        - token_reissue_on_context_switch
+
+  token:
+    customer:
+      - id: MDC-TOKEN-C-1
+        type: prohibition
+        forbid_fields:
+          - biz
+          - privileges
+          - role
+
+    business:
+      - id: MDC-TOKEN-B-1
+        type: requirement
+        require_fields:
+          - biz.id
+          - biz.privileges
+          - biz.is_owner
+
+      - id: MDC-TOKEN-B-2
+        type: invariant
+        assertion: privileges_materialized
+
+  ownership:
+    - id: MDC-OWNER-1
+      type: invariant
+      assertion: ownership_not_role
+
+    - id: MDC-OWNER-2
+      type: invariant
+      assertion: single_owner_per_business
+
+    - id: MDC-OWNER-3
+      type: requirement
+      require_flag:
+        field: biz.is_owner
+        for_actions:
+          - DELETE_BUSINESS
+          - TRANSFER_OWNERSHIP
+
+  backend_middleware:
+    - id: MDC-BE-1
+      type: prohibition
+      forbid:
+        - database_access
+        - role_based_checks
+        - route_context_inference
+
+    - id: MDC-BE-2
+      type: requirement
+      require:
+        - privilege_based_authorization
+        - fail_closed
+
+  frontend:
+    - id: MDC-FE-1
+      type: prohibition
+      forbid:
+        - authority_inference
+        - privilege_mutation
+        - mixed_ui_contexts
+
+    - id: MDC-FE-2
+      type: requirement
+      require:
+        - single_active_context
+        - token_based_hydration
+
+  routing:
+    - id: MDC-FE-ROUTE-1
+      type: requirement
+      require:
+        - route_guard_present
+
+    - id: MDC-FE-ROUTE-2
+      type: prohibition
+      forbid:
+        - unguarded_routes
+
+  revocation:
+    - id: MDC-REVOKE-1
+      type: trigger
+      events:
+        - role_changed
+        - privileges_changed
+        - user_removed
+        - ownership_transferred
+
+  enforcement:
+    default: deny
+    rule: >
+        If an action is not explicitly listed as allowed
+        for the current context and privilege set,
+        it must be denied.

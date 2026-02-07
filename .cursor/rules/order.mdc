@@ -1,0 +1,41 @@
+---
+alwaysApply: true
+---
+  orders:
+    visibility:
+      CUSTOMER:
+        allowed:
+          - CREATE_ORDER
+          - READ_OWN_ORDER
+      BUSINESS:
+        allowed:
+          - READ_ORDER
+          - UPDATE_ORDER_STATUS
+          - REFUND_ORDER
+
+    privileges:
+      CREATE_ORDER:
+        context: CUSTOMER
+
+      READ_OWN_ORDER:
+        context: CUSTOMER
+
+      READ_ORDER:
+        context: BUSINESS
+
+      UPDATE_ORDER_STATUS:
+        context: BUSINESS
+
+      REFUND_ORDER:
+        context: BUSINESS
+        owner_only: true
+
+    invariants:
+      - id: MDC-ORDER-1
+        assertion: orders_are_single_currency
+
+      - id: MDC-ORDER-2
+        assertion: customer_can_only_read_own_orders
+
+      - id: MDC-ORDER-3
+        assertion: refunds_require_owner

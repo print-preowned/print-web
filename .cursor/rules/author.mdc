@@ -1,0 +1,188 @@
+---
+alwaysApply: true
+---
+  authors:
+    entity:
+      name: AUTHOR
+      scope: GLOBAL
+      ownership: PLATFORM
+      business_scoping: forbidden
+
+    tables:
+      AUTHOR:
+        fields:
+          - id
+          - canonical_name
+          - normalized_name
+          - bio
+          - metadata
+          - status: [CANONICAL, PROVISIONAL, MERGED, DEPRECATED]
+          - created_by_business_id    #nullable
+          - created_at
+          - updated_at
+
+      BOOK_AUTHOR:
+        purpose: join_books_to_authors
+        fields:
+          - book_id
+          - author_id
+
+      AUTHOR_REQUEST:
+        fields:
+          - id
+          - business_id
+          - request_type: [UPDATE, MERGE, LINK_BOOK]
+          - author_id: nullable   # required for UPDATE, MERGE, LINK_BOOK
+          - target_author_id: nullable   # used for MERGE (from → to)
+          - book_id: nullable     # used for LINK_BOOK
+          - requested_name
+          - requested_changes     # json diff for UPDATE
+          - reason                # required human explanation
+          - source
+          - status: [pending, approved, rejected]
+          - created_by
+          - reviewed_by
+          - reviewed_at
+
+      AUTHOR_MERGE:
+        purpose: track_duplicate_resolution
+        fields:
+          - from_author_id
+          - to_author_id
+          - merged_by
+          - merged_at
+
+    author_request_rules:
+      CREATE:
+        require:
+          - requested_name
+          - reason
+        forbid:
+          - author_id
+          - target_author_id
+
+      UPDATE:
+        require:
+          - author_id
+          - requested_changes
+          - reason
+
+      MERGE:
+        require:
+          - author_id          # source
+          - target_author_id   # destination
+          - reason
+
+      LINK_BOOK:
+        require:
+          - book_id
+          - author_id
+          - reason
+
+
+    endpoints:
+
+      # -------- CUSTOMER --------
+      GET /authors:
+        context: CUSTOMER
+        action: READ_PUBLIC_AUTHOR
+        enforce:
+          - author_status_active_only
+
+      GET /authors/{id}:
+        context: CUSTOMER
+        action: READ_PUBLIC_AUTHOR
+        enforce:
+          - author_status_active_only
+
+      # -------- BUSINESS --------
+      GET /business/{businessId}/authors/search:
+        context: BUSINESS
+        privilege: READ_AUTHOR
+        enforce:
+          - business_id_match
+          - author_status_active_only
+
+      POST /business/{businessId}/authors/requests:
+        context: BUSINESS
+        privilege: CREATE_AUTHOR_REQUEST
+        enforce:
+          - business_id_match
+
+      GET /business/{businessId}/authors/requests:
+        context: BUSINESS
+        privilege: READ_AUTHOR_REQUEST
+        enforce:
+          - business_id_match
+          - requester_or_business_scope
+
+      # -------- PLATFORM --------
+      GET /admin/authors:
+        context: PLATFORM
+        privilege: AUTHOR_READ
+
+      POST /admin/authors:
+        context: PLATFORM
+        privilege: AUTHOR_CREATE
+
+      PUT /admin/authors/{id}:
+        context: PLATFORM
+        privilege: AUTHOR_UPDATE
+
+      POST /admin/authors/{id}/merge:
+        context: PLATFORM
+        privilege: AUTHOR_MERGE
+        enforce:
+          - target_author_exists
+          - source_author_exists
+          - update_all_book_author_references
+          - mark_source_as_merged
+
+      GET /admin/author-requests:
+        context: PLATFORM
+        privilege: AUTHOR_REQUEST_READ
+
+      POST /admin/author-requests/{id}/approve:
+        context: PLATFORM
+        privilege: AUTHOR_REQUEST_APPROVE
+        enforce:
+          - create_author_from_request
+          - mark_request_approved
+
+      POST /admin/author-requests/{id}/reject:
+        context: PLATFORM
+        privilege: AUTHOR_REQUEST_REJECT
+        enforce:
+          - mark_request_rejected
+
+    invariants:
+      - id: MDC-BE-AUTHOR-1
+        assertion: authors_have_no_business_id
+
+      - id: MDC-BE-AUTHOR-2
+        assertion: businesses_cannot_mutate_authors
+
+      - id: MDC-BE-AUTHOR-3
+        assertion: customer_reads_only_active_authors
+
+      - id: MDC-BE-AUTHOR-4
+        assertion: author_deletion_is_merge_only
+
+      - id: MDC-BE-AUTHOR-5
+        assertion: all_merges_are_audited
+
+    prohibited_patterns:
+      - business_updating_author
+      - deleting_author_without_merge
+      - customer_creating_author
+      - silent_author_overwrite
+
+    enforcement:
+      evaluation_order:
+        - authenticate
+        - validate_token
+        - enforce_context
+        - enforce_privilege
+        - enforce_scope
+        - execute_handler
+      default_behavior: deny
