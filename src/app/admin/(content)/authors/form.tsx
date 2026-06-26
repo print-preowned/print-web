@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,18 +16,15 @@ import {
 import { createAuthor, updateAuthor, Author } from "@/lib/api/author";
 import { readBooks, Book } from "@/lib/api/book";
 import {
-  createBookAuthorLink,
-  deleteBookAuthorLink,
-  fetchBookAuthorLinksByAuthor,
+  createBookAuthor,
+  deleteBookAuthor,
+  fetchBookAuthorByAuthor,
   BookAuthor,
 } from "@/lib/api/book-author";
 import { apiFetch } from "@/lib/api";
 import { PaginatedResponse } from "@/lib/api/user";
 import { toast } from "sonner";
-import {
-  DrawerClose,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import { useDrawerFooter } from "@/components/form-drawer";
 
 type AuthorFormProps = {
   author?: Author;
@@ -48,7 +44,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   const { data: linksData } = useQuery({
     queryKey: ["book-author", "by-author", author?.id],
-    queryFn: () => fetchBookAuthorLinksByAuthor(author!.id),
+    queryFn: () => fetchBookAuthorByAuthor(author!.id),
     enabled: !!author?.id,
   });
   const existingLinks: BookAuthor[] = linksData?.data ?? [];
@@ -106,7 +102,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const request = await createAuthor({
+      const request = createAuthor({
         first_name: data.first_name,
         last_name: data.last_name,
         middle_name: data.middle_name || null,
@@ -121,7 +117,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const authorId = (res as { id?: string }).id;
       if (authorId && selectedBookIds.length > 0) {
         for (const bookId of selectedBookIds) {
-          const linkReq = createBookAuthorLink({ book_id: bookId, author_id: authorId });
+          const linkReq = createBookAuthor({ book_id: bookId, author_id: authorId });
           await apiFetch(linkReq.endpoint, {
             method: linkReq.method,
             body: linkReq.body,
@@ -159,14 +155,14 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const toAdd = selectedBookIds.filter((id) => !existingBookIds.has(id));
       const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.book_id));
       for (const bookId of toAdd) {
-        const linkReq = createBookAuthorLink({ book_id: bookId, author_id: author!.id });
+        const linkReq = createBookAuthor({ book_id: bookId, author_id: author!.id });
         await apiFetch(linkReq.endpoint, {
           method: linkReq.method,
           body: linkReq.body,
         });
       }
       for (const link of toRemove) {
-        const delReq = deleteBookAuthorLink(link.id);
+        const delReq = deleteBookAuthor({ book_id: link.book_id, author_id: link.author_id });
         await apiFetch(delReq.endpoint, { method: delReq.method });
       }
     },
@@ -192,8 +188,19 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
+  useDrawerFooter({
+    formId: "admin-author-form",
+    submitLabel: isEditing ? "Update Author" : "Create Author",
+    loadingLabel: isEditing ? "Updating..." : "Creating...",
+    isLoading,
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <form
+      id="admin-author-form"
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-4"
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-3">
           <Label htmlFor="first_name">First Name *</Label>
@@ -302,23 +309,6 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
           </div>
         )}
       </div>
-
-      <DrawerFooter className="pt-4">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading
-            ? isEditing
-              ? "Updating..."
-              : "Creating..."
-            : isEditing
-            ? "Update Author"
-            : "Create Author"}
-        </Button>
-        <DrawerClose asChild>
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
-        </DrawerClose>
-      </DrawerFooter>
     </form>
   );
 }

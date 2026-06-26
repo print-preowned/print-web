@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -10,11 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DataTable,
-  DrawerContentType,
-  DataTableRef,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
+import { AdminAuthorForm } from "@/app/admin/(content)/authors/form";
 import { useQueryClient } from "@tanstack/react-query";
 import { readAuthors, Author } from "@/lib/api/author";
 import { apiFetch } from "@/lib/api";
@@ -107,7 +105,7 @@ const dummyAuthors: Author[] = [
 
 export default function AdminAuthorsPage() {
   const queryClient = useQueryClient();
-  const dataTableRef = useRef<DataTableRef>(null);
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -185,7 +183,7 @@ export default function AdminAuthorsPage() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -200,10 +198,16 @@ export default function AdminAuthorsPage() {
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuItem
               onClick={() =>
-                table.options.meta?.onDrawerChange?.(
-                  DrawerContentType.AdminAuthorForm,
-                  row.original
-                )
+                openDrawer({
+                  title: "Edit Author",
+                  description: "Update author details",
+                  children: (
+                    <AdminAuthorForm
+                      author={row.original}
+                      onSuccess={closeDrawer}
+                    />
+                  ),
+                })
               }
             >
               Edit
@@ -239,7 +243,11 @@ export default function AdminAuthorsPage() {
           <div className="flex gap-2 mb-4">
             <Button
               onClick={() =>
-                dataTableRef.current?.openDrawer(DrawerContentType.AdminAuthorForm, undefined)
+                openDrawer({
+                  title: "Create Author",
+                  description: "Add a new author",
+                  children: <AdminAuthorForm onSuccess={closeDrawer} />,
+                })
               }
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -318,7 +326,6 @@ export default function AdminAuthorsPage() {
         <div className="text-center py-8">Loading...</div>
       ) : (
         <DataTable
-          ref={dataTableRef}
           data={authors.map((author) => ({ ...author, id: author.id }))}
           columns={columns}
           meta={{}}
@@ -329,6 +336,7 @@ export default function AdminAuthorsPage() {
           isLoading={isLoading}
         />
       )}
+      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

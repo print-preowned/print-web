@@ -4,39 +4,50 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signup, LoginResponse } from "@/lib/api/auth";
-import { useMutation } from "@tanstack/react-query";
 import { FieldValues, useForm } from "react-hook-form";
-import { setCookie } from "@/lib/cookies";
 import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export function RegisterForm() {
   const router = useRouter();
-  const { setToken } = useAuth();
+  const { refreshSession } = useAuth();
   const { handleSubmit, register, reset } = useForm();
-  const { mutate, isPending } = useMutation<LoginResponse, Error, {}>({
-    onSuccess: (response) => {
-      reset();
-      if (response?.data && response?.token) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        setToken(response.token);
-        setCookie("authHeader", response.token, 7);
-        toast.success("Account created. You're signed in.");
-        router.push("/");
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSignup = async (data: FieldValues) => {
+    setIsPending(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          password: data.password,
+        }),
+        credentials: "include",
+      });
+      const response = await res.json();
+
+      if (!res.ok) {
+        toast.error(response.detail ?? "Registration failed");
+        return;
       }
-    },
-  });
 
-  const handleSignup = (data: FieldValues) => {
-    const payload = {
-      first_name: data.first_name as string,
-      last_name: data.last_name as string,
-      email: data.email as string,
-      password: data.password as string,
-    };
-
-    mutate(signup(payload));
+      reset();
+      if (response.data) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+      await refreshSession();
+      toast.success("Account created. You're signed in.");
+      router.push("/");
+    } catch (error) {
+      toast.error("Registration failed");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (

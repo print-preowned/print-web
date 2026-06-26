@@ -2,17 +2,17 @@
 
 import * as React from "react"
 import {
-  IconDashboard,
-  IconListDetails,
   IconChartBar,
-  IconUsers,
-  IconCog,
+  IconDashboard,
+  IconFolder,
+  IconVector,
   IconInnerShadowTop,
-  IconTags,
+  IconListDetails,
+  IconUsers,
 } from "@tabler/icons-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "./nav-main"
+import { NavUser } from "./nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -25,45 +25,45 @@ import {
 
 const data = {
   user: {
-    name: "Admin",
-    email: "admin@example.com",
-    avatar: "/avatars/admin.jpg",
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "/admin/dashboard",
+      url: "/seller/dashboard",
       icon: IconDashboard,
     },
     {
       title: "Books",
-      url: "/admin/books",
+      url: "/seller/books",
       icon: IconListDetails,
     },
     {
       title: "Authors",
-      url: "/admin/authors",
+      url: "/seller/authors",
       icon: IconChartBar,
     },
     {
-      title: "Genres",
-      url: "/admin/genres",
-      icon: IconTags,
+      title: "Orders",
+      url: "/seller/orders",
+      icon: IconFolder,
     },
     {
       title: "Users",
-      url: "/admin/users",
+      url: "/seller/users",
       icon: IconUsers,
     },
     {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: IconCog,
+      title: "Inventory",
+      url: "/seller/inventory",
+      icon: IconVector,
     },
   ]
 }
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -73,10 +73,9 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/admin/dashboard">
+              <a href="#">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">PRINT</span>
-                <span className="text-xs text-muted-foreground ml-1">Admin</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -86,7 +85,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} accountHref="/admin/account" />
+        <NavUser user={data.user} accountHref="/seller/account" />
       </SidebarFooter>
     </Sidebar>
   )

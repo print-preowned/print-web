@@ -15,7 +15,6 @@ import { AuthorsTable } from "./authors-table";
 export default function AuthorsPage() {
   return (
     <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">Authors</h1>
       <AuthorsTable />
     </div>
   );

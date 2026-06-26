@@ -1,369 +1,197 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  CreateBookFormFields,
+  CreateBookFormValues,
+} from "@/components/books/create-book-form";
+import { BookAuthorGenreFields } from "@/components/books/book-author-genre-fields";
+import {
+  CreateBookFormSchema,
+  schema as createBookFormSchema,
+} from "@/components/books/create-book-form-schema";
+import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { createBook, updateBook, Book } from "@/lib/api/book";
-import { readAuthors, Author } from "@/lib/api/author";
-import { readGenresListUrl, Genre } from "@/lib/api/genre";
-import {
-  createBookAuthor,
-  deleteBookAuthor,
-  fetchBookAuthorByBook,
-  BookAuthor,
-} from "@/lib/api/book-author";
-import {
-  createBookGenre,
-  deleteBookGenre,
-  fetchBookGenreByBook,
-  BookGenre,
-} from "@/lib/api/book-genre";
 import { apiFetch } from "@/lib/api";
-import { PaginatedResponse } from "@/lib/api/user";
 import { toast } from "sonner";
-import {
-  DrawerClose,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import { useDrawerFooter } from "@/components/form-drawer";
+
 type BookFormProps = {
   book?: Book;
   onSuccess?: () => void;
 };
 
+const EMPTY_IDS: string[] = [];
+
+function linkedAuthorIds(book?: Book): string[] {
+  return book?.authors?.map((a) => a.id) ?? EMPTY_IDS;
+}
+
+function linkedGenreIds(book?: Book): string[] {
+  return book?.genres?.map((g) => g.id) ?? EMPTY_IDS;
+}
+
 export function AdminBookForm({ book, onSuccess }: BookFormProps) {
   const queryClient = useQueryClient();
-  const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
-  const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
   const isEditing = !!book;
 
-  const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
-    queryKey: ["authors", { page: 1, size: 200 }],
-    queryFn: () => apiFetch(readAuthors({ page: 1, size: 200 })),
-  });
-  const authors = authorsData?.data ?? [];
+  const defaultAuthorIds = useMemo(() => linkedAuthorIds(book), [book]);
+  const defaultGenreIds = useMemo(() => linkedGenreIds(book), [book]);
 
-  const { data: genresData } = useQuery<PaginatedResponse<Genre>>({
-    queryKey: ["genres", { page: 1, size: 200 }],
-    queryFn: () => apiFetch(readGenresListUrl({ page: 1, size: 200 })),
-  });
-  const genres = genresData?.data ?? [];
+  const [selectedAuthorIds, setSelectedAuthorIds] =
+    useState<string[]>(defaultAuthorIds);
+  const [selectedGenreIds, setSelectedGenreIds] =
+    useState<string[]>(defaultGenreIds);
 
-  const { data: linksData } = useQuery({
-    queryKey: ["book-author", "by-book", book?.id],
-    queryFn: () => fetchBookAuthorByBook(book!.id),
-    enabled: !!book?.id,
-  });
-  const existingAuthorLinks: BookAuthor[] = linksData?.data ?? [];
-  const linksInitializedRef = useRef(false);
-
-  const { data: genreLinksData } = useQuery({
-    queryKey: ["book-genre", "by-book", book?.id],
-    queryFn: () => fetchBookGenreByBook(book!.id),
-    enabled: !!book?.id,
-  });
-  const existingGenreLinks: BookGenre[] = genreLinksData?.data ?? [];
-
-  useEffect(() => {
-    if (!book?.id) {
-      if (!book) linksInitializedRef.current = false;
-      return;
-    }
-    if (!linksInitializedRef.current && linksData !== undefined && genreLinksData !== undefined) {
-      setSelectedAuthorIds(existingAuthorLinks.map((l) => l.author_id));
-      setSelectedGenreIds(existingGenreLinks.map((l) => l.genre_id));
-      linksInitializedRef.current = true;
-    }
-  }, [book?.id, linksData, genreLinksData, existingAuthorLinks, existingGenreLinks]);
-
-  useEffect(() => {
-    if (!book) linksInitializedRef.current = false;
-  }, [book]);
-
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
-    defaultValues: book || {
-      title: "",
-      image: "",
-      synopsis: "",
-      status: "ACTIVE",
+  const {
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset: resetForm,
+  } = useForm<CreateBookFormSchema>({
+    resolver: zodResolver(createBookFormSchema),
+    defaultValues: {
+      title: book?.title ?? "",
+      image: book?.image ?? "",
+      synopsis: book?.synopsis ?? "",
     },
   });
 
+  const image = useImageUpload({
+    initialPreview: book?.image ?? null,
+    onValueChange: (value) =>
+      setValue("image", value, { shouldValidate: true, shouldDirty: true }),
+  });
+
   useEffect(() => {
-    if (book) {
-      setValue("title", book.title);
-      setValue("image", book.image);
-      setValue("synopsis", book.synopsis);
-      setValue("status", book.status);
-    }
-  }, [book, setValue]);
+    setSelectedAuthorIds(defaultAuthorIds);
+  }, [defaultAuthorIds]);
+
+  useEffect(() => {
+    setSelectedGenreIds(defaultGenreIds);
+  }, [defaultGenreIds]);
+
+  useEffect(() => {
+    if (!book) return;
+    resetForm({
+      title: book.title,
+      image: book.image,
+      synopsis: book.synopsis,
+    });
+  }, [book, resetForm]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const request = await createBook({
-        title: data.title,
-        image: data.image,
-        synopsis: data.synopsis,
+    mutationFn: async (values: CreateBookFormValues) => {
+      const request = createBook({
+        title: values.title,
+        image: values.image,
+        synopsis: values.synopsis,
+        author_ids: values.authorIds,
+        genre_ids: values.genreIds,
       });
-      const res = await apiFetch<{ id: string }>(request.endpoint, {
+      return apiFetch<Book>(request.endpoint, {
         method: request.method,
         body: request.body,
       });
-      const bookId = (res as { id?: string }).id;
-      if (bookId) {
-        for (const authorId of selectedAuthorIds) {
-          const linkReq = createBookAuthor({ book_id: bookId, author_id: authorId });
-          await apiFetch(linkReq.endpoint, {
-            method: linkReq.method,
-            body: linkReq.body,
-          });
-        }
-        for (const genreId of selectedGenreIds) {
-          const linkReq = createBookGenre({ book_id: bookId, genre_id: genreId });
-          await apiFetch(linkReq.endpoint, {
-            method: linkReq.method,
-            body: linkReq.body,
-          });
-        }
-      }
-      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
-      queryClient.invalidateQueries({ queryKey: ["book-author"] });
-      queryClient.invalidateQueries({ queryKey: ["book-genre"] });
       toast.success("Book created successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create book");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const request = await updateBook(book!.id, data);
+    mutationFn: async (values: CreateBookFormValues) => {
+      const request = updateBook(book!.id, {
+        title: values.title,
+        image: values.image,
+        synopsis: values.synopsis,
+        author_ids: values.authorIds,
+        genre_ids: values.genreIds,
+      });
       await apiFetch(request.endpoint, {
         method: request.method,
         body: request.body,
       });
-      const existingAuthorIds = new Set(existingAuthorLinks.map((l) => l.author_id));
-      const toAddAuthors = selectedAuthorIds.filter((id) => !existingAuthorIds.has(id));
-      const toRemoveAuthors = existingAuthorLinks.filter((l) => !selectedAuthorIds.includes(l.author_id));
-      for (const authorId of toAddAuthors) {
-        const linkReq = createBookAuthor({ book_id: book!.id, author_id: authorId });
-        await apiFetch(linkReq.endpoint, { method: linkReq.method, body: linkReq.body });
-      }
-      for (const link of toRemoveAuthors) {
-        const delReq = deleteBookAuthor(link.id);
-        await apiFetch(delReq.endpoint, { method: delReq.method });
-      }
-      const existingGenreIds = new Set(existingGenreLinks.map((l) => l.genre_id));
-      const toAddGenres = selectedGenreIds.filter((id) => !existingGenreIds.has(id));
-      const toRemoveGenres = existingGenreLinks.filter((l) => !selectedGenreIds.includes(l.genre_id));
-      for (const genreId of toAddGenres) {
-        const linkReq = createBookGenre({ book_id: book!.id, genre_id: genreId });
-        await apiFetch(linkReq.endpoint, { method: linkReq.method, body: linkReq.body });
-      }
-      for (const link of toRemoveGenres) {
-        const delReq = deleteBookGenre(link.id);
-        await apiFetch(delReq.endpoint, { method: delReq.method });
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
-      queryClient.invalidateQueries({ queryKey: ["book", book!.id] });
-      queryClient.invalidateQueries({ queryKey: ["book-author"] });
-      queryClient.invalidateQueries({ queryKey: ["book-genre"] });
       toast.success("Book updated successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update book");
     },
   });
 
-  const addGenre = (genreId: string) => {
-    if (genreId && !selectedGenreIds.includes(genreId)) {
-      setSelectedGenreIds([...selectedGenreIds, genreId]);
-    }
-  };
-
-  const removeGenre = (genreId: string) => {
-    setSelectedGenreIds(selectedGenreIds.filter((id) => id !== genreId));
-  };
-
-  const selectedGenres = genres.filter((g) => selectedGenreIds.includes(g.id));
-  const availableGenres = genres.filter((g) => !selectedGenreIds.includes(g.id));
-
-  const addAuthor = (authorId: string) => {
-    if (authorId && !selectedAuthorIds.includes(authorId)) {
-      setSelectedAuthorIds([...selectedAuthorIds, authorId]);
-    }
-  };
-
-  const removeAuthor = (authorId: string) => {
-    setSelectedAuthorIds(selectedAuthorIds.filter((id) => id !== authorId));
-  };
-
-  const selectedAuthors = authors.filter((a) => selectedAuthorIds.includes(a.id));
-  const availableAuthors = authors.filter((a) => !selectedAuthorIds.includes(a.id));
-
-  const onSubmit = async (data: any) => {
+  const onSubmit = handleSubmit(async (data) => {
+    const values: CreateBookFormValues = {
+      title: data.title.trim(),
+      image: await image.resolveValue(data.image),
+      synopsis: data.synopsis.trim(),
+      authorIds: selectedAuthorIds,
+      genreIds: selectedGenreIds,
+    };
     if (isEditing) {
-      updateMutation.mutate(data);
+      updateMutation.mutate(values);
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(values);
     }
-  };
+  });
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const submitLabel = isEditing ? "Update Book" : "Create Book";
+
+  useDrawerFooter({
+    formId: "admin-book-form",
+    submitLabel,
+    loadingLabel: isEditing ? "Updating..." : "Creating...",
+    isLoading,
+  });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3">
-        <Label htmlFor="title">Title *</Label>
-        <Input
-          id="title"
-          {...register("title", { required: "Title is required" })}
+    <form
+      key={book?.id ?? "new"}
+      id="admin-book-form"
+      onSubmit={onSubmit}
+      className="flex flex-col gap-4"
+    >
+      <CreateBookFormFields
+        title={watch("title")}
+        onTitleChange={(value) =>
+          setValue("title", value, { shouldValidate: true, shouldDirty: true })
+        }
+        synopsis={watch("synopsis")}
+        onSynopsisChange={(value) =>
+          setValue("synopsis", value, {
+            shouldValidate: true,
+            shouldDirty: true,
+          })
+        }
+        imagePreview={image.preview}
+        onFileSelect={image.onFileSelect}
+        onImageClear={image.clear}
+        imageInputRef={image.inputRef}
+        titleError={errors.title?.message}
+        synopsisError={errors.synopsis?.message}
+      >
+        <BookAuthorGenreFields
+          selectedAuthorIds={selectedAuthorIds}
+          onSelectedAuthorIdsChange={setSelectedAuthorIds}
+          selectedGenreIds={selectedGenreIds}
+          onSelectedGenreIdsChange={setSelectedGenreIds}
+          linkedAuthors={book?.authors}
+          linkedGenres={book?.genres}
         />
-        {errors.title && (
-          <p className="text-sm text-red-500">{errors.title.message as string}</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <Label>Genres</Label>
-        <Select onValueChange={addGenre} value="">
-          <SelectTrigger>
-            <SelectValue placeholder="Add a genre..." />
-          </SelectTrigger>
-          <SelectContent>
-            {availableGenres.map((g) => (
-              <SelectItem key={g.id} value={g.id}>
-                {g.name}
-              </SelectItem>
-            ))}
-            {availableGenres.length === 0 && (
-              <SelectItem value="No options" disabled>
-                No more genres to add
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-        {selectedGenres.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedGenres.map((g) => (
-              <span
-                key={g.id}
-                className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm flex items-center gap-2"
-              >
-                {g.name}
-                <button
-                  type="button"
-                  onClick={() => removeGenre(g.id)}
-                  className="hover:bg-primary/80 rounded-full"
-                  aria-label={`Remove ${g.name}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <Label htmlFor="image">Image URL *</Label>
-        <Input
-          id="image"
-          type="url"
-          {...register("image", { required: "Image URL is required" })}
-        />
-        {errors.image && (
-          <p className="text-sm text-red-500">{errors.image.message as string}</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <Label htmlFor="synopsis">Synopsis *</Label>
-        <Textarea
-          id="synopsis"
-          rows={6}
-          {...register("synopsis", { required: "Synopsis is required" })}
-        />
-        {errors.synopsis && (
-          <p className="text-sm text-red-500">{errors.synopsis.message as string}</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <Label>Authors</Label>
-        <Select onValueChange={addAuthor} value="">
-          <SelectTrigger>
-            <SelectValue placeholder="Add an author..." />
-          </SelectTrigger>
-          <SelectContent>
-            {availableAuthors.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.first_name} {a.last_name}
-              </SelectItem>
-            ))}
-            {availableAuthors.length === 0 && (
-              <SelectItem value="No options" disabled>
-                No more authors to add
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-        {selectedAuthors.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedAuthors.map((a) => (
-              <span
-                key={a.id}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm flex items-center gap-2"
-              >
-                {a.first_name} {a.last_name}
-                <button
-                  type="button"
-                  onClick={() => removeAuthor(a.id)}
-                  className="hover:bg-secondary/80 rounded-full"
-                  aria-label={`Remove ${a.first_name} ${a.last_name}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <DrawerFooter className="pt-4">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading
-            ? isEditing
-              ? "Updating..."
-              : "Creating..."
-            : isEditing
-            ? "Update Book"
-            : "Create Book"}
-        </Button>
-        <DrawerClose asChild>
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
-        </DrawerClose>
-      </DrawerFooter>
+      </CreateBookFormFields>
     </form>
   );
 }

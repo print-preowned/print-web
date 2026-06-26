@@ -37,10 +37,10 @@ export const routeConfig: Record<string, RouteConfig> = {
   },
   
   // Customer routes (public access - e-commerce site)
-  "/books": {},
-  "/books/*": {},
-  "/authors": {},
-  "/authors/*": {},
+  "/books": {requiredContext: "CUSTOMER"},
+  "/books/*": {requiredContext: "CUSTOMER"},
+  "/authors": {requiredContext: "CUSTOMER"},
+  "/authors/*": {requiredContext: "CUSTOMER"},
   
   // Seller routes (require BUSINESS context)
   "/seller/*": {
@@ -87,6 +87,13 @@ export const routeConfig: Record<string, RouteConfig> = {
     requireOwner: true,
     redirectTo: "/login",
   },
+
+  // Seller account (business details; edit requires owner)
+  "/seller/account": {
+    requireAuth: true,
+    requiredContext: "BUSINESS",
+    redirectTo: "/login",
+  },
   
   // Dashboard (require auth, any context)
   "/seller/dashboard": {
@@ -95,8 +102,9 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/login",
   },
   
-  // Account page (require auth, any context)
+  // Account page (require auth)
   "/account": {
+    requiredContext: "CUSTOMER",
     requireAuth: true,
     redirectTo: "/login",
   },

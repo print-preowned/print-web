@@ -32,7 +32,9 @@ export interface BusinessTokenData {
 
 export interface CustomerToken extends BaseTokenFields {
   ctx: "CUSTOMER";
-  // Customer tokens must NOT have: business, privileges, role
+  /** Set at login/context-switch; true if user has a linked business (can switch to BUSINESS). */
+  has_business?: boolean;
+  // Customer tokens must NOT have: business (object), privileges, role
 }
 
 export interface BusinessToken extends BaseTokenFields {
@@ -47,6 +49,40 @@ export interface PlatformToken extends BaseTokenFields {
 }
 
 export type AccessToken = CustomerToken | BusinessToken | PlatformToken;
+
+/**
+ * Minimal session shape returned by /api/auth/me (only what the UI needs).
+ * Exposes user id as `id` (from JWT sub); no iss, aud, iat, exp, jti.
+ */
+export interface Session {
+  id: string;
+  context: TokenContext;
+  business?: { id: string; privileges: string[]; is_owner: boolean };
+  privileges?: string[];
+  /** When context is CUSTOMER, true if the user has a linked business (can switch). */
+  hasBusiness?: boolean;
+}
+
+export function sessionFromToken(decoded: AccessToken): Session {
+  const session: Session = {
+    id: decoded.sub,
+    context: decoded.ctx,
+  };
+  if (decoded.ctx === "BUSINESS" && "business" in decoded) {
+    session.business = {
+      id: decoded.business.id,
+      privileges: decoded.business.privileges,
+      is_owner: decoded.business.is_owner,
+    };
+  }
+  if (decoded.ctx === "PLATFORM" && "privileges" in decoded) {
+    session.privileges = decoded.privileges;
+  }
+  if (decoded.ctx === "CUSTOMER" && "has_business" in decoded) {
+    session.hasBusiness = decoded.has_business === true;
+  }
+  return session;
+}
 
 /**
  * Decode and validate token structure

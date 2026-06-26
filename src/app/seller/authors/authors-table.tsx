@@ -1,19 +1,10 @@
 "use client";
 
-/**
- * Client Component - Authors Table
- * 
- * This is an "island" of interactivity within a Server Component page.
- * Handles all client-side logic: hooks, state, mutations.
- */
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  DataTable,
-  DrawerContentType,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
@@ -38,6 +29,7 @@ import { toast } from "sonner";
 export function AuthorsTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const hasReadAuthor = usePrivilege("READ_AUTHOR");
   const hasCreateAuthor = usePrivilege("CREATE_AUTHOR");
   const hasUpdateAuthor = usePrivilege("UPDATE_AUTHOR");
@@ -129,7 +121,7 @@ export function AuthorsTable() {
     },
     {
       id: "actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -145,10 +137,11 @@ export function AuthorsTable() {
             {hasUpdateAuthor && (
               <DropdownMenuItem
                 onClick={() =>
-                  table.options.meta?.onDrawerChange?.(
-                    DrawerContentType.AuthorForm,
-                    row.original
-                  )
+                  openDrawer({
+                    title: "Author Form",
+                    description: "Edit author details",
+                    children: <AuthorForm author={row.original} />,
+                  })
                 }
               >
                 Edit
@@ -171,17 +164,33 @@ export function AuthorsTable() {
   }
 
   return (
+    <>
     <DataTable
       data={data.map((d) => schema.parse(d))}
       columns={columns}
       meta={{}}
+      isLoading={query.isLoading}
+      totalPages={1}
+      pageIndex={page - 1}
+      pageSize={10}
+      onPaginationChange={(updater) => {
+        const next =
+          typeof updater === "function"
+            ? updater({ pageIndex: page - 1, pageSize: 10 })
+            : updater;
+        setPage(next.pageIndex + 1);
+      }}
     >
       <div className="flex mb-4">
         {hasCreateAuthor && (
           <Button
-            onClick={() => {
-              // Handle create
-            }}
+            onClick={() =>
+              openDrawer({
+                title: "Author Form",
+                description: "Add a new author",
+                children: <AuthorForm author={undefined} />,
+              })
+            }
           >
             <PlusCircleIcon className="size-4" />
             Add Author
@@ -189,6 +198,8 @@ export function AuthorsTable() {
         )}
       </div>
     </DataTable>
+    {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
+    </>
   );
 }
 

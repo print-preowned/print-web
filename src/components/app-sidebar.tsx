@@ -1,18 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
-  IconChartBar,
-  IconDashboard,
-  IconFolder,
-  IconVector,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconUsers,
-} from "@tabler/icons-react"
+  IconProps,
+  Icon,
+} from "@tabler/icons-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -21,72 +17,56 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/seller/dashboard",
-      icon: IconDashboard,
-    },
-    {
-      title: "Books",
-      url: "/seller/books",
-      icon: IconListDetails,
-    },
-    {
-      title: "Authors",
-      url: "/seller/authors",
-      icon: IconChartBar,
-    },
-    {
-      title: "Orders",
-      url: "/seller/orders",
-      icon: IconFolder,
-    },
-    {
-      title: "Users",
-      url: "/seller/users",
-      icon: IconUsers,
-    },
-    {
-      title: "Inventory",
-      url: "/seller/inventory",
-      icon: IconVector,
-    },
-  ]
-}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type Props = React.ComponentProps<typeof Sidebar> & {
+  data: {
+    user: {
+      name: string;
+      email: string;
+      avatar: string;
+    };
+    navMain: {
+      title: string;
+      url: string;
+      icon: React.ForwardRefExoticComponent<
+        IconProps & React.RefAttributes<Icon>
+      >;
+    }[];
+    accountHref: string
+  };
+};
+
+export function AppSidebar({ data, ...props }: Props) {
+  const { user, navMain } = data;
+  const { state, toggleSidebar } = useSidebar();
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">PRINT</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center justify-end px-2 py-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0"
+            onClick={toggleSidebar}
+            aria-label={state === "collapsed" ? "Expand sidebar" : "Collapse sidebar"}
+            title={state === "collapsed" ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {state === "collapsed" ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+          </Button>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} accountHref="/seller/account" />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

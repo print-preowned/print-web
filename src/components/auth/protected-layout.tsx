@@ -21,19 +21,19 @@ interface ProtectedLayoutProps {
 export function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { token, decodedToken, context, isLoading } = useAuth();
+  const { session, context, isLoading } = useAuth();
   const routeConfig = getRouteConfig(pathname);
 
   useEffect(() => {
     if (isLoading || !routeConfig) return;
 
     // Skip if route is public
-    if (routeConfig.public) {
+    if (!routeConfig.requireAuth) {
       return;
     }
 
     // Check authentication
-    if (routeConfig.requireAuth && !token) {
+    if (routeConfig.requireAuth && !session) {
       // Use configured redirect, or default based on route path
       const redirectTo = routeConfig.redirectTo || 
         (pathname.startsWith("/admin") ? "/admin/login" : "/login");
@@ -68,13 +68,13 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
     if (
       routeConfig.requireAuth &&
       context === "BUSINESS" &&
-      decodedToken &&
-      decodedToken.ctx === "BUSINESS" &&
+      session?.context === "BUSINESS" &&
+      session.business &&
       routeConfig.requiredPrivileges &&
       routeConfig.requiredPrivileges.length > 0
     ) {
       const hasAllPrivileges = routeConfig.requiredPrivileges.every(
-        (privilege) => decodedToken.business.privileges.includes(privilege)
+        (privilege) => session.business!.privileges.includes(privilege)
       );
       if (!hasAllPrivileges) {
         router.push("/seller/dashboard");
@@ -87,18 +87,18 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       routeConfig.requireAuth &&
       routeConfig.requireOwner &&
       context === "BUSINESS" &&
-      decodedToken &&
-      decodedToken.ctx === "BUSINESS" &&
-      !decodedToken.business.is_owner
+      session?.context === "BUSINESS" &&
+      session.business &&
+      !session.business.is_owner
     ) {
       router.push("/seller/dashboard");
       return;
     }
   }, [
     isLoading,
-    token,
+    session,
     context,
-    decodedToken,
+    session,
     routeConfig,
     router,
     pathname,
@@ -131,8 +131,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (
     routeConfig &&
     routeConfig.requireAuth &&
-    !routeConfig.public &&
-    !token
+    !session
   ) {
     return null;
   }
@@ -150,22 +149,22 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
     routeConfig &&
     routeConfig.requireAuth &&
     context === "BUSINESS" &&
-    decodedToken &&
-    decodedToken.ctx === "BUSINESS"
+    session?.context === "BUSINESS" &&
+    session.business
   ) {
     if (
       routeConfig.requiredPrivileges &&
       routeConfig.requiredPrivileges.length > 0
     ) {
       const hasAllPrivileges = routeConfig.requiredPrivileges.every(
-        (privilege) => decodedToken.business.privileges.includes(privilege)
+        (privilege) => session.business!.privileges.includes(privilege)
       );
       if (!hasAllPrivileges) {
         return null;
       }
     }
 
-    if (routeConfig.requireOwner && !decodedToken.business.is_owner) {
+    if (routeConfig.requireOwner && !session.business.is_owner) {
       return null;
     }
   }

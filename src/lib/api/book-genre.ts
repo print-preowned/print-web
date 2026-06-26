@@ -23,8 +23,11 @@ export function createBookGenre(payload: { book_id: string; genre_id: string }) 
   };
 }
 
-export function deleteBookGenre(id: string) {
-  return { endpoint: `/book-genre/delete/${id}`, method: "DELETE" as const };
+export function deleteBookGenre(payload: { book_id: string; genre_id: string }) {
+  return {
+    endpoint: `/book-genre/delete/by-book/${payload.book_id}/genre/${payload.genre_id}`,
+    method: "DELETE" as const,
+  };
 }
 
 export function readBookGenreByBook(bookId: string) {

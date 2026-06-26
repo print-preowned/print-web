@@ -16,27 +16,28 @@ export function readBusinesses(params?: { page?: number; size?: number; search?:
   return generateUrl("/business/read", params);
 }
 
-export async function createBusiness(payload: {
+/** Uses dedicated /api/business/create so the route can set the auth cookie when backend returns a new token. */
+export function createBusiness(payload: {
   name: string;
   description?: string | null;
   logo?: string | null;
   status?: string;
 }) {
-  return { endpoint: "/business/create", method: "POST", body: payload };
+  return { endpoint: "/api/business/create", method: "POST" as const, body: payload };
 }
 
-export async function updateBusiness(
+export function updateBusiness(
   id: string,
   payload: Partial<Omit<Business, "id" | "user_id" | "created_at" | "updated_at">>
 ) {
   return { endpoint: `/business/update/${id}`, method: "PUT", body: payload };
 }
 
-export async function deleteBusiness(id: string) {
+export function deleteBusiness(id: string) {
   return { endpoint: `/business/delete/${id}`, method: "DELETE" };
 }
 
-export async function readBusinessById(id: string) {
+export function readBusinessById(id: string) {
   return generateUrl(`/business/read/by-id/${id}`);
 }
 

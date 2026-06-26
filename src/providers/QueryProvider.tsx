@@ -7,8 +7,8 @@ import { ReactNode, useState } from "react";
 
 export interface MutationVariables {
   endpoint: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  body: unknown;
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  body?: unknown;
 }
 
 
@@ -29,8 +29,17 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
             },
             mutations: {
               mutationFn: (variables: unknown) => {
-                const { endpoint, method, body } = variables as MutationVariables
-                return apiFetch(endpoint, { method: method || "POST", body })
+                if (!variables || typeof variables !== "object") {
+                  throw new Error("Invalid variables");
+                }
+
+                const v = variables as Partial<MutationVariables>;
+                if (!v.endpoint || typeof v.endpoint !== "string") {
+                  throw new Error("Invalid mutation endpoint");
+                }
+
+                const method = (v.method ?? "POST") as MutationVariables["method"];
+                return apiFetch(v.endpoint, { method, body: v.body });
               },
             },
           },

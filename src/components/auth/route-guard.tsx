@@ -34,7 +34,7 @@ export function RouteGuard({
   requireOwner = false,
   redirectTo,
 }: RouteGuardProps) {
-  const { token, decodedToken, context, isLoading } = useAuth();
+  const { session, context, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -42,7 +42,7 @@ export function RouteGuard({
     if (isLoading) return;
 
     // Check authentication
-    if (requireAuth && !token) {
+    if (requireAuth && !session) {
       router.push(redirectTo || "/login");
       return;
     }
@@ -73,13 +73,14 @@ export function RouteGuard({
     if (
       requireAuth &&
       context === "BUSINESS" &&
-      decodedToken &&
-      decodedToken.ctx === "BUSINESS"
+      session &&
+      session.context === "BUSINESS" &&
+      session.business
     ) {
       // Check required privileges
       if (requiredPrivileges.length > 0) {
         const hasAllPrivileges = requiredPrivileges.every((privilege) =>
-          decodedToken.business.privileges.includes(privilege)
+          session.business!.privileges.includes(privilege)
         );
         if (!hasAllPrivileges) {
           router.push("/seller/dashboard"); // Or appropriate error page
@@ -88,16 +89,16 @@ export function RouteGuard({
       }
 
       // Check owner requirement
-      if (requireOwner && !decodedToken.business.is_owner) {
+      if (requireOwner && !session.business.is_owner) {
         router.push("/seller/dashboard"); // Or appropriate error page
         return;
       }
     }
   }, [
     isLoading,
-    token,
+    session,
     context,
-    decodedToken,
+    session,
     requireAuth,
     requiredContext,
     requiredPrivileges,
@@ -117,7 +118,7 @@ export function RouteGuard({
   }
 
   // Show nothing while redirecting
-  if (requireAuth && !token) {
+  if (requireAuth && !session) {
     return null;
   }
 
@@ -142,19 +143,19 @@ export function RouteGuard({
   if (
     requireAuth &&
     context === "BUSINESS" &&
-    decodedToken &&
-    decodedToken.ctx === "BUSINESS"
+    session?.context === "BUSINESS" &&
+    session.business
   ) {
     if (requiredPrivileges.length > 0) {
       const hasAllPrivileges = requiredPrivileges.every((privilege) =>
-        decodedToken.business.privileges.includes(privilege)
+        session.business!.privileges.includes(privilege)
       );
       if (!hasAllPrivileges) {
         return null;
       }
     }
 
-    if (requireOwner && !decodedToken.business.is_owner) {
+    if (requireOwner && !session.business.is_owner) {
       return null;
     }
   }

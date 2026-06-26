@@ -1,30 +1,24 @@
-"use client"
+"use client";
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Login, LoginResponse, login, platformLogin, switchContext } from "@/lib/api/auth";
-import { useMutation } from "@tanstack/react-query";
 import { FieldValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { setCookie } from "@/lib/cookies";
 import { useAuth } from "@/lib/auth/context";
 import { readBusinessByUserId } from "@/lib/api/business";
 import { apiFetch } from "@/lib/api";
 
 export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
   const router = useRouter();
-  const { setToken, token, decodedToken } = useAuth();
-  const mutation = useMutation<LoginResponse, Error, any>({})
+  const { session, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();
-  const api = isPlatform ? platformLogin : login;
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (token) {
-      switch (decodedToken?.ctx) {
+    if (session) {
+      switch (session?.context) {
         case "BUSINESS": {
           router.push("/seller/dashboard");
           break;
@@ -38,68 +32,64 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
         }
       }
     }
-  }, [token, decodedToken, router]);
+  }, [session, router]);
 
   const handleLogin = async (data: FieldValues) => {
     try {
-      const response = await mutation.mutateAsync(
-        api(data as Login)
-      );
-      
-      // Store user data and token
-      if (response.data && response.token) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        
-        // Set token in auth context (this will also update localStorage and validate)
-        setToken(response.token);
-        
-        // Set auth header cookie for API requests
-        setCookie("authHeader", response.token, 7);
+      const authPath = isPlatform ? "/api/auth/platform-login" : "/api/auth/login";
+      const res = await fetch(authPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email, password: data.password }),
+        credentials: "include",
+      });
+      const response = await res.json();
 
-        if (isPlatform) {
-          return;
-        }
-        
-        // Check if user has a business and auto-switch to BUSINESS context
-        try {
-          const businessUrl = readBusinessByUserId();
-          const businessResponse = await apiFetch<{ status_code: number; data: { id: string; name: string } | null }>(
-            businessUrl
-          );
-          
-          if (businessResponse.data) {
-            // User has a business, switch to BUSINESS context
-            const { endpoint, method, body } = switchContext("BUSINESS");
-            const switchResponse = await apiFetch<{ status_code: number; message: string; token: string }>(
-              endpoint,
-              { method: method as "POST", body }
-            );
-            
-            if (switchResponse.token) {
-              // Update token in auth context
-              setToken(switchResponse.token);
-              
-              // Update cookie
-              setCookie("authHeader", switchResponse.token, 7);
-              
-              toast.success("Login successful! Switched to Business context.");
-              router.push("/seller/dashboard");
-              return;
-            }
-          }
-        } catch (businessError) {
-          // If business check fails, continue with CUSTOMER context
-          console.log("Error checking business:", businessError);
-        }
-        
-        // Show success message
-        toast.success("Login successful!");
+      if (!res.ok) {
+        toast.error(response.detail ?? "Login failed");
+        return;
       }
+
+      if (response.data) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+      await refreshSession();
+
+      if (isPlatform) {
+        toast.success("Login successful!");
+        router.push("/admin/books");
+        return;
+      }
+
+      try {
+        const businessResponse = await apiFetch<{ data: { id: string; name: string } | null }>(
+          "/business/read/by-user-id"
+        );
+        if (businessResponse.data) {
+          const switchRes = await fetch("/api/auth/context-switch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ target_context: "BUSINESS" }),
+            credentials: "include",
+          });
+          if (switchRes.ok) {
+            await refreshSession();
+            toast.success("Login successful! Switched to Business context.");
+            router.push("/seller/dashboard");
+            return;
+          }
+        }
+      } catch {
+        // continue with CUSTOMER context
+      }
+
+      toast.success("Login successful!");
+      router.push("/");
     } catch (error) {
-      // Error toast is already handled by the API client
       console.error("Login failed:", error);
+      toast.error("Login failed");
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(handleLogin)}>

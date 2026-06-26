@@ -1,8 +1,20 @@
 import { GetServerSidePropsContext, GetStaticPropsContext } from "next";
-import { getCookie } from "../cookies";
+import { getCookie, AUTH_COOKIE_NAME } from "../cookies";
 import { toast } from "sonner";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+
+/** Thrown by apiFetch on non-OK or parse failure. Callers can check err.status (undefined for network/parse errors). */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number
+  ) {
+    super(message);
+    this.name = "ApiError";
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -15,10 +27,47 @@ export interface Options {
   redirect?: "error" | "follow" | "manual";
 }
 
-export function getAuthHeader(context?: Options["context"]) {
+export function getAuthToken(context?: Options["context"]) {
   return (
-    getCookie("authHeader", context?.req?.headers.cookie ?? undefined) || ""
+    getCookie(AUTH_COOKIE_NAME, context?.req?.headers.cookie ?? undefined) || ""
   );
+}
+
+/**
+ * Client: uses /api/proxy with credentials (HttpOnly cookie sent automatically).
+ * Paths starting with /api/ are same-origin and used as-is (e.g. /api/business/create).
+ * Server (SSR with context): calls backend directly with token from cookie.
+ */
+function getFetchUrl(
+  path: string,
+  query?: Record<string, string | number | undefined | null>,
+  context?: Options["context"]
+): string {
+  const isClient = typeof window !== "undefined";
+  const useProxy = isClient && !context;
+  const pathStr = path.startsWith("/") ? path.slice(1) : path;
+  if (useProxy) {
+    const search = query
+      ? "?" +
+        Object.entries(query)
+          .filter(([, v]) => v !== undefined && v !== null && v !== "")
+          .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+          .join("&")
+      : "";
+    if (pathStr.startsWith("api/")) {
+      return `/${pathStr}${search}`;
+    }
+    return `/api/proxy/${pathStr}${search}`;
+  }
+  const url = new URL(`${API_BASE_URL}/${pathStr}`);
+  if (query) {
+    Object.entries(query).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") {
+        url.searchParams.set(k, String(v));
+      }
+    });
+  }
+  return url.href;
 }
 
 export async function apiFetch<T>(
@@ -28,30 +77,46 @@ export async function apiFetch<T>(
     body?: unknown;
     headers?: Record<string, string>;
     query?: Record<string, string | number | undefined | null>;
+    context?: Options["context"];
   } = {},
 ): Promise<T> {
-  const { method = "GET", body, headers, query } = options;
-  const url = (query || !path.includes("http")) ? generateUrl(path, query) : path;
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...{ Authorization: `Bearer ${getAuthHeader()}` },
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-    next: { revalidate: 0 },
-  });
+  const { method = "GET", body, headers, query, context } = options;
+  const url = path.includes("http") ? path : getFetchUrl(path, query, context);
+  const isClient = typeof window !== "undefined";
+  const useProxy = isClient && !context;
+  const token = useProxy ? null : getAuthToken(context);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+      credentials: useProxy ? "include" : "same-origin",
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+      ...(context ? { next: { revalidate: 0 } } : {}),
+    });
+  } catch (err) {
+    if (isClient) {
+      toast.error("Network error. Please check your connection and try again.");
+    }
+    throw new ApiError(
+      err instanceof Error ? err.message : "Network error",
+      undefined
+    );
+  }
 
   if (!res.ok) {
     // Handle 401 Unauthorized (token expired/invalid) - do this first
-    if (res.status === 401 && typeof window !== "undefined") {
-      // Import logout dynamically to avoid circular dependencies
+    if (res.status === 401 && isClient) {
       const { logout } = await import("../auth/logout");
       toast.error("Your session has expired. Please log in again.");
       logout();
-      throw new Error("Session expired");
+      throw new ApiError("Session expired", 401);
     }
 
     // Parse error message for other errors
@@ -96,11 +161,11 @@ export async function apiFetch<T>(
       errorMessage = `Request failed: ${res.status}`;
     }
 
-    if (typeof window !== "undefined") {
+    if (isClient) {
       toast.error(errorMessage);
     }
 
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, res.status);
   }
 
   // For successful responses, handle empty bodies (e.g., 201 Created)
@@ -112,22 +177,17 @@ export async function apiFetch<T>(
   try {
     return JSON.parse(text) as T;
   } catch {
-    throw new Error("Invalid JSON response from server");
+    if (isClient) {
+      toast.error("Invalid response from server.");
+    }
+    throw new ApiError("Invalid JSON response from server", res.status);
   }
 }
 
 export function generateUrl(
   path: string,
   query?: Record<string, string | number | undefined | null>,
+  context?: Options["context"],
 ) {
-  const url = new URL(`${API_BASE_URL}${path}`);
-  if (query) {
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        url.searchParams.set(key, String(value));
-      }
-    });
-  }
-
-  return url.href;
+  return getFetchUrl(path, query, context);
 }

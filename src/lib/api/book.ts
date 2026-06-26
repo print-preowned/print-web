@@ -24,17 +24,24 @@ export function readBooks(params?: ReadParams) {
   return url;
 }
 
-export async function createBook(payload: {
+export type BookCreatePayload = {
   title: string;
-  image: string;
   synopsis: string;
-}) {
+  image?: string;
+  author_ids?: string[];
+  genre_ids?: string[];
+};
+
+export function createBook(payload: BookCreatePayload) {
   return { endpoint: "/book/create", method: "POST" as const, body: payload };
 }
 
-export async function updateBook(
+export function updateBook(
   id: string,
-  payload: Partial<Omit<Book, "id" | "created_at" | "updated_at">>
+  payload: Partial<Omit<Book, "id" | "created_at" | "updated_at" | "authors" | "genres">> & {
+    author_ids?: string[];
+    genre_ids?: string[];
+  },
 ) {
   return { endpoint: `/book/update/${id}`, method: "PUT" as const, body: payload };
 }

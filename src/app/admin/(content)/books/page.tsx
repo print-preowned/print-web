@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
-import {
-  DataTable,
-  DataTableRef,
-  DrawerContentType,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
+import { AdminBookForm } from "@/app/admin/(content)/books/form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Book, deleteBook, readBooks } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
@@ -26,6 +24,7 @@ import { useMutation } from "@tanstack/react-query";
 import { BulkUpload } from "@/components/bulk-upload";
 import { parseCSV } from "@/lib/utils/csv";
 import { createBook } from "@/lib/api/book";
+
 type BookCSVRow = {
   title: string;
   image: string;
@@ -35,7 +34,7 @@ type BookCSVRow = {
 
 export default function AdminBooksPage() {
   const queryClient = useQueryClient();
-  const dataTableRef = useRef<DataTableRef>(null);
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
 
   const {
@@ -127,7 +126,7 @@ export default function AdminBooksPage() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -142,10 +141,16 @@ export default function AdminBooksPage() {
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuItem
               onClick={() =>
-                table.options.meta?.onDrawerChange?.(
-                  DrawerContentType.AdminBookForm,
-                  row.original,
-                )
+                openDrawer({
+                  title: "Edit Book",
+                  description: "Update book details",
+                  children: (
+                    <AdminBookForm
+                      book={row.original}
+                      onSuccess={closeDrawer}
+                    />
+                  ),
+                })
               }
             >
               Edit
@@ -181,10 +186,11 @@ export default function AdminBooksPage() {
           <div className="flex gap-2 mb-4">
             <Button
               onClick={() =>
-                dataTableRef.current?.openDrawer(
-                  DrawerContentType.AdminBookForm,
-                  undefined,
-                )
+                openDrawer({
+                  title: "Create Book",
+                  description: "Add a new book",
+                  children: <AdminBookForm onSuccess={closeDrawer} />,
+                })
               }
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -273,7 +279,6 @@ export default function AdminBooksPage() {
         <div className="text-center py-8">Loading...</div>
       ) : (
         <DataTable
-          ref={dataTableRef}
           columns={columns}
           meta={{
             onDelete: (id: string) => deleteMutation.mutate(id),
@@ -286,6 +291,7 @@ export default function AdminBooksPage() {
           isLoading={isLoading}
         />
       )}
+      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BusinessForm } from "@/app/seller/businesses/form";
+import { CreateBusinessForm } from "@/components/businesses/create-form";
 import { useAuth } from "@/lib/auth/context";
 
 export function CreateBusinessSection() {
@@ -51,7 +51,7 @@ export function CreateBusinessSection() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <BusinessForm 
+        <CreateBusinessForm
           onCancel={() => setIsCreating(false)}
           submitLabel="Create Business"
         />

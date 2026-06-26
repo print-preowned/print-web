@@ -23,8 +23,14 @@ export function createBookAuthor(payload: { book_id: string; author_id: string }
   };
 }
 
-export function deleteBookAuthor(id: string) {
-  return { endpoint: `/book-author/delete/${id}`, method: "DELETE" as const };
+export function deleteBookAuthor(payload: {
+  book_id: string;
+  author_id: string;
+}) {
+  return {
+    endpoint: `/book-author/delete/by-book/${payload.book_id}/author/${payload.author_id}`,
+    method: "DELETE" as const,
+  };
 }
 
 export function readBookAuthorByBook(bookId: string) {

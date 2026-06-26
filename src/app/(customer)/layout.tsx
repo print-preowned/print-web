@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Header } from "@/app/(customer)/header";
+import { Header } from "@/app/(customer)/header/index";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (

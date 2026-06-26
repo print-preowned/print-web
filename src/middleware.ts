@@ -6,10 +6,10 @@ import {
   isPublicRoute,
   requiresAuth,
 } from "./lib/auth/routes";
+import { getJwtSecretKey } from "./lib/auth/jwt-secret";
+import { AUTH_COOKIE_NAME } from "./lib/auth/server-cookie";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "secret"
-);
+const JWT_SECRET = getJwtSecretKey();
 const JWT_AUDIENCE = "print-web";
 
 type PayloadContext = "CUSTOMER" | "BUSINESS" | "PLATFORM";
@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const config = getRouteConfig(pathname) ?? undefined;
-  const token = request.cookies.get("authHeader")?.value;
+  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
   if (requiresAuth(pathname) && !token) {
     return redirectToLogin(
@@ -108,9 +108,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
 
-  // Seller routes: require BUSINESS context
-  if (config.requiredContext === "BUSINESS" && ctx !== "BUSINESS") {
-    const redirectTo = config.redirectTo ?? "/login";
+  // Seller/Customer routes: require BUSINESS/CUSTOMER context
+  if (config.requiredContext && config.requiredContext !== ctx) {
+    const redirectTo = config.redirectTo ?? (config.requiredContext === "BUSINESS" ? "/" : "/seller/dashboard");
     const url = new URL(redirectTo, request.url);
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);

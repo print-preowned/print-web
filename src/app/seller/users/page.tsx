@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import {
-  DataTable,
-  DrawerContentType,
-  TableCellViewer,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer, type DrawerConfig } from "@/components/form-drawer";
+import { UserForm } from "@/app/seller/users/form";
 import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
@@ -55,9 +53,7 @@ export default function UsersPage() {
   const [data, setData] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const query = useQuery({ queryKey: ["/user/read"] });
-  
-  const [drawerContent, setDrawerContent] = useState<DrawerContentType | null>(null);
-  const [drawerData, setDrawerData] = useState<any>(null);
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
 
   async function load() {
     setLoading(true);
@@ -118,34 +114,40 @@ export default function UsersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleDrawerChange(contentType: DrawerContentType, contentData: any) {
-    setDrawerContent(contentType);
-    setDrawerData(contentData);
-  }
-
   async function onDelete(id: string) {
     setData((prev) => prev.filter((u) => u.id !== id));
   }
+
+  const columns = createColumns({ openDrawer, closeDrawer, onDelete });
 
   return (
     <div>
       <DataTable
         data={data.map((d) => schema.parse({ ...d, role: "admin" }))}
         columns={columns}
-        meta={{ 
-          onDelete,
-          onDrawerChange: handleDrawerChange,
-        }}
+        meta={{ onDelete }}
+        isLoading={loading}
+        totalPages={1}
+        pageIndex={0}
+        pageSize={10}
+        onPaginationChange={() => {}}
       >
         <div className="flex mb-4">
-          <Button 
-            onClick={() => handleDrawerChange(DrawerContentType.UserForm, undefined)}
+          <Button
+            onClick={() =>
+              openDrawer({
+                title: "User Form",
+                description: "Add user details",
+                children: <UserForm user={undefined} />,
+              })
+            }
           >
             <PlusCircleIcon className="size-4" />
             Add User
           </Button>
         </div>
       </DataTable>
+      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }
@@ -161,7 +163,16 @@ export const schema = z.object({
   status: z.string(),
 });
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
+function createColumns({
+  openDrawer,
+  closeDrawer,
+  onDelete,
+}: {
+  openDrawer: (config: DrawerConfig) => void;
+  closeDrawer: () => void;
+  onDelete: (id: string) => void;
+}): ColumnDef<z.infer<typeof schema>>[] {
+  return [
   {
     id: "select",
     header: ({ table }) => (
@@ -231,7 +242,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     id: "actions",
-    cell: ({ row, table }) => (
+    cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -246,10 +257,11 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         <DropdownMenuContent align="end" className="w-32">
           <DropdownMenuItem
             onClick={() =>
-              table.options.meta?.onDrawerChange?.(
-                DrawerContentType.UserForm,
-                row.original
-              )
+              openDrawer({
+                title: "User Form",
+                description: "Edit user details",
+                children: <UserForm user={row.original} />,
+              })
             }
           >
             Edit
@@ -257,7 +269,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => table.options.meta?.onDelete?.(row.original.id)}
+            onClick={() => onDelete(row.original.id)}
           >
             Delete
           </DropdownMenuItem>
@@ -266,4 +278,5 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
     enableHiding: false,
   },
-];
+  ];
+}

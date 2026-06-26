@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { DataTable, DrawerContentType } from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 export function BusinessesTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const isOwner = useIsOwner();
 
   const query = useQuery({
@@ -94,7 +96,7 @@ export function BusinessesTable() {
     },
     {
       id: "actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end" size="icon">
@@ -106,10 +108,11 @@ export function BusinessesTable() {
             {isOwner && (
               <DropdownMenuItem
                 onClick={() =>
-                  table.options.meta?.onDrawerChange?.(
-                    DrawerContentType.BusinessForm,
-                    row.original
-                  )
+                  openDrawer({
+                    title: "Business Form",
+                    description: "Edit business details",
+                    children: <BusinessForm business={row.original} />,
+                  })
                 }
               >
                 Edit
@@ -144,22 +147,35 @@ export function BusinessesTable() {
         columns={columns}
         meta={{
           onDelete: isOwner ? (id: string) => deleteMutation.mutate(id) : undefined,
-          onDrawerChange: (contentType: DrawerContentType, contentData: any) => {
-            // Handle drawer open
-          },
+        }}
+        isLoading={query.isLoading}
+        totalPages={1}
+        pageIndex={page - 1}
+        pageSize={10}
+        onPaginationChange={(updater) => {
+          const next =
+            typeof updater === "function"
+              ? updater({ pageIndex: page - 1, pageSize: 10 })
+              : updater;
+          setPage(next.pageIndex + 1);
         }}
       >
         <div className="flex mb-4">
           <Button
-            onClick={() => {
-              // Handle create
-            }}
+            onClick={() =>
+              openDrawer({
+                title: "Business Form",
+                description: "Add a new business",
+                children: <BusinessForm />,
+              })
+            }
           >
             <PlusCircleIcon className="size-4" />
             Add Business
           </Button>
         </div>
       </DataTable>
+      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

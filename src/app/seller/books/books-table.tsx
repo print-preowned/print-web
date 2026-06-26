@@ -1,13 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  DataTable,
-  DataTableRef,
-  DrawerContentType,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
+import { BusinessBookForm } from "@/app/seller/books/business-book-form";
+import { AddBookToCatalogForm } from "@/app/seller/books/add-to-catalog-form";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   DropdownMenu,
@@ -17,33 +16,37 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
-import {
-  BusinessBook,
-  readBusinessBooks,
-  deleteBusinessBook,
-} from "@/lib/api/business-book";
+import { BusinessBook, deleteBusinessBook } from "@/lib/api/business-book";
 import { apiFetch } from "@/lib/api";
 import { useBusinessId } from "@/lib/auth/context";
-import usePagination from "@/lib/pagination/usePagination";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+ 
+export interface BooksTableProps {
+  selectedIds: Set<string>;
+  onSelectId: (ids: Set<string>) => void;
+  books: BusinessBook[];
+  isLoading: boolean;
+  pagination: { pageIndex: number; pageSize: number };
+  setPagination: React.Dispatch<
+    React.SetStateAction<{ pageIndex: number; pageSize: number }>
+  >;
+  totalPages: number;
+}
 
-export function BooksTable() {
-  const dataTableRef = useRef<DataTableRef>(null);
+export function BooksTable({
+  selectedIds,
+  onSelectId: setSelectedIds,
+  books: catalog,
+  isLoading,
+  pagination,
+  setPagination,
+  totalPages,
+}: BooksTableProps) {
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const businessId = useBusinessId();
   const queryClient = useQueryClient();
-
-  const {
-    data: catalog,
-    isLoading,
-    pagination,
-    setPagination,
-    totalPages,
-  } = usePagination<BusinessBook>({
-    queryKey: ["business-books"],
-    getUrl: ({ page, size }) => readBusinessBooks({ page, size }),
-    initialPageSize: 10,
-  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -57,7 +60,57 @@ export function BooksTable() {
     onError: (e: Error) => toast.error(e.message || "Failed to remove"),
   });
 
+  const toggleRow = useCallback(
+    (id: string) => {
+      const next = new Set(selectedIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setSelectedIds(next);
+    },
+    [selectedIds, setSelectedIds]
+  );
+
+  const toggleAllOnPage = useCallback(
+    (books: BusinessBook[]) => {
+      const next = new Set(selectedIds);
+      const pageIds = new Set(books.map((b) => b.id));
+      const allSelected =
+        books.length > 0 && books.every((b) => next.has(b.id));
+      if (allSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      setSelectedIds(next);
+    },
+    [selectedIds, setSelectedIds]
+  );
+
+
   const columns: ColumnDef<BusinessBook>[] = [
+    {
+      id: "select",
+      header: ({ table }) => {
+        const booksOnPage = table.getRowModel().rows.map((r) => r.original);
+        const allSelected =
+          booksOnPage.length > 0 &&
+          booksOnPage.every((b) => selectedIds.has(b.id));
+        const someSelected = booksOnPage.some((b) => selectedIds.has(b.id));
+        return (
+          <Checkbox
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={() => toggleAllOnPage(booksOnPage)}
+            aria-label="Select all on page"
+          />
+        );
+      },
+      cell: ({ row }) => (
+        <Checkbox
+          checked={selectedIds.has(row.original.id)}
+          onCheckedChange={() => toggleRow(row.original.id)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "book_title",
       header: "Book",
@@ -88,7 +141,7 @@ export function BooksTable() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -103,10 +156,16 @@ export function BooksTable() {
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem
               onClick={() =>
-                table.options.meta?.onDrawerChange?.(
-                  DrawerContentType.BusinessBookForm,
-                  row.original
-                )
+                openDrawer({
+                  title: "Edit listing",
+                  description: "Update your catalog listing for this book",
+                  children: (
+                    <BusinessBookForm
+                      businessBook={row.original}
+                      onSuccess={closeDrawer}
+                    />
+                  ),
+                })
               }
             >
               Edit listing
@@ -140,8 +199,8 @@ export function BooksTable() {
   }
 
   return (
+    <>
     <DataTable
-      ref={dataTableRef}
       data={catalog}
       columns={columns}
       totalPages={totalPages}
@@ -153,7 +212,11 @@ export function BooksTable() {
       <div className="flex mb-4">
         <Button
           onClick={() =>
-            dataTableRef.current?.openDrawer(DrawerContentType.AddBookToCatalog)
+            openDrawer({
+              title: "Add to catalog",
+              description: "Search books or create a provisional one",
+              children: <AddBookToCatalogForm onSuccess={closeDrawer} />,
+            })
           }
         >
           <PlusCircleIcon className="size-4 mr-2" />
@@ -161,5 +224,7 @@ export function BooksTable() {
         </Button>
       </div>
     </DataTable>
+    {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
+    </>
   );
 }

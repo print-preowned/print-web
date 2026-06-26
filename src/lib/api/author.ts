@@ -29,7 +29,7 @@ export function createAuthor(payload: {
   status?: string;
 }) {
   // Note: Backend controller uses GET for create (should be POST), but we'll use POST for consistency
-  return { endpoint: "/author/create", method: "POST", body: payload };
+  return { endpoint: "/author/create", method: "POST" as const, body: payload };
 }
 
 export function updateAuthor(

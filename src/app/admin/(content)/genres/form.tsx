@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,10 +16,7 @@ import {
 import { createGenre, updateGenre, Genre } from "@/lib/api/genre";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import {
-  DrawerClose,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import { useDrawerFooter } from "@/components/form-drawer";
 
 type GenreFormProps = {
   genre?: Genre;
@@ -102,8 +98,19 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
+  useDrawerFooter({
+    formId: "admin-genre-form",
+    submitLabel: isEditing ? "Update Genre" : "Create Genre",
+    loadingLabel: isEditing ? "Updating..." : "Creating...",
+    isLoading,
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <form
+      id="admin-genre-form"
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-3">
         <Label htmlFor="name">Name *</Label>
         <Input
@@ -140,23 +147,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
           </SelectContent>
         </Select>
       </div>
-
-      <DrawerFooter className="pt-4">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading
-            ? isEditing
-              ? "Updating..."
-              : "Creating..."
-            : isEditing
-            ? "Update Genre"
-            : "Create Genre"}
-        </Button>
-        <DrawerClose asChild>
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
-        </DrawerClose>
-      </DrawerFooter>
     </form>
   );
 }

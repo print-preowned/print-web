@@ -2,112 +2,74 @@
 
 /**
  * Context management following PRINT Authorization & Context Model
- * 
+ *
  * Rules:
  * - Single active context (CUSTOMER or BUSINESS)
- * - Token-based hydration
+ * - Token-based hydration (token stored HttpOnly cookie, never exposed to client)
  * - No mixed UI contexts
  * - No authority inference
  */
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { AccessToken, TokenContext, decodeToken, getTokenContext } from "./token";
-import { getCookie } from "../cookies";
+import { Session, TokenContext } from "./token";
 
 interface AuthContextValue {
-  token: string | null;
-  decodedToken: AccessToken | null;
+  session: Session | null;
   context: TokenContext | null;
   isLoading: boolean;
-  setToken: (token: string | null) => void;
+  setSession: (session: Session | null) => void;
   clearAuth: () => void;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(null);
-  const [decodedToken, setDecodedToken] = useState<AccessToken | null>(null);
+  const [session, setSessionState] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
-  // Hydrate from cookie on mount
+  const refreshSession = async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (res.ok) {
+        const { session: nextSession } = (await res.json()) as { session: Session };
+        setSessionState(nextSession ?? null);
+      } else {
+        setSessionState(null);
+      }
+    } catch {
+      setSessionState(null);
+    }
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") {
       setIsLoading(false);
       return;
     }
-
-    const cookieToken = getCookie("authHeader");
-    const storageToken = localStorage.getItem("token");
-
-    // Prefer cookie token, fallback to localStorage
-    const initialToken = cookieToken || storageToken;
-
-    if (initialToken) {
-      const decoded = decodeToken(initialToken);
-      if (decoded) {
-        // Check if token is expired
-        const now = Math.floor(Date.now() / 1000);
-        if (decoded.exp && decoded.exp < now) {
-          // Token expired, clear auth and redirect to appropriate login
-          const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-          const isAdminRoute = currentPath.startsWith("/admin");
-          clearAuth();
-          if (typeof window !== "undefined") {
-            window.location.href = isAdminRoute ? "/admin/login" : "/login";
-          }
-        } else {
-          setTokenState(initialToken);
-          setDecodedToken(decoded);
-          // Sync to localStorage
-          if (storageToken !== initialToken) {
-            localStorage.setItem("token", initialToken);
-          }
-        }
-      } else {
-        // Invalid token, clear everything
-        clearAuth();
-      }
-    }
-    setIsLoading(false);
+    refreshSession().finally(() => setIsLoading(false));
   }, []);
 
-  const setToken = (newToken: string | null) => {
-    if (newToken) {
-      const decoded = decodeToken(newToken);
-      if (decoded) {
-        setTokenState(newToken);
-        setDecodedToken(decoded);
-        localStorage.setItem("token", newToken);
-      } else {
-        console.error("Invalid token provided");
-        clearAuth();
-      }
-    } else {
-      clearAuth();
-    }
+  const setSession = (nextSession: Session | null) => {
+    setSessionState(nextSession ?? null);
   };
 
   const clearAuth = () => {
-    setTokenState(null);
-    setDecodedToken(null);
-    localStorage.removeItem("token");
+    setSessionState(null);
     localStorage.removeItem("user");
-    // Clear cookie by setting it to expire
-    document.cookie = "authHeader=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+    fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
   };
 
-  const context = decodedToken?.ctx || null;
+  const context = session?.context ?? null;
 
   const value: AuthContextValue = {
-    token,
-    decodedToken,
+    session,
     context,
     isLoading,
-    setToken,
+    setSession,
     clearAuth,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -125,32 +87,32 @@ export function useAuth() {
  * Hook to check if user has a specific privilege (BUSINESS context only)
  */
 export function usePrivilege(privilege: string): boolean {
-  const { decodedToken } = useAuth();
-  if (!decodedToken || decodedToken.ctx !== "BUSINESS") {
+  const { session } = useAuth();
+  if (!session || session.context !== "BUSINESS" || !session.business) {
     return false;
   }
-  return decodedToken.business.privileges.includes(privilege);
+  return session.business.privileges.includes(privilege);
 }
 
 /**
  * Hook to check if user is owner (BUSINESS context only)
  */
 export function useIsOwner(): boolean {
-  const { decodedToken } = useAuth();
-  if (!decodedToken || decodedToken.ctx !== "BUSINESS") {
+  const { session } = useAuth();
+  if (!session || session.context !== "BUSINESS" || !session.business) {
     return false;
   }
-  return decodedToken.business.is_owner;
+  return session.business.is_owner;
 }
 
 /**
  * Hook to get current business ID (BUSINESS context only)
  */
 export function useBusinessId(): string | null {
-  const { decodedToken } = useAuth();
-  if (!decodedToken || decodedToken.ctx !== "BUSINESS") {
+  const { session } = useAuth();
+  if (!session || session.context !== "BUSINESS" || !session.business) {
     return null;
   }
-  return decodedToken.business.id;
+  return session.business.id;
 }
 

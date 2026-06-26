@@ -1,176 +1,198 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Book, readBooks, createBook } from "@/lib/api/book";
-import {
-  createBusinessBook,
-  readBusinessBooks,
-} from "@/lib/api/business-book";
+import { createBusinessBook } from "@/lib/api/business-book";
 import { apiFetch } from "@/lib/api";
+import { PaginatedResponse } from "@/lib/api/user";
 import { toast } from "sonner";
+import { PlusCircle } from "lucide-react";
+import { CreateBookForm, CreateBookFormValues } from "@/components/books/create-book-form";
+import { useAppMutation } from "@/lib/hooks/useAppMutation";
 
 export function AddBookToCatalogForm({ onSuccess }: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [searchTrigger, setSearchTrigger] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newImage, setNewImage] = useState("");
-  const [newSynopsis, setNewSynopsis] = useState("");
+  const [createTitle, setCreateTitle] = useState("");
+  const { mutateAsync, isPending } = useAppMutation<{ id: string }>();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { data: searchResult, isFetching: searchLoading } = useQuery({
-    queryKey: ["books-search", searchTrigger, search],
-    queryFn: () => apiFetch(readBooks({ page: 1, size: 20, filter: { search } })),
-    enabled: searchTrigger > 0 && search.length >= 1,
+    queryKey: ["books-search", debouncedSearch],
+    queryFn: () =>
+      apiFetch<PaginatedResponse<Book>>(
+        readBooks({ page: 1, size: 20, filter: { search: debouncedSearch } }),
+      ),
+    enabled: debouncedSearch.length >= 1 && open,
   });
   const searchBooks: Book[] = searchResult?.data ?? [];
 
-  const addMutation = useMutation({
-    mutationFn: async (bookId: string) => {
-      const req = createBusinessBook({ book_id: bookId });
-      return apiFetch(req.endpoint, { method: req.method, body: req.body });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["business-books"] });
-      toast.success("Added to your catalog");
-      onSuccess?.();
-    },
-    onError: (e: Error) => toast.error(e.message || "Failed to add"),
-  });
+  const showDropdown = open && !showCreate;
+  const hasSearchQuery = debouncedSearch.length >= 1;
 
-  const createThenAddMutation = useMutation({
-    mutationFn: async () => {
+  const invalidateAndResetAfterAdd = () => {
+    queryClient.invalidateQueries({ queryKey: ["business-books"] });
+    toast.success("Added to your catalog");
+    setSearch("");
+    setDebouncedSearch("");
+    setOpen(false);
+    onSuccess?.();
+  };
+
+  const addToCatalog = async (bookId: string) => {
+    try {
+      const req = createBusinessBook({ book_id: bookId });
+      await mutateAsync({ endpoint: req.endpoint, body: req.body });
+      invalidateAndResetAfterAdd();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to add");
+    }
+  };
+
+  const openCreateForm = (title?: string) => {
+    setShowCreate(true);
+    setOpen(false);
+    setCreateTitle(title ?? "");
+  };
+
+  const handleCreateAndAdd = async ({
+    title,
+    image,
+    synopsis,
+    authorIds,
+    genreIds,
+  }: CreateBookFormValues) => {
+    try {
       const createReq = createBook({
-        title: newTitle,
-        image: newImage || "https://placehold.co/400",
-        synopsis: newSynopsis || newTitle,
+        title,
+        image,
+        synopsis,
+        author_ids: authorIds,
+        genre_ids: genreIds,
       });
-      const createRes = await apiFetch<{ id: string }>(createReq.endpoint, {
-        method: createReq.method,
+      const createRes = await mutateAsync({
+        endpoint: createReq.endpoint,
         body: createReq.body,
       });
-      const bookId = (createRes as { id?: string }).id;
-      if (!bookId) throw new Error("No book id returned");
-      const addReq = createBusinessBook({ book_id: bookId });
-      await apiFetch(addReq.endpoint, { method: addReq.method, body: addReq.body });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["business-books"] });
+      if (!createRes.id) throw new Error("No book id returned");
+      const addReq = createBusinessBook({ book_id: createRes.id });
+      await mutateAsync({
+        endpoint: addReq.endpoint,
+        body: addReq.body,
+      });
+      queryClient.invalidateQueries({ queryKey: ["books", "business-books"] });
       toast.success("Book created and added to your catalog");
       setShowCreate(false);
-      setNewTitle("");
-      setNewImage("");
-      setNewSynopsis("");
+      setCreateTitle("");
+      setSearch("");
+      setDebouncedSearch("");
+      setOpen(false);
       onSuccess?.();
-    },
-    onError: (e: Error) => toast.error(e.message || "Failed to create"),
-  });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 px-4 text-sm">
       <div className="space-y-2">
-        <Label>Search global books</Label>
-        <div className="flex gap-2">
+        <Label htmlFor="book-search">Search global books</Label>
+        <div className="relative">
           <Input
+            id="book-search"
+            role="combobox"
+            aria-expanded={showDropdown}
+            aria-autocomplete="list"
             placeholder="Title or keyword..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && setSearchTrigger((t) => t + 1)}
+            autoComplete="off"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => {
+              window.setTimeout(() => setOpen(false), 150);
+            }}
           />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setSearchTrigger((t) => t + 1)}
-          >
-            Search
-          </Button>
-        </div>
-        {searchLoading && <p className="text-muted-foreground text-xs">Searching…</p>}
-        {searchTrigger > 0 && !searchLoading && (
-          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded border p-2">
-            {searchBooks.length === 0 ? (
-              <li className="text-muted-foreground text-xs">No books found.</li>
-            ) : (
-              searchBooks.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex items-center justify-between gap-2 rounded py-1.5 text-xs"
-                >
-                  <span className="truncate font-medium">{b.title}</span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => addMutation.mutate(b.id)}
-                    disabled={addMutation.isPending}
-                  >
-                    Add to catalog
-                  </Button>
+          {showDropdown && (
+            <ul
+              role="listbox"
+              className="bg-popover text-popover-foreground absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border shadow-md"
+            >
+              {hasSearchQuery && searchLoading && (
+                <li className="text-muted-foreground px-3 py-2 text-xs">
+                  Searching…
                 </li>
-              ))
-            )}
-          </ul>
-        )}
+              )}
+              {hasSearchQuery &&
+                !searchLoading &&
+                searchBooks.map((b) => (
+                  <li key={b.id} role="option">
+                    <button
+                      type="button"
+                      className="hover:bg-accent flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => addToCatalog(b.id)}
+                      disabled={isPending}
+                    >
+                      <span className="truncate font-medium">{b.title}</span>
+                      <span className="text-muted-foreground shrink-0">
+                        Add to catalog
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              {hasSearchQuery && !searchLoading && searchBooks.length === 0 && (
+                <li className="text-muted-foreground px-3 py-2 text-xs">
+                  No books found.
+                </li>
+              )}
+              <li role="option" className="border-t">
+                <button
+                  type="button"
+                  className="hover:bg-accent text-primary flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() =>
+                    openCreateForm(hasSearchQuery ? debouncedSearch : undefined)
+                  }
+                >
+                  <PlusCircle className="size-3.5 shrink-0" />
+                  {hasSearchQuery
+                    ? `Create provisional book “${debouncedSearch}”`
+                    : "Create new provisional book"}
+                </button>
+              </li>
+            </ul>
+          )}
+        </div>
       </div>
 
-      <div className="border-t pt-4">
-        {!showCreate ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowCreate(true)}
-          >
-            Create new book (provisional) and add to catalog
-          </Button>
-        ) : (
-          <div className="space-y-3">
-            <Label>New provisional book</Label>
-            <Input
-              placeholder="Title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-            />
-            <Input
-              placeholder="Image URL (optional)"
-              type="url"
-              value={newImage}
-              onChange={(e) => setNewImage(e.target.value)}
-            />
-            <Textarea
-              placeholder="Synopsis"
-              value={newSynopsis}
-              onChange={(e) => setNewSynopsis(e.target.value)}
-              rows={2}
-            />
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                disabled={!newTitle.trim() || createThenAddMutation.isPending}
-                onClick={() => createThenAddMutation.mutate()}
-              >
-                {createThenAddMutation.isPending ? "Creating…" : "Create and add"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowCreate(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <p className="text-muted-foreground text-xs">
-        To request a merge or name change for a global book, contact the platform
-        admin. You can still create a provisional book and list it here.
-      </p>
+      {showCreate && (
+        <div className="border-t pt-4">
+          <CreateBookForm
+            defaultTitle={createTitle}
+            onSubmit={handleCreateAndAdd}
+            onCancel={() => {
+              setShowCreate(false);
+              setCreateTitle("");
+            }}
+            isPending={isPending}
+            submitLabel="Create and add"
+            sectionLabel="New provisional book"
+          />
+        </div>
+      )}
     </div>
   );
 }

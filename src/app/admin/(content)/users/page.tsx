@@ -1,11 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DataTable,
-  DataTableRef,
-} from "@/components/data-table";
+import { DataTable } from "@/components/data-table";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   PlatformUser,
@@ -46,7 +42,6 @@ import {
 
 export default function AdminPlatformUsersPage() {
   const queryClient = useQueryClient();
-  const dataTableRef = useRef<DataTableRef>(null);
 
   const {
     data: platformUsers,
@@ -166,8 +161,7 @@ export default function AdminPlatformUsersPage() {
   return (
     <div className="container mx-auto py-4 px-4 space-y-8">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Platform user accounts</h1>
+        <div className="flex items-center justify-end">
           <Button asChild>
             <Link href="/admin/users/invite">
               <UserPlus className="mr-2 h-4 w-4" />
@@ -182,7 +176,6 @@ export default function AdminPlatformUsersPage() {
           </div>
         ) : (
           <DataTable
-            ref={dataTableRef}
             columns={columns}
             data={platformUsers}
             totalPages={totalPages}

@@ -1,22 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/context";
-import { switchContext } from "@/lib/api/auth";
-import { apiFetch } from "@/lib/api";
-import { setCookie } from "@/lib/cookies";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" | "BUSINESS" }) {
-  const { context, setToken } = useAuth();
+  const { context, refreshSession } = useAuth();
   const [isSwitching, setIsSwitching] = useState(false);
   const router = useRouter();
 
@@ -29,26 +19,28 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
 
   const handleSwitchContext = async () => {
     if (isSwitching) return;
-    
+
     setIsSwitching(true);
     try {
-      const { endpoint, method, body } = switchContext(targetContext);
-      const response = await apiFetch<{ status_code: number; message: string; token: string }>(
-        endpoint,
-        { method: method as "POST", body }
-      );
+      const res = await fetch("/api/auth/context-switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_context: targetContext }),
+        credentials: "include",
+      });
+      const response = await res.json();
 
-      if (response.token) {
-        // Update token in auth context
-        setToken(response.token);
-        
-        // Update cookie
-        setCookie("authHeader", response.token, 7);
-        
+      if (res.ok) {
+        await refreshSession();
         toast.success(response.message || `Switched to ${targetContext} context`);
-        
-        // Refresh the page to update all components
-        router.refresh();
+        // MDC-CS-ROUTE-1: redirect after context switch so route/layout re-evaluates
+        if (targetContext === "BUSINESS") {
+          router.push("/seller/dashboard");
+        } else {
+          router.push("/");
+        }
+      } else {
+        toast.error(response.detail ?? "Failed to switch context");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to switch context");
