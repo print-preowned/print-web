@@ -17,6 +17,7 @@ type PayloadContext = "CUSTOMER" | "BUSINESS" | "PLATFORM";
 interface JWTPayload {
   ctx?: PayloadContext;
   exp?: number;
+  pwd_chg?: boolean;
   business?: { privileges?: string[]; is_owner?: boolean };
   privileges?: string[];
 }
@@ -99,6 +100,9 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (ctx !== "PLATFORM") {
       return redirectToLogin(pathname, request, true);
+    }
+    if (payload.pwd_chg === true && pathname !== "/admin/change-password") {
+      return NextResponse.redirect(new URL("/admin/change-password", request.url));
     }
     return NextResponse.next();
   }

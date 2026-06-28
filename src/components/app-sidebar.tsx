@@ -41,7 +41,7 @@ type Props = React.ComponentProps<typeof Sidebar> & {
 };
 
 export function AppSidebar({ data, ...props }: Props) {
-  const { user, navMain } = data;
+  const { user, navMain, accountHref } = data;
   const { state, toggleSidebar } = useSidebar();
 
   return (
@@ -65,7 +65,7 @@ export function AppSidebar({ data, ...props }: Props) {
         <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} accountHref="/seller/account" />
+        <NavUser user={user} accountHref={accountHref} />
       </SidebarFooter>
     </Sidebar>
   );

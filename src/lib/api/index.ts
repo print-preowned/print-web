@@ -2,7 +2,7 @@ import { GetServerSidePropsContext, GetStaticPropsContext } from "next";
 import { getCookie, AUTH_COOKIE_NAME } from "../cookies";
 import { toast } from "sonner";
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /** Thrown by apiFetch on non-OK or parse failure. Callers can check err.status (undefined for network/parse errors). */
 export class ApiError extends Error {

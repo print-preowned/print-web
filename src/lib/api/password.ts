@@ -51,6 +51,11 @@ export function completePasswordReset(payload: PasswordResetCompleteRequest) {
   };
 }
 
+export interface PasswordChangeResponse {
+  message: string;
+  token?: string;
+}
+
 export function changePassword(payload: PasswordChangeRequest) {
   return {
     endpoint: "/password-reset/change",

@@ -10,6 +10,11 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/context";
 import { readBusinessByUserId } from "@/lib/api/business";
 import { apiFetch } from "@/lib/api";
+import { Session } from "@/lib/auth/token";
+
+function platformRedirect(session: Session) {
+  return session.passwordChangeRequired ? "/admin/change-password" : "/admin/books";
+}
 
 export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
   const router = useRouter();
@@ -24,7 +29,7 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
           break;
         }
         case "PLATFORM": {
-          router.push("/admin/books");
+          router.push(platformRedirect(session));
           break;
         }
         default: {
@@ -53,11 +58,15 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
       if (response.data) {
         localStorage.setItem("user", JSON.stringify(response.data));
       }
-      await refreshSession();
+      const nextSession = await refreshSession();
 
       if (isPlatform) {
         toast.success("Login successful!");
-        router.push("/admin/books");
+        if (nextSession?.context === "PLATFORM") {
+          router.push(platformRedirect(nextSession));
+        } else {
+          router.push("/admin/books");
+        }
         return;
       }
 

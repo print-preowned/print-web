@@ -10,12 +10,14 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 
 interface AcceptInviteFormProps {
   token: string;
+  email: string | null;
 }
 
-export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
+export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
   const router = useRouter();
   const { handleSubmit, register, watch, formState: { errors } } = useForm();
   const { mutateAsync } = useMutation<any, any, any>({});
@@ -58,6 +60,19 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
   return (
     <form onSubmit={handleSubmit(handleAccept)}>
       <div className="grid gap-6">
+        {email && (
+          <div className="grid gap-3">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              readOnly
+              aria-readonly="true"
+              className="bg-muted"
+            />
+          </div>
+        )}
         <div className="grid gap-3">
           <Label htmlFor="first_name">First Name</Label>
           <Input
@@ -128,6 +143,15 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Creating Account..." : "Accept Invitation"}
         </Button>
+        <p className="text-center text-sm text-muted-foreground">
+          Not interested?{" "}
+          <Link
+            href={`/admin/invite/reject?token=${encodeURIComponent(token)}`}
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Decline invitation
+          </Link>
+        </p>
       </div>
     </form>
   );

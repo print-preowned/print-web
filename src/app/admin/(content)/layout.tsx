@@ -41,7 +41,7 @@ const sidebarData = {
       icon: IconUsers,
     },
   ],
-  accountHref: "admin/account",
+  accountHref: "/admin/account",
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <div className="container flex flex-col gap-4 py-4 px-8 mx-auto md:gap-6 md:py-6">
               {children}
             </div>
           </div>

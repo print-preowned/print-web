@@ -53,6 +53,7 @@ export default function usePagination<T>({
         }),
       ),
     placeholderData: (previousData) => previousData,
+    retry: false,
   });
 
   const data = response?.data ?? [];

@@ -10,6 +10,7 @@ export interface PlatformUser {
   /** Populated when reading platform users list */
   user_email?: string;
   user_name?: string;
+  platform_privilege_set_name?: string;
 }
 
 export interface PlatformPrivilegeSet {
@@ -25,10 +26,12 @@ export interface PlatformInvite {
   email: string;
   platform_privilege_set_id: string;
   expires_at: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "REVOKED";
   invited_by: string;
   created_at: string;
   accepted_at?: string;
+  /** Populated when reading platform invites list */
+  platform_privilege_set_name?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -46,13 +49,21 @@ export interface PaginatedResponse<T> {
 export interface CreateInviteRequest {
   email: string;
   platform_privilege_set_id: string;
-  expires_in_days?: number;
 }
 
 export interface CreateInviteResponse {
   invite_id: string;
-  token: string; // Only for development - should be sent via email
   expires_at: string;
+  message: string;
+}
+
+export interface ResendInviteRequest {
+  platform_privilege_set_id?: string;
+}
+
+export interface UpdatePlatformUserRequest {
+  platform_privilege_set_id?: string;
+  status?: string;
 }
 
 export interface ValidateInviteResponse {
@@ -96,6 +107,21 @@ export function createPlatformInvite(payload: CreateInviteRequest) {
     endpoint: "/platform-invite/create",
     method: "POST" as const,
     body: payload,
+  };
+}
+
+export function resendPlatformInvite(id: string, payload: ResendInviteRequest) {
+  return {
+    endpoint: `/platform-invite/${id}/resend`,
+    method: "PATCH" as const,
+    body: payload,
+  };
+}
+
+export function revokePlatformInvite(id: string) {
+  return {
+    endpoint: `/platform-invite/${id}/revoke`,
+    method: "POST" as const,
   };
 }
 
@@ -143,4 +169,12 @@ export function readPlatformInvites(params?: { page?: number; size?: number }) {
 
 export function deletePlatformUser(id: string) {
   return { endpoint: `/platform-user/${id}`, method: "DELETE" as const };
+}
+
+export function updatePlatformUser(id: string, payload: UpdatePlatformUserRequest) {
+  return {
+    endpoint: `/platform-user/${id}`,
+    method: "PUT" as const,
+    body: payload,
+  };
 }

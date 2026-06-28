@@ -32,7 +32,6 @@ export function InviteForm() {
       const payload = {
         email: data.email as string,
         platform_privilege_set_id: data.platform_privilege_set_id as string,
-        expires_in_days: 7,
       };
       
       const request = createPlatformInvite(payload);
@@ -41,12 +40,7 @@ export function InviteForm() {
         body: request.body,
       });
 
-      // TODO: In production, the token should be sent via email
-      // For now, show it to the admin (should be removed in production)
-      toast.success(
-        `Invite created! Token: ${res.token}\n\n` +
-        `⚠️ In production, this token should be sent via email to ${data.email}`
-      );
+      toast.success(res.message || `Invitation email sent to ${data.email}`);
       
       router.push("/admin/users");
     } catch (error: any) {

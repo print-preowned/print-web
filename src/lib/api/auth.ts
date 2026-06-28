@@ -12,8 +12,6 @@ export interface Signup {
   password: string;
 }
 
-export type PlatformSignup = Signup & { platform_privilege_set_id: string };
-
 export interface LoginResponse {
   status_code: number;
   message: string;
@@ -31,10 +29,6 @@ export function signup(payload: Signup) {
 
 export function platformLogin(payload: Login) {
   return { endpoint: "/platform-user/login", method: "POST", body: payload };
-}
-
-export function platformSignup(payload: PlatformSignup) {
-  return { endpoint: "/platform-user/signup", method: "POST", body: payload };
 }
 
 export interface ContextSwitchRequest {

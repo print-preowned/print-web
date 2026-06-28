@@ -128,8 +128,9 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/admin/login",
   },
 
-  // Invite acceptance (public)
+  // Invite acceptance and rejection (public)
   "/admin/invite/accept": {},
+  "/admin/invite/reject": {},
 
   // Admin books pages
   "/admin/books": {

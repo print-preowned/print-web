@@ -172,7 +172,7 @@ export default function AdminBooksPage() {
   ];
 
   return (
-    <div className="container mx-auto py-4 px-4">
+    <>
       <div className="space-y-4 mb-6">
         <div className="flex gap-8 justify-between">
           <div className="flex gap-4">
@@ -292,6 +292,6 @@ export default function AdminBooksPage() {
         />
       )}
       {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
-    </div>
+    </>
   );
 }

@@ -19,7 +19,7 @@ interface AuthContextValue {
   isLoading: boolean;
   setSession: (session: Session | null) => void;
   clearAuth: () => void;
-  refreshSession: () => Promise<void>;
+  refreshSession: () => Promise<Session | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -28,18 +28,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSessionState] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshSession = async () => {
-    if (typeof window === "undefined") return;
+  const refreshSession = async (): Promise<Session | null> => {
+    if (typeof window === "undefined") return null;
     try {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (res.ok) {
         const { session: nextSession } = (await res.json()) as { session: Session };
         setSessionState(nextSession ?? null);
-      } else {
-        setSessionState(null);
+        return nextSession ?? null;
       }
+      setSessionState(null);
+      return null;
     } catch {
       setSessionState(null);
+      return null;
     }
   };
 

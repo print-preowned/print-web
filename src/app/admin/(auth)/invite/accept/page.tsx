@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,15 +10,14 @@ import {
 } from "@/components/ui/card";
 import { AcceptInviteForm } from "./form";
 import { validatePlatformInvite } from "@/lib/api/platform";
-import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,11 +30,11 @@ export default function AcceptInvitePage() {
 
     setToken(tokenParam);
 
-    // Validate token on mount
     validatePlatformInvite(tokenParam)
       .then((response) => {
         if (response.valid) {
           setIsValid(true);
+          setInviteEmail(response.invite?.email ?? null);
         } else {
           setError(response.message || "Invalid or expired invite");
         }
@@ -64,7 +63,9 @@ export default function AcceptInvitePage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Invalid Invite</CardTitle>
-          <CardDescription>{error || "This invite is invalid or has expired"}</CardDescription>
+          <CardDescription aria-live="polite">
+            {error || "This invite is invalid or has expired"}
+          </CardDescription>
         </CardHeader>
       </Card>
     );
@@ -79,8 +80,25 @@ export default function AcceptInvitePage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AcceptInviteForm token={token} />
+        <AcceptInviteForm token={token} email={inviteEmail} />
       </CardContent>
     </Card>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">Validating Invite</CardTitle>
+            <CardDescription>Please wait...</CardDescription>
+          </CardHeader>
+        </Card>
+      }
+    >
+      <AcceptInviteContent />
+    </Suspense>
   );
 }

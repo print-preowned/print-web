@@ -45,6 +45,8 @@ export interface BusinessToken extends BaseTokenFields {
 export interface PlatformToken extends BaseTokenFields {
   ctx: "PLATFORM";
   privileges: string[];
+  /** Set when seeded/bootstrap user must change password before platform access */
+  pwd_chg?: boolean;
   // Platform tokens must NOT include: business
 }
 
@@ -61,6 +63,8 @@ export interface Session {
   privileges?: string[];
   /** When context is CUSTOMER, true if the user has a linked business (can switch). */
   hasBusiness?: boolean;
+  /** PLATFORM only: must change password before accessing admin resources */
+  passwordChangeRequired?: boolean;
 }
 
 export function sessionFromToken(decoded: AccessToken): Session {
@@ -77,6 +81,7 @@ export function sessionFromToken(decoded: AccessToken): Session {
   }
   if (decoded.ctx === "PLATFORM" && "privileges" in decoded) {
     session.privileges = decoded.privileges;
+    session.passwordChangeRequired = decoded.pwd_chg === true;
   }
   if (decoded.ctx === "CUSTOMER" && "has_business" in decoded) {
     session.hasBusiness = decoded.has_business === true;

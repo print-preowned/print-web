@@ -2,46 +2,74 @@
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PlatformUser,
   PlatformInvite,
   readPlatformUsers,
   readPlatformInvites,
   deletePlatformUser,
+  revokePlatformInvite,
 } from "@/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import usePagination from "@/lib/pagination/usePagination";
-import { EllipsisVertical, Plus, UserPlus } from "lucide-react";
+import usePagination, {
+  UsePaginationResult,
+} from "@/lib/pagination/usePagination";
+import { EllipsisVertical, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useMutation } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState } from "react";
+import { ResendInviteDialog } from "./resend-invite-dialog";
+import { EditPlatformUserDialog } from "./edit-platform-user-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminPlatformUsersPage() {
+  const invitesQuery = usePagination<PlatformInvite>({
+    queryKey: ["platform-invites"],
+    getUrl: ({ page, size }) => readPlatformInvites({ page, size }),
+    initialPageSize: 10,
+  });
+
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="users" className="w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList>
+            <TabsTrigger value="users">Platform users</TabsTrigger>
+            <TabsTrigger value="invites">Recent invites</TabsTrigger>
+          </TabsList>
+          <Button asChild>
+            <Link href="/admin/users/invite">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite user
+            </Link>
+          </Button>
+        </div>
+
+        <TabsContent value="users" className="mt-4">
+          <PlatformUsersTable />
+        </TabsContent>
+
+        <TabsContent value="invites" className="mt-4">
+          <PendingInvitesTable invitesQuery={invitesQuery} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function PlatformUsersTable() {
   const queryClient = useQueryClient();
+  const [editUser, setEditUser] = useState<PlatformUser | null>(null);
 
   const {
     data: platformUsers,
@@ -71,15 +99,6 @@ export default function AdminPlatformUsersPage() {
 
   const columns: ColumnDef<PlatformUser & { id: string }>[] = [
     {
-      accessorKey: "user_email",
-      header: "Email",
-      cell: ({ row }) => (
-        <span className="font-medium">
-          {row.original.user_email ?? row.original.user_id}
-        </span>
-      ),
-    },
-    {
       accessorKey: "user_name",
       header: "Name",
       cell: ({ row }) => (
@@ -89,11 +108,21 @@ export default function AdminPlatformUsersPage() {
       ),
     },
     {
-      accessorKey: "platform_privilege_set_id",
-      header: "Privilege set",
+      accessorKey: "user_email",
+      header: "Email",
       cell: ({ row }) => (
-        <span className="text-muted-foreground text-xs font-mono">
-          {row.original.platform_privilege_set_id}
+        <span className="font-medium">
+          {row.original.user_email ?? row.original.user_id}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "platform_privilege_set_name",
+      header: "Role",
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.platform_privilege_set_name ??
+            row.original.platform_privilege_set_id}
         </span>
       ),
     },
@@ -125,7 +154,7 @@ export default function AdminPlatformUsersPage() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row, table }) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -138,12 +167,16 @@ export default function AdminPlatformUsersPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={() => setEditUser(row.original)}>
+              Edit role
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               onClick={() => {
                 if (
                   confirm(
-                    "Remove this user's platform access? They will no longer be able to sign in to the admin."
+                    "Remove this user's platform access? They will no longer be able to sign in to the admin.",
                   )
                 ) {
                   deleteMutation.mutate(row.original.id);
@@ -158,115 +191,185 @@ export default function AdminPlatformUsersPage() {
     },
   ];
 
+  if (!platformUsers.length && usersLoading) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">Loading…</div>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-4 px-4 space-y-8">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-end">
-          <Button asChild>
-            <Link href="/admin/users/invite">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite user
-            </Link>
-          </Button>
-        </div>
-
-        {!platformUsers.length && usersLoading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading…
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={platformUsers}
-            totalPages={totalPages}
-            pageIndex={pagination.pageIndex}
-            pageSize={pagination.pageSize}
-            onPaginationChange={setPagination}
-            isLoading={usersLoading}
-          />
-        )}
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle>Recent invites</CardTitle>
-            <CardDescription>
-              Platform invites and their status. Create new invites from the button
-              above.
-            </CardDescription>
-          </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/admin/users/invite">
-              <Plus className="mr-2 h-4 w-4" />
-              New invite
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <PendingInvitesTable />
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <DataTable
+        columns={columns}
+        data={platformUsers}
+        totalPages={totalPages}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        onPaginationChange={setPagination}
+        isLoading={usersLoading}
+      />
+      <EditPlatformUserDialog
+        platformUser={editUser}
+        open={editUser !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditUser(null);
+        }}
+      />
+    </>
   );
 }
 
-function PendingInvitesTable() {
+function PendingInvitesTable({
+  invitesQuery,
+}: {
+  invitesQuery: UsePaginationResult<PlatformInvite>;
+}) {
+  const queryClient = useQueryClient();
+  const [resendInvite, setResendInvite] = useState<PlatformInvite | null>(null);
+
   const {
     data: invites,
     isLoading,
-  } = usePagination<PlatformInvite>({
-    queryKey: ["platform-invites"],
-    getUrl: ({ page, size }) => readPlatformInvites({ page, size }),
-    initialPageSize: 5,
+    pagination,
+    setPagination,
+    totalPages,
+  } = invitesQuery;
+
+  const revokeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const request = revokePlatformInvite(id);
+      return apiFetch(request.endpoint, { method: request.method });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platform-invites"] });
+      toast.success("Invitation revoked");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to revoke invitation");
+    },
   });
 
-  if (isLoading) {
+  const columns: ColumnDef<PlatformInvite & { id: string }>[] = [
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.email}</span>
+      ),
+    },
+    {
+      accessorKey: "platform_privilege_set_name",
+      header: "Role",
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.platform_privilege_set_name ??
+            row.original.platform_privilege_set_id}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-xs">
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "expires_at",
+      header: "Expires",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">
+          {new Date(row.original.expires_at).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "created_at",
+      header: "Created",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">
+          {new Date(row.original.created_at).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end"
+              size="icon"
+            >
+              <EllipsisVertical />
+              <span className="sr-only">Invite actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => setResendInvite(row.original)}
+              disabled={row.original.status !== "PENDING"}
+              className={
+                row.original.status !== "PENDING" ? "cursor-not-allowed" : ""
+              }
+            >
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                if (
+                  confirm(
+                    `Revoke the invitation for ${row.original.email}? They will no longer be able to accept it.`,
+                  )
+                ) {
+                  revokeMutation.mutate(row.original.id);
+                }
+              }}
+              disabled={row.original.status !== "PENDING"}
+              className={
+                row.original.status !== "PENDING" ? "cursor-not-allowed" : ""
+              }
+            >
+              Revoke
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  if (!invites.length && isLoading) {
     return (
-      <div className="text-center py-6 text-muted-foreground text-sm">
+      <div className="text-center py-8 text-muted-foreground">
         Loading invites…
       </div>
     );
   }
-  if (!invites.length) {
-    return (
-      <p className="text-muted-foreground text-sm py-4">
-        No invites yet. Invite a user to get started.
-      </p>
-    );
-  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Email</TableHead>
-          <TableHead>Privilege set</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Expires</TableHead>
-          <TableHead>Created</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {invites.map((inv) => (
-          <TableRow key={inv.id}>
-            <TableCell className="font-medium">{inv.email}</TableCell>
-            <TableCell className="text-muted-foreground text-xs font-mono">
-              {inv.platform_privilege_set_id}
-            </TableCell>
-            <TableCell>
-              <Badge variant="outline" className="text-xs">
-                {inv.status}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-muted-foreground text-xs">
-              {new Date(inv.expires_at).toLocaleDateString()}
-            </TableCell>
-            <TableCell className="text-muted-foreground text-xs">
-              {new Date(inv.created_at).toLocaleDateString()}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <DataTable
+        columns={columns}
+        data={invites}
+        totalPages={totalPages}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        onPaginationChange={setPagination}
+        isLoading={isLoading}
+      />
+      <ResendInviteDialog
+        invite={resendInvite}
+        open={resendInvite !== null}
+        onOpenChange={(open) => {
+          if (!open) setResendInvite(null);
+        }}
+      />
+    </>
   );
 }
