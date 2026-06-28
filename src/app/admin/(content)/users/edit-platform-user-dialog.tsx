@@ -92,6 +92,8 @@ export function EditPlatformUserDialog({
     platformUser?.user_email ||
     "this user";
 
+  const selectableSets = privilegeSetsData?.data ?? [];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -119,7 +121,7 @@ export function EditPlatformUserDialog({
                     <SelectValue placeholder="Select a privilege set" />
                   </SelectTrigger>
                   <SelectContent>
-                    {privilegeSetsData?.data?.map((set) => (
+                    {selectableSets.map((set) => (
                       <SelectItem key={set.id} value={set.id}>
                         {set.name}
                       </SelectItem>

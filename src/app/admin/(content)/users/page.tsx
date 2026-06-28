@@ -167,13 +167,22 @@ function PlatformUsersTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => setEditUser(row.original)}>
-              Edit role
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {!row.original.is_super_admin && (
+              <DropdownMenuItem onClick={() => setEditUser(row.original)}>
+                Edit role
+              </DropdownMenuItem>
+            )}
+            {!row.original.is_super_admin && <DropdownMenuSeparator />}
             <DropdownMenuItem
               variant="destructive"
+              disabled={row.original.is_super_admin}
+              title={
+                row.original.is_super_admin
+                  ? "Cannot remove the super admin"
+                  : undefined
+              }
               onClick={() => {
+                if (row.original.is_super_admin) return;
                 if (
                   confirm(
                     "Remove this user's platform access? They will no longer be able to sign in to the admin.",

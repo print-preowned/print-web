@@ -11,6 +11,8 @@ export interface PlatformUser {
   user_email?: string;
   user_name?: string;
   platform_privilege_set_name?: string;
+  /** True when this user holds the singleton Super Admin privilege set */
+  is_super_admin?: boolean;
 }
 
 export interface PlatformPrivilegeSet {
@@ -175,6 +177,28 @@ export function updatePlatformUser(id: string, payload: UpdatePlatformUserReques
   return {
     endpoint: `/platform-user/${id}`,
     method: "PUT" as const,
+    body: payload,
+  };
+}
+
+export interface SuperAdminTransferRequest {
+  target_platform_user_id: string;
+}
+
+export interface PlatformUserMeResponse {
+  status_code: number;
+  message: string;
+  data: PlatformUser;
+}
+
+export async function readPlatformUserMe() {
+  return apiFetch<PlatformUserMeResponse>("/platform-user/me", { method: "GET" });
+}
+
+export function transferSuperAdmin(payload: SuperAdminTransferRequest) {
+  return {
+    endpoint: "/platform-user/transfer-super-admin",
+    method: "POST" as const,
     body: payload,
   };
 }

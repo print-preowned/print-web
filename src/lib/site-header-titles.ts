@@ -15,6 +15,7 @@ const PREFIX_TITLES: [string, string][] = [
   ["/seller/inventory", "Inventory"],
   ["/seller/account", "Account"],
   ["/seller/roles", "Roles"],
+  ["/admin/account", "Account"],
   ["/admin/users", "Platform user accounts"],
   ["/admin/dashboard", "Dashboard"],
   ["/admin/books", "Books"],
