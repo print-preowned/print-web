@@ -183,7 +183,7 @@ export default function AdminBooksPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2">
             <Button
               onClick={() =>
                 openDrawer({

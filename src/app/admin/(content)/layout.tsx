@@ -9,6 +9,7 @@ import {
   IconDashboard,
   IconListDetails,
   IconSettings,
+  IconShieldLock,
   IconTags,
   IconUsers,
 } from "@tabler/icons-react";
@@ -39,6 +40,11 @@ const sidebarData = {
       title: "Users",
       url: "/admin/users",
       icon: IconUsers,
+    },
+    {
+      title: "Privilege sets",
+      url: "/admin/privilege-sets",
+      icon: IconShieldLock,
     },
   ],
   accountHref: "/admin/account",

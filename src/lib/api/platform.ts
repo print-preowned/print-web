@@ -23,6 +23,40 @@ export interface PlatformPrivilegeSet {
   updated_at: string;
 }
 
+export interface PlatformPrivilege {
+  id: string;
+  code: string;
+  description?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlatformPrivilegeSetPrivilege {
+  id: string;
+  privilege_set_id: string;
+  privilege_code: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePlatformPrivilegeSetRequest {
+  name: string;
+  status?: string;
+}
+
+export interface UpdatePlatformPrivilegeSetRequest {
+  name?: string;
+  status?: string;
+}
+
+export interface BaseResponse<T> {
+  status_code: number;
+  message: string;
+  data: T;
+}
+
 export interface PlatformInvite {
   id: string;
   email: string;
@@ -102,6 +136,79 @@ export async function readPlatformPrivilegeSets(params?: {
       },
     }
   );
+}
+
+/** Build URL for paginated platform privilege sets list (GET). */
+export function readPlatformPrivilegeSetsUrl(params?: {
+  page?: number;
+  size?: number;
+}) {
+  const query: Record<string, number> = {};
+  if (params?.page != null) query.page = params.page;
+  if (params?.size != null) query.size = params.size;
+  return generateUrl("/platform-privilege-set", query);
+}
+
+export function createPlatformPrivilegeSet(payload: CreatePlatformPrivilegeSetRequest) {
+  return {
+    endpoint: "/platform-privilege-set",
+    method: "POST" as const,
+    body: payload,
+  };
+}
+
+export function updatePlatformPrivilegeSet(
+  id: string,
+  payload: UpdatePlatformPrivilegeSetRequest,
+) {
+  return {
+    endpoint: `/platform-privilege-set/${id}`,
+    method: "PUT" as const,
+    body: payload,
+  };
+}
+
+export function deletePlatformPrivilegeSet(id: string) {
+  return { endpoint: `/platform-privilege-set/${id}`, method: "DELETE" as const };
+}
+
+export async function readPlatformPrivileges(params?: {
+  page?: number;
+  size?: number;
+}) {
+  return apiFetch<PaginatedResponse<PlatformPrivilege>>("/platform-privilege", {
+    method: "GET",
+    query: {
+      page: params?.page || 1,
+      size: params?.size || 100,
+    },
+  });
+}
+
+export async function readPrivilegeSetPrivileges(privilegeSetId: string) {
+  return apiFetch<BaseResponse<PlatformPrivilegeSetPrivilege[]>>(
+    `/platform-privilege-set-privilege/privilege-set/${privilegeSetId}`,
+    { method: "GET" },
+  );
+}
+
+export function createPrivilegeSetPrivilege(payload: {
+  privilege_set_id: string;
+  privilege_code: string;
+  status?: string;
+}) {
+  return {
+    endpoint: "/platform-privilege-set-privilege",
+    method: "POST" as const,
+    body: payload,
+  };
+}
+
+export function deletePrivilegeSetPrivilege(id: string) {
+  return {
+    endpoint: `/platform-privilege-set-privilege/${id}`,
+    method: "DELETE" as const,
+  };
 }
 
 export function createPlatformInvite(payload: CreateInviteRequest) {

@@ -14,7 +14,7 @@ export interface SearchInputProps
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, wrapperClassName, ...props }, ref) => {
     return (
-      <div className={cn("relative", wrapperClassName)}>
+      <div className={cn("relative h-fit", wrapperClassName)}>
         <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4  text-muted-foreground"
           aria-hidden

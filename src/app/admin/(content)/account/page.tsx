@@ -95,7 +95,7 @@ export default function AdminAccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
         <p className="text-muted-foreground">
