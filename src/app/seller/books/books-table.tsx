@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
+import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { BusinessBook, deleteBusinessBook } from "@/lib/api/business-book";
 import { apiFetch } from "@/lib/api";
 import { useBusinessId } from "@/lib/auth/context";
@@ -115,9 +116,10 @@ export function BooksTable({
       accessorKey: "book_title",
       header: "Book",
       cell: ({ row }) => (
-        <span className="font-medium">
-          {row.original.book_title ?? row.original.book_id}
-        </span>
+        <BookTableTitleCell
+          title={row.original.book_title ?? row.original.book_id}
+          image={row.original.book_image ?? row.original.image}
+        />
       ),
     },
     {

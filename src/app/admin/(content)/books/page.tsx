@@ -11,6 +11,7 @@ import { Book, deleteBook, readBooks } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import usePagination from "@/lib/pagination/usePagination";
+import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { EllipsisVertical, Plus } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -46,7 +47,7 @@ export default function AdminBooksPage() {
   } = usePagination<Book>({
     queryKey: ["books"],
     getUrl: ({ page, size }) => readBooks({ page, size }),
-    initialPageSize: 5,
+    initialPageSize: 15,
   });
 
   // Debounce search and reset to first page when search changes
@@ -73,7 +74,10 @@ export default function AdminBooksPage() {
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.title}</span>
+        <BookTableTitleCell
+          title={row.original.title}
+          image={row.original.image}
+        />
       ),
     },
     {

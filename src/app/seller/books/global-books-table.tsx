@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { Book } from "@/lib/api/book";
 import { createBusinessBook } from "@/lib/api/business-book";
 import { apiFetch } from "@/lib/api";
@@ -145,7 +146,10 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.title}</span>
+        <BookTableTitleCell
+          title={row.original.title}
+          image={row.original.image}
+        />
       ),
     },
     {
