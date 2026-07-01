@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
-import { IconChartBar, IconDashboard, IconFolder, IconListDetails, IconUsers, IconVector } from "@tabler/icons-react";
+import { IconChartBar, IconDashboard, IconFolder, IconListDetails, IconUsers } from "@tabler/icons-react";
 
 const sidebarData = {
   user: {
@@ -37,11 +37,6 @@ const sidebarData = {
       title: "Users",
       url: "/seller/users",
       icon: IconUsers,
-    },
-    {
-      title: "Inventory",
-      url: "/seller/inventory",
-      icon: IconVector,
     },
   ],
   accountHref: "seller/account"

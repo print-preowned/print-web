@@ -112,7 +112,7 @@ export function FormDrawer({
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         <DrawerFooterContext.Provider value={{ setFooter: setFooterOverride }}>
-          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+          <div className="flex flex-col h-full gap-4 overflow-y-auto px-4 text-sm">
             {children}
           </div>
         </DrawerFooterContext.Provider>

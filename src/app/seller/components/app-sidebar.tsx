@@ -5,7 +5,6 @@ import {
   IconChartBar,
   IconDashboard,
   IconFolder,
-  IconVector,
   IconInnerShadowTop,
   IconListDetails,
   IconUsers,
@@ -54,11 +53,6 @@ const data = {
       title: "Users",
       url: "/seller/users",
       icon: IconUsers,
-    },
-    {
-      title: "Inventory",
-      url: "/seller/inventory",
-      icon: IconVector,
     },
   ]
 }

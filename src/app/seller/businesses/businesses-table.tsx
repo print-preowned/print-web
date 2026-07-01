@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { CircleCheckBigIcon, EllipsisVertical, PlusCircleIcon } from "lucide-react";
-import { BusinessForm, schema } from "./form";
-import { Business, readBusinesses, createBusiness, updateBusiness, deleteBusiness } from "@/lib/api/business";
+import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
+import { BusinessForm } from "./form";
+import { Business, readBusinesses, deleteBusiness } from "@/lib/api/business";
 import { apiFetch } from "@/lib/api";
 import { useIsOwner } from "@/lib/auth/context";
 import { toast } from "sonner";
@@ -45,7 +44,12 @@ export function BusinessesTable() {
 
   const data = (query.data as { data?: Business[] } | undefined)?.data || [];
 
-  const columns: ColumnDef<z.infer<typeof schema> & { id: string }>[] = [
+  const handleFormSuccess = () => {
+    closeDrawer();
+    void query.refetch();
+  };
+
+  const columns: ColumnDef<Business>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -85,14 +89,9 @@ export function BusinessesTable() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return (
-          <Badge variant={status === "ACTIVE" ? "default" : "secondary"}>
-            {status}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => (
+        <StatusBadge status={row.getValue("status") as string} />
+      ),
     },
     {
       id: "actions",
@@ -111,7 +110,13 @@ export function BusinessesTable() {
                   openDrawer({
                     title: "Business Form",
                     description: "Edit business details",
-                    children: <BusinessForm business={row.original} />,
+                    children: (
+                      <BusinessForm
+                        business={row.original}
+                        onCancel={closeDrawer}
+                        onSuccess={handleFormSuccess}
+                      />
+                    ),
                   })
                 }
               >
@@ -143,7 +148,7 @@ export function BusinessesTable() {
   return (
     <div>
       <DataTable
-        data={data.map((d: Business) => schema.parse(d))}
+        data={data}
         columns={columns}
         meta={{
           onDelete: isOwner ? (id: string) => deleteMutation.mutate(id) : undefined,
@@ -166,7 +171,12 @@ export function BusinessesTable() {
               openDrawer({
                 title: "Business Form",
                 description: "Add a new business",
-                children: <BusinessForm />,
+                children: (
+                  <BusinessForm
+                    onCancel={closeDrawer}
+                    onSuccess={handleFormSuccess}
+                  />
+                ),
               })
             }
           >

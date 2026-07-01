@@ -1,59 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Book, readBooks, createBook } from "@/lib/api/book";
 import { createBusinessBook } from "@/lib/api/business-book";
-import { apiFetch } from "@/lib/api";
+import { bookKeys, businessBookKeys } from "@/lib/api/query-keys";
 import { PaginatedResponse } from "@/lib/api/user";
+import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { toast } from "sonner";
 import { PlusCircle } from "lucide-react";
 import { CreateBookForm, CreateBookFormValues } from "@/components/books/create-book-form";
-import { useAppMutation } from "@/lib/hooks/useAppMutation";
+import { useApiMutation } from "@/lib/hooks/useApiMutation";
 
-export function AddBookToCatalogForm({ onSuccess }: { onSuccess?: () => void }) {
+export function AddBookToInventoryForm({
+  onSuccess,
+  onAdded,
+}: {
+  onSuccess?: () => void;
+  /** Called with global book id after a successful add (for variant setup flow). */
+  onAdded?: (bookId: string) => void | Promise<void>;
+}) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
-  const { mutateAsync, isPending } = useAppMutation<{ id: string }>();
+  const { mutateAsync, isPending } = useApiMutation<{ id: string }>();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: searchResult, isFetching: searchLoading } = useQuery({
-    queryKey: ["books-search", debouncedSearch],
-    queryFn: () =>
-      apiFetch<PaginatedResponse<Book>>(
-        readBooks({ page: 1, size: 20, filter: { search: debouncedSearch } }),
-      ),
-    enabled: debouncedSearch.length >= 1 && open,
-  });
+  const { data: searchResult, isFetching: searchLoading } = useApiQuery<
+    PaginatedResponse<Book>
+  >(
+    bookKeys.search(debouncedSearch),
+    readBooks({ page: 1, size: 20, filter: { search: debouncedSearch } }),
+    { enabled: debouncedSearch.length >= 1 && open },
+  );
   const searchBooks: Book[] = searchResult?.data ?? [];
 
   const showDropdown = open && !showCreate;
   const hasSearchQuery = debouncedSearch.length >= 1;
 
-  const invalidateAndResetAfterAdd = () => {
-    queryClient.invalidateQueries({ queryKey: ["business-books"] });
-    toast.success("Added to your catalog");
+  const invalidateAndResetAfterAdd = (bookId: string) => {
+    queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+    toast.success("Added to your inventory");
     setSearch("");
     setDebouncedSearch("");
     setOpen(false);
-    onSuccess?.();
+    if (onAdded) {
+      void onAdded(bookId);
+    } else {
+      onSuccess?.();
+    }
   };
 
-  const addToCatalog = async (bookId: string) => {
+  const addToInventory = async (bookId: string) => {
     try {
-      const req = createBusinessBook({ book_id: bookId });
-      await mutateAsync({ endpoint: req.endpoint, body: req.body });
-      invalidateAndResetAfterAdd();
+      await mutateAsync(createBusinessBook({ book_id: bookId }));
+      invalidateAndResetAfterAdd(bookId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to add");
     }
@@ -73,31 +83,27 @@ export function AddBookToCatalogForm({ onSuccess }: { onSuccess?: () => void }) 
     genreIds,
   }: CreateBookFormValues) => {
     try {
-      const createReq = createBook({
+      const createRes = await mutateAsync(createBook({
         title,
         image,
         synopsis,
         author_ids: authorIds,
         genre_ids: genreIds,
-      });
-      const createRes = await mutateAsync({
-        endpoint: createReq.endpoint,
-        body: createReq.body,
-      });
+      }));
       if (!createRes.id) throw new Error("No book id returned");
-      const addReq = createBusinessBook({ book_id: createRes.id });
-      await mutateAsync({
-        endpoint: addReq.endpoint,
-        body: addReq.body,
-      });
-      queryClient.invalidateQueries({ queryKey: ["books", "business-books"] });
-      toast.success("Book created and added to your catalog");
+      await mutateAsync(createBusinessBook({ book_id: createRes.id }));
+      queryClient.invalidateQueries({ queryKey: ["books", ...businessBookKeys.all] });
+      toast.success("Book created and added to your inventory");
       setShowCreate(false);
       setCreateTitle("");
       setSearch("");
       setDebouncedSearch("");
       setOpen(false);
-      onSuccess?.();
+      if (onAdded) {
+        void onAdded(createRes.id);
+      } else {
+        onSuccess?.();
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to create");
     }
@@ -143,12 +149,12 @@ export function AddBookToCatalogForm({ onSuccess }: { onSuccess?: () => void }) 
                       type="button"
                       className="hover:bg-accent flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => addToCatalog(b.id)}
+                      onClick={() => addToInventory(b.id)}
                       disabled={isPending}
                     >
                       <span className="truncate font-medium">{b.title}</span>
                       <span className="text-muted-foreground shrink-0">
-                        Add to catalog
+                        Add to inventory
                       </span>
                     </button>
                   </li>

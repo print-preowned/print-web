@@ -89,8 +89,6 @@ export function CreateBookFormFields({
 
 export type CreateBookFormProps = {
   defaultTitle?: string;
-  defaultAuthorIds?: string[];
-  defaultGenreIds?: string[];
   onSubmit: (values: CreateBookFormValues) => void | Promise<void>;
   onCancel?: () => void;
   isPending?: boolean;
@@ -103,8 +101,6 @@ export type CreateBookFormProps = {
 
 export function CreateBookForm({
   defaultTitle = "",
-  defaultAuthorIds = [],
-  defaultGenreIds = [],
   onSubmit,
   onCancel,
   isPending = false,
@@ -116,23 +112,13 @@ export function CreateBookForm({
 }: CreateBookFormProps) {
   const [title, setTitle] = useState(defaultTitle);
   const [synopsis, setSynopsis] = useState("");
-  const [selectedAuthorIds, setSelectedAuthorIds] =
-    useState<string[]>(defaultAuthorIds);
-  const [selectedGenreIds, setSelectedGenreIds] =
-    useState<string[]>(defaultGenreIds);
+  const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
+  const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
   const image = useImageUpload();
 
   useEffect(() => {
     setTitle(defaultTitle);
   }, [defaultTitle]);
-
-  useEffect(() => {
-    setSelectedAuthorIds(defaultAuthorIds);
-  }, [defaultAuthorIds]);
-
-  useEffect(() => {
-    setSelectedGenreIds(defaultGenreIds);
-  }, [defaultGenreIds]);
 
   const reset = () => {
     setTitle("");

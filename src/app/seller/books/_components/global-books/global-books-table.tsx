@@ -4,32 +4,27 @@ import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { Book } from "@/lib/api/book";
 import { createBusinessBook } from "@/lib/api/business-book";
-import { apiFetch } from "@/lib/api";
+import { businessBookKeys } from "@/lib/api/query-keys";
 import { useBusinessId } from "@/lib/auth/context";
+import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { toast } from "sonner";
-import { RequestBookEditDialog } from "./request-book-edit-dialog";
-import { AddBookToCatalogForm } from "./add-to-catalog-form";
-import { ChevronDown, FileEdit, PlusCircleIcon, X } from "lucide-react";
+import { RequestBookEditDialog } from "../requests/request-book-edit-dialog";
+import { AddBookToInventoryForm } from "./add-to-inventory-form";
+import { ChevronDown, FileEdit, PlusCircleIcon } from "lucide-react";
 
 export interface GlobalBooksTableProps {
   selectedIds: Set<string>;
@@ -59,21 +54,17 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   } = props;
   const businessId = useBusinessId();
   const queryClient = useQueryClient();
+  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
   const [requestEditBook, setRequestEditBook] = useState<Book | null>(null);
-  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
 
-  const addToCatalogMutation = useMutation({
-    mutationFn: async (bookId: string) => {
-      const req = createBusinessBook({ book_id: bookId });
-      return apiFetch(req.endpoint, { method: req.method, body: req.body });
-    },
+  const addToInventoryMutation = useApiMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["business-books"] });
-      toast.success("Added to your catalogue");
+      queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      toast.success("Added to your inventory");
     },
     onError: (e: Error) =>
-      toast.error(e.message || "Failed to add (may already be in catalogue)"),
+      toast.error(e.message || "Failed to add (may already be in inventory)"),
   });
 
   const toggleRow = useCallback(
@@ -107,10 +98,12 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     if (singleSelected) setRequestEditBook(singleSelected);
   }, [singleSelected]);
 
-  const handleAddToCatalogue = useCallback(() => {
-    selectedBooks.forEach((book) => addToCatalogMutation.mutate(book.id));
+  const handleAddToInventory = useCallback(() => {
+    selectedBooks.forEach((book) =>
+      addToInventoryMutation.mutate(createBusinessBook({ book_id: book.id })),
+    );
     setSelectedIds(new Set());
-  }, [selectedBooks]);
+  }, [selectedBooks, addToInventoryMutation, setSelectedIds]);
 
   const columns: ColumnDef<Book>[] = [
     {
@@ -166,18 +159,14 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge variant="outline" className="text-xs">
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
 
   if (!businessId) {
     return (
       <p className="text-muted-foreground text-sm">
-        Switch to a business context to add books to your catalogue.
+        Switch to a business context to add books to your inventory.
       </p>
     );
   }
@@ -185,7 +174,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
-        Search the global book catalog. Add books to your catalogue or request
+        Search the global book catalog. Add books to your inventory or request
         edits (e.g. merge duplicates, correct details) via platform admin.
       </p>
       <div className="flex flex-wrap items-center gap-2">
@@ -237,15 +226,24 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={selectedIds.size === 0}
-                onClick={handleAddToCatalogue}
+                onClick={handleAddToInventory}
               >
                 <PlusCircleIcon className="size-4 mr-2" />
-                Add to catalogue
+                Add to inventory
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            onClick={() => setCreateDrawerOpen(true)}
+            onClick={() =>
+              openDrawer({
+                title: "Create new book (provisional)",
+                description:
+                  "Add a book that isn’t in the global catalog yet. It will be added to your inventory and can be updated by platform admin later.",
+                children: (
+                  <AddBookToInventoryForm onSuccess={closeDrawer} />
+                ),
+              })
+            }
             className="gap-1"
           >
             <PlusCircleIcon className="size-4" />
@@ -268,22 +266,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
         open={!!requestEditBook}
         onOpenChange={(open) => !open && setRequestEditBook(null)}
       />
-      <Sheet open={createDrawerOpen} onOpenChange={setCreateDrawerOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Create new book (provisional)</SheetTitle>
-            <SheetDescription>
-              Add a book that isn’t in the global catalog yet. It will be added
-              to your catalogue and can be updated by platform admin later.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="px-4 pb-4">
-            <AddBookToCatalogForm
-              onSuccess={() => setCreateDrawerOpen(false)}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

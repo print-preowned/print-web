@@ -1,6 +1,6 @@
-import { apiFetch, generateUrl } from ".";
-import { PaginatedResponse } from "./user";
+import { generateUrl } from ".";
 import { ReadParams, buildQueryParams } from "./types";
+import type { BusinessBookListingStatus } from "@/lib/business-book-listing-status";
 
 export type BusinessBook = {
   id: string;
@@ -8,11 +8,18 @@ export type BusinessBook = {
   business_id: string;
   synopsis?: string | null;
   image?: string | null;
-  status: string;
+  status: BusinessBookListingStatus;
   created_at: string;
   updated_at: string;
   book_title?: string | null;
   book_image?: string | null;
+  variant_count?: number;
+  min_price?: number | null;
+  total_stock?: number;
+};
+
+export type BusinessBookWithVariants = BusinessBook & {
+  variants?: import("./variant").VariantWithConfig[];
 };
 
 /** Build URL for listing current business's catalog (GET). Requires BUSINESS context. */
@@ -30,7 +37,6 @@ export function createBusinessBook(payload: {
   book_id: string;
   synopsis?: string | null;
   image?: string | null;
-  status?: string;
 }) {
   return {
     endpoint: "/business-book/create",

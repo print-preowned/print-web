@@ -4,12 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import z from "zod";
-import { Business, createBusiness } from "@/lib/api/business";
+import { Business, createBusiness, updateBusiness } from "@/lib/api/business";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { apiFetch, HttpMethod } from "@/lib/api";
+import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -19,35 +25,45 @@ export const schema = z.object({
   logo: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
+const editSchema = schema.extend({
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+});
+
+type CreateFormValues = z.infer<typeof schema>;
+type EditFormValues = z.infer<typeof editSchema>;
+
 type BusinessFormProps = {
   business?: Business;
   onCancel?: () => void;
-  isPending?: boolean;
-  submitLabel?: string;
-  showActions?: boolean;
-  setIsCreating?: (isCreating: boolean) => void;
+  onSuccess?: () => void;
 };
 
-export function BusinessForm({ 
-  business, 
+function defaultStatus(status: string): "ACTIVE" | "INACTIVE" {
+  return status === "ACTIVE" || status === "INACTIVE" ? status : "ACTIVE";
+}
+
+export function BusinessForm({
+  business,
   onCancel,
-  submitLabel = "Submit",
-  showActions = true,
-  setIsCreating,
+  onSuccess,
 }: BusinessFormProps) {
   const router = useRouter();
+  const isEdit = !!business;
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
-  } = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: business
+  } = useForm<EditFormValues | CreateFormValues>({
+    resolver: zodResolver(isEdit ? editSchema : schema),
+    defaultValues: isEdit
       ? {
           name: business.name,
-          description: business.description || "",
-          logo: business.logo || "",
+          description: business.description ?? "",
+          logo: business.logo ?? "",
+          status: defaultStatus(business.status),
         }
       : {
           name: "",
@@ -56,26 +72,48 @@ export function BusinessForm({
         },
   });
 
+  const status = isEdit ? watch("status" as const) : undefined;
 
-  const createMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof schema>) => {
-      const { endpoint, method, body } = await createBusiness(data);
-      return apiFetch(endpoint, { method: method as HttpMethod, body });
-    },
+  const saveMutation = useApiMutation({
     onSuccess: () => {
-      toast.success("Business created successfully!");
-      setIsCreating?.(false);
-      // Optionally redirect or refresh
+      toast.success(isEdit ? "Business updated" : "Business created successfully!");
+      onSuccess?.();
       router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || (isEdit ? "Failed to update business" : "Failed to create business"));
     },
   });
 
-  const onSubmitHandler = (data: z.infer<typeof schema>) => {
-    createMutation.mutate(data);
+  const onSubmitHandler = (values: CreateFormValues | EditFormValues) => {
+    if (isEdit) {
+      const data = values as EditFormValues;
+      saveMutation.mutate(
+        updateBusiness(business.id, {
+          name: data.name,
+          description: data.description || null,
+          logo: data.logo || null,
+          status: data.status,
+        }),
+      );
+      return;
+    }
+
+    const data = values as CreateFormValues;
+    saveMutation.mutate(
+      createBusiness({
+        name: data.name,
+        description: data.description || null,
+        logo: data.logo || null,
+      }),
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitHandler)} className="flex flex-col gap-4">
+    <form
+      onSubmit={handleSubmit(onSubmitHandler)}
+      className="flex flex-col gap-4 overflow-y-auto px-4 text-sm"
+    >
       <div className="flex flex-col gap-2">
         <Label htmlFor="name">Name *</Label>
         <Input
@@ -84,7 +122,9 @@ export function BusinessForm({
           placeholder="Business Name"
           className={errors.name ? "border-red-500" : ""}
         />
-        {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="text-sm text-red-500">{errors.name.message}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -95,7 +135,9 @@ export function BusinessForm({
           placeholder="Business description..."
           rows={4}
         />
-        {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+        {errors.description && (
+          <p className="text-sm text-red-500">{errors.description.message}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -107,30 +149,55 @@ export function BusinessForm({
           placeholder="https://example.com/logo.png"
           className={errors.logo ? "border-red-500" : ""}
         />
-        {errors.logo && <p className="text-sm text-red-500">{errors.logo.message}</p>}
+        {errors.logo && (
+          <p className="text-sm text-red-500">{errors.logo.message}</p>
+        )}
       </div>
 
-      {showActions && (
-        <div className="flex gap-2 mt-4">
-          {onCancel && (
-            <Button
-              type="button"
-              onClick={onCancel}
-              variant="outline"
-              disabled={createMutation.isPending}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={createMutation.isPending}
+      {isEdit && status != null && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={status}
+            onValueChange={(value) =>
+              setValue("status", value as "ACTIVE" | "INACTIVE", {
+                shouldValidate: true,
+              })
+            }
           >
-            {createMutation.isPending ? "Submitting..." : submitLabel}
-          </Button>
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="INACTIVE">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          {"status" in errors && errors.status && (
+            <p className="text-sm text-red-500">{errors.status.message}</p>
+          )}
         </div>
       )}
+
+      <div className="flex gap-2 mt-4">
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            variant="outline"
+            disabled={saveMutation.isPending}
+          >
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={saveMutation.isPending}>
+          {saveMutation.isPending
+            ? "Saving…"
+            : isEdit
+              ? "Save changes"
+              : "Create business"}
+        </Button>
+      </div>
     </form>
   );
 }
-

@@ -28,13 +28,13 @@ export function createBusiness(payload: {
 
 export function updateBusiness(
   id: string,
-  payload: Partial<Omit<Business, "id" | "user_id" | "created_at" | "updated_at">>
-) {
+  payload: Partial<Omit<Business, "id" | "user_id" | "created_at" | "updated_at">>,
+): { endpoint: string; method: "PUT"; body: typeof payload } {
   return { endpoint: `/business/update/${id}`, method: "PUT", body: payload };
 }
 
 export function deleteBusiness(id: string) {
-  return { endpoint: `/business/delete/${id}`, method: "DELETE" };
+  return { endpoint: `/business/delete/${id}`, method: "DELETE" as const };
 }
 
 export function readBusinessById(id: string) {

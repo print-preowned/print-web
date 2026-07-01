@@ -188,25 +188,28 @@ export function DataTable<T extends { id: string }>({
                   </TableRow>
                 ))
               ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
+                
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
               )}
             </TableBody>
             {isLoading && (
-              <TableRow>
-                <td
-                  colSpan={columns.length}
-                  className="place-items-center h-10 bg-muted"
-                >
-                  <Loader2 className="size-4 animate-spin" />
-                </td>
-              </TableRow>
+              <TableBody>
+                <TableRow>
+                  <td
+                    colSpan={columns.length}
+                    className="place-items-center h-10 bg-muted"
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                  </td>
+                </TableRow>
+              </TableBody>
             )}
           </Table>
         </div>

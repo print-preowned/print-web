@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { Book, readBooks } from "@/lib/api/book";
-import { BusinessBook, readBusinessBooks } from "@/lib/api/business-book";
+import {
+  BusinessBook,
+  readBusinessBooks,
+} from "@/lib/api/business-book";
+import { businessBookKeys } from "@/lib/api/query-keys";
 import usePagination from "@/lib/pagination/usePagination";
 
 function searchOrUndefined(s: string): string | undefined {
@@ -77,7 +81,7 @@ export function useBusinessBooks(): UseBusinessBooksReturn {
     setPagination,
     totalPages,
   } = usePagination<BusinessBook>({
-    queryKey: ["business-books"],
+    queryKey: [...businessBookKeys.all],
     getUrl: ({ page, size }) => readBusinessBooks({ page, size }),
     initialPageSize: 10,
   });

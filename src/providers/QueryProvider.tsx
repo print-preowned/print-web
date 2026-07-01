@@ -18,10 +18,9 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
     {
         defaultOptions: {
             queries: {
-                queryFn: ({queryKey}) => {
-                  console.log("======> queryKey", queryKey[0]);
-                    return apiFetch(queryKey[0] as string)
-                },
+                // Legacy: URL-as-queryKey (e.g. useQuery({ queryKey: [readAuthors(...)] })).
+                // New code should use useApiQuery or usePagination with explicit queryFn.
+                queryFn: ({ queryKey }) => apiFetch(queryKey[0] as string),
                 refetchOnWindowFocus: false,
                 refetchOnMount: false,
                 refetchOnReconnect: false,
