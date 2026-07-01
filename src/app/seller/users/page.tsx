@@ -10,6 +10,7 @@ import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  CircleCheckBigIcon,
   EllipsisVertical,
-  Loader,
   PlusCircleIcon,
 } from "lucide-react";
 // import { readUsers, createUser, updateUser, deleteUser, type User } from "@/lib/api/user";
@@ -39,8 +38,6 @@ type User = {
   created_at?: string;
   updated_at?: string;
 };
-// import { StatusBadge } from "./components";
-
 type FormState = Partial<
   Omit<User, "_id" | "created_at" | "updated_at" | "status">
 > & {
@@ -229,16 +226,7 @@ function createColumns({
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "ACTIVE" ? (
-          <CircleCheckBigIcon className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <Loader />
-        )}
-        {row.original.status}
-      </Badge>
-    ),
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
   {
     id: "actions",

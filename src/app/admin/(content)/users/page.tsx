@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import { useState } from "react";
 import { ResendInviteDialog } from "./resend-invite-dialog";
 import { EditPlatformUserDialog } from "./edit-platform-user-dialog";
@@ -129,18 +129,7 @@ function PlatformUsersTable() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            row.original.status === "ACTIVE"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "created_at",
@@ -279,11 +268,7 @@ function PendingInvitesTable({
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge variant="outline" className="text-xs">
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "expires_at",

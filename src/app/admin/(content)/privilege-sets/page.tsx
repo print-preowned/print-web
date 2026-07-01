@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 
 export default function AdminPrivilegeSetsPage() {
   const queryClient = useQueryClient();
@@ -64,18 +64,7 @@ export default function AdminPrivilegeSetsPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            row.original.status === "ACTIVE"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "created_at",

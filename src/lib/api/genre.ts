@@ -27,7 +27,7 @@ export async function createGenre(payload: {
   description?: string | null;
   status?: string;
 }) {
-  return { endpoint: "/genre/create", method: "POST", body: payload };
+  return { endpoint: "/genre/create", method: "POST" as const, body: payload };
 }
 
 export async function updateGenre(

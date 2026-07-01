@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import { useMutation } from "@tanstack/react-query";
 import { BulkUpload } from "@/components/bulk-upload";
 import { parseCSV } from "@/lib/utils/csv";
@@ -107,18 +107,7 @@ export default function AdminBooksPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            row.original.status === "ACTIVE"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {row.original.status}
-        </Badge>
-      ),
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "created_at",
