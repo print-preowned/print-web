@@ -3,10 +3,14 @@
 import {
   IconDotsVertical,
   IconLogout,
+  IconShoppingBag,
   IconUserCircle,
 } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+
+ import { useSwitchContext } from "@/components/context-switcher"
+import { useAuth } from "@/lib/auth/context"
 
 import {
   Avatar,
@@ -44,6 +48,9 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const { context } = useAuth()
+  const { handleSwitchContext: handleSwitchToCustomer, isSwitching: isSwitchingToCustomer } =
+    useSwitchContext({ targetContext: "CUSTOMER" })
   const [userData, setUserData] = useState<{ name: string; email: string; avatar: string }>(user)
 
   useEffect(() => {
@@ -115,6 +122,15 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
+              {context === "BUSINESS" && (
+                <DropdownMenuItem
+                  onClick={handleSwitchToCustomer}
+                  disabled={isSwitchingToCustomer}
+                >
+                  <IconShoppingBag />
+                  Switch to Customer
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
