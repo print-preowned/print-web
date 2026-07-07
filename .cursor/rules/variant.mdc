@@ -1,0 +1,41 @@
+---
+alwaysApply: true
+---
+  variants:
+    visibility:
+      CUSTOMER:
+        allowed:
+          - READ_PUBLIC_VARIANTS
+      BUSINESS:
+        allowed:
+          - READ_VARIANT
+          - CREATE_VARIANT
+          - UPDATE_VARIANT
+          - DELETE_VARIANT
+
+    privileges:
+      READ_PUBLIC_VARIANTS:
+        context: CUSTOMER
+
+      READ_VARIANT:
+        context: BUSINESS
+
+      CREATE_VARIANT:
+        context: BUSINESS
+
+      UPDATE_VARIANT:
+        context: BUSINESS
+
+      DELETE_VARIANT:
+        context: BUSINESS
+        owner_only: true
+
+    notes: >
+      API paths use /variants. "Inventory" is seller UI copy for the collection view, not a route segment.
+
+    invariants:
+      - id: MDC-VARIANT-1
+        assertion: variants_are_business_scoped
+
+      - id: MDC-VARIANT-2
+        assertion: variant_mutation_requires_business_context

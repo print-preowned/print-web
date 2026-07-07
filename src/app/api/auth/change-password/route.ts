@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
-import { getAuthTokenFromRequest, setAuthCookie } from "@/lib/auth/server-cookie";
+import {
+  AUTH_COOKIE_NAME,
+  getAuthCookieOptions,
+  getAuthTokenFromRequest,
+} from "@/lib/auth/server-cookie";
 
 export async function POST(request: Request) {
   try {
@@ -15,11 +19,11 @@ export async function POST(request: Request) {
       { method: "POST", body, token }
     );
 
+    const response = NextResponse.json(res);
     if (res.token) {
-      await setAuthCookie(res.token);
+      response.cookies.set(AUTH_COOKIE_NAME, res.token, getAuthCookieOptions());
     }
-
-    return NextResponse.json(res);
+    return response;
   } catch (err) {
     if (err instanceof Response) return err;
     return NextResponse.json({ detail: "Password change failed" }, { status: 500 });
