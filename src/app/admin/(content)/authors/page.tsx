@@ -14,21 +14,15 @@ import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { AdminAuthorForm } from "@/app/admin/(content)/authors/form";
 import { useQueryClient } from "@tanstack/react-query";
-import { readAuthors, Author } from "@/lib/api/author";
-import { apiFetch } from "@/lib/api";
-import { Plus, EllipsisVertical } from "lucide-react";
+import { readAuthors, Author, createAuthor } from "@/lib/api/author";
+import usePagination from "@/lib/pagination/usePagination";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/status-badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { EllipsisVertical, Plus } from "lucide-react";
 import { BulkUpload } from "@/components/bulk-upload";
 import { parseCSV } from "@/lib/utils/csv";
-import { createAuthor } from "@/lib/api/author";
-import usePagination from "@/lib/pagination/usePagination";
+import { apiFetch } from "@/lib/api";
 
 type AuthorCSVRow = {
   first_name: string;
@@ -141,7 +135,7 @@ export default function AdminAuthorsPage() {
   }, [debouncedSearch, statusFilter]);
 
 
-  const columns: ColumnDef<Author & { id: string }>[] = [
+  const columns: ColumnDef<Author>[] = [
     {
       accessorKey: "name",
       header: "Name",
@@ -280,7 +274,7 @@ export default function AdminAuthorsPage() {
                 for (let i = 0; i < items.length; i++) {
                   try {
                     const item = items[i];
-                    const request = await createAuthor({
+                    const request = createAuthor({
                       first_name: item.first_name,
                       last_name: item.last_name,
                       middle_name: item.middle_name || null,

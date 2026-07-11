@@ -31,19 +31,19 @@ export async function syncBookAuthorGenreLinks(
 
   await Promise.all([
     ...toAddAuthors.map(async (authorId) => {
-      const req = createBookAuthor({ book_id: bookId, author_id: authorId });
+      const req = createBookAuthor(bookId, { author_id: authorId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveAuthors.map(async (authorId) => {
-      const req = deleteBookAuthor({ book_id: bookId, author_id: authorId });
+      const req = deleteBookAuthor(bookId, authorId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
     ...toAddGenres.map(async (genreId) => {
-      const req = createBookGenre({ book_id: bookId, genre_id: genreId });
+      const req = createBookGenre(bookId, { genre_id: genreId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveGenres.map(async (genreId) => {
-      const req = deleteBookGenre({ book_id: bookId, genre_id: genreId });
+      const req = deleteBookGenre(bookId, genreId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
   ]).catch((e) => {

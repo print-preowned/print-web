@@ -13,7 +13,7 @@ export const schema = z.object({
   status: z.string().optional(),
 });
 
-export function AuthorForm({ author }: { author: z.infer<typeof schema> | undefined }) {
+export function AuthorForm({ author }: { author: Author | undefined }) {
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
       <form className="flex flex-col gap-4">

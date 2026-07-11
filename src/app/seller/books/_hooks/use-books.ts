@@ -6,7 +6,8 @@ import {
   BusinessBook,
   readBusinessBooks,
 } from "@/lib/api/business-book";
-import { businessBookKeys } from "@/lib/api/query-keys";
+import { bookKeys, businessBookKeys } from "@/lib/api/query-keys";
+import { useBusinessId } from "@/lib/auth/context";
 import usePagination from "@/lib/pagination/usePagination";
 
 function searchOrUndefined(s: string): string | undefined {
@@ -31,7 +32,7 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
 
   const params = useMemo(
     () => ({ search: searchOrUndefined(searchApplied) }),
-    [searchApplied]
+    [searchApplied],
   );
 
   const {
@@ -41,7 +42,7 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
     setPagination,
     totalPages,
   } = usePagination<Book>({
-    queryKey: ["global-books"],
+    queryKey: [...bookKeys.globalList],
     getUrl: ({ page, size, search: q }) =>
       readBooks({
         page,
@@ -74,6 +75,8 @@ export interface UseBusinessBooksReturn {
 }
 
 export function useBusinessBooks(): UseBusinessBooksReturn {
+  const businessId = useBusinessId();
+
   const {
     data: businessBooks,
     isLoading,
@@ -81,9 +84,14 @@ export function useBusinessBooks(): UseBusinessBooksReturn {
     setPagination,
     totalPages,
   } = usePagination<BusinessBook>({
-    queryKey: [...businessBookKeys.all],
-    getUrl: ({ page, size }) => readBusinessBooks({ page, size }),
+    queryKey: [...businessBookKeys.all, businessId ?? ""],
+    getUrl: ({ page, size }) => {
+      if (!businessId) return "";
+      return readBusinessBooks({ page, size });
+    },
     initialPageSize: 10,
+    params: {},
+    enabled: Boolean(businessId),
   });
 
   return {

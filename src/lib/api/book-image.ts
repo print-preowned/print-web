@@ -44,12 +44,11 @@ export function contentTypeForFileType(fileType: string): string {
 
 export async function readBookUploadUrl(fileType: string): Promise<BookUploadUrl> {
   const res = await apiFetch<BaseResponse<BookUploadUrl>>(
-    generateUrl("/book/read/upload-url", { file_type: fileType }),
+    generateUrl("/books/upload-url", { file_type: fileType }),
   );
   return res.data;
 }
 
-/** Uploads to S3 staging. Returns the staging URL to pass as `image` on save. */
 export async function uploadBookCoverToStaging(file: File): Promise<string> {
   const fileType = fileTypeFromImage(file);
   const { upload_url, url } = await readBookUploadUrl(fileType);
@@ -58,7 +57,7 @@ export async function uploadBookCoverToStaging(file: File): Promise<string> {
     method: "PUT",
     body: file,
     headers: { "Content-Type": contentTypeForFileType(fileType) },
-  })
+  });
 
   if (!uploadRes.ok) {
     const detail = await uploadRes.text().catch(() => "");

@@ -28,7 +28,7 @@ export type PaginatedResponse<T> = {
 };
 
 export function readUsers(params?: { page?: number; size?: number; search?: string }) {
-  return generateUrl("/user/read", params);
+  return generateUrl("/users", params);
 }
 
 export async function createUser(payload: {
@@ -42,16 +42,16 @@ export async function createUser(payload: {
   password: string;
   status?: string;
 }) {
-  return { endpoint: "/user/create", body: payload };
+  return { endpoint: "/users", method: "POST" as const, body: payload };
 }
 
-export async function updateUser(id: string, payload: Partial<Omit<User, "_id" | "created_at" | "updated_at">> & { password?: string }) {
-  return { endpoint: `/user/update/${id}`, method: "PUT", body: payload };
+export async function updateUser(
+  id: string,
+  payload: Partial<Omit<User, "_id" | "created_at" | "updated_at">> & { password?: string },
+) {
+  return { endpoint: `/users/${id}`, method: "PATCH", body: payload };
 }
 
 export async function deleteUser(id: string) {
-  return { endpoint: `/user/delete/${id}`, method: "DELETE" };
+  return { endpoint: `/users/${id}`, method: "DELETE" };
 }
-
-
-

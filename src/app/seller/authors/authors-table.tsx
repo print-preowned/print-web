@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "@/components/status-badge";
@@ -24,6 +23,7 @@ import { Author, readAuthors, updateAuthor } from "@/lib/api/author";
 import { apiFetch } from "@/lib/api";
 import { usePrivilege } from "@/lib/auth/context";
 import { toast } from "sonner";
+import { PaginatedResponse } from "@/lib/model";
 
 export function AuthorsTable() {
   const [search, setSearch] = useState("");
@@ -33,17 +33,19 @@ export function AuthorsTable() {
   const hasCreateAuthor = usePrivilege("CREATE_AUTHOR");
   const hasUpdateAuthor = usePrivilege("UPDATE_AUTHOR");
 
-  const query = useQuery({
-    queryKey: [readAuthors({ page, size: 10, search: search || undefined })],
+  const query = useQuery<PaginatedResponse<Author>>({
+    queryKey: ["authors", page, search],
+    queryFn: () =>
+      apiFetch(readAuthors({ page, size: 10, filter: { search: search || undefined } })),
     enabled: hasReadAuthor,
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: Partial<Author> }) => {
-      // Server must enforce authorization - client checks are for UX only
-      return apiFetch(updateAuthor(id, payload).endpoint, {
-        method: updateAuthor(id, payload).method,
-        body: updateAuthor(id, payload).body,
+      const req = updateAuthor(id, payload);
+      return apiFetch(req.endpoint, {
+        method: req.method,
+        body: req.body,
       });
     },
     onSuccess: () => {
@@ -58,7 +60,7 @@ export function AuthorsTable() {
 
   const data = query.data?.data || [];
 
-  const columns: ColumnDef<z.infer<typeof schema> & { _id: string }>[] = [
+  const columns: ColumnDef<Author>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -97,19 +99,19 @@ export function AuthorsTable() {
       ),
       enableHiding: false,
     },
-    {
-      accessorKey: "followers",
-      header: "Followers",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">
-          {row.original.followers?.toLocaleString() || "0"}
-        </span>
-      ),
-    },
+    // {
+    //   accessorKey: "followers",
+    //   header: "Followers",
+    //   cell: ({ row }) => (
+    //     <span className="text-muted-foreground">
+    //       {row.original.followers?.toLocaleString() || "0"}
+    //     </span>
+    //   ),
+    // },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => <StatusBadge status={row.original.status ?? ""} />,
     },
     {
       id: "actions",
@@ -158,7 +160,7 @@ export function AuthorsTable() {
   return (
     <>
     <DataTable
-      data={data.map((d) => schema.parse(d))}
+      data={data.map((d) => d)}
       columns={columns}
       meta={{}}
       isLoading={query.isLoading}

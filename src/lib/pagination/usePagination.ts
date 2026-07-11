@@ -12,6 +12,8 @@ export interface UsePaginationOptions<T> {
   initialPageSize?: number;
   /** Optional filter/search params included in query key and passed to getUrl. */
   params?: Record<string, unknown>;
+  /** When false, the query does not run. */
+  enabled?: boolean;
 }
 
 export interface UsePaginationResult<T> {
@@ -36,6 +38,7 @@ export default function usePagination<T>({
   getUrl,
   initialPageSize = 10,
   params = {},
+  enabled = true,
 }: UsePaginationOptions<T>): UsePaginationResult<T> {
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -54,6 +57,7 @@ export default function usePagination<T>({
       ),
     placeholderData: (previousData) => previousData,
     retry: false,
+    enabled,
   });
 
   const data = response?.data ?? [];

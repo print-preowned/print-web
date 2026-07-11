@@ -17,5 +17,5 @@ export function readVariantOptions(
   if (params?.variant_type_id) {
     query.variant_type_id = params.variant_type_id;
   }
-  return generateUrl("/variant-option/read", query);
+  return generateUrl("/variant-options", query);
 }

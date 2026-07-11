@@ -45,7 +45,7 @@ export type VariantUpdatePayload = Partial<
 
 export function readVariants(businessBookId: string, params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl(`/business-book/${businessBookId}/variant`, query);
+  return generateUrl(`/business-books/${businessBookId}/variants`, query);
 }
 
 export function createVariant(
@@ -53,7 +53,7 @@ export function createVariant(
   payload: VariantCreatePayload,
 ) {
   return {
-    endpoint: `/business-book/${businessBookId}/variant`,
+    endpoint: `/business-books/${businessBookId}/variants`,
     method: "POST" as const,
     body: payload,
   };
@@ -65,20 +65,19 @@ export function updateVariant(
   payload: VariantUpdatePayload,
 ) {
   return {
-    endpoint: `/business-book/${businessBookId}/variant/${variantId}`,
-    method: "PUT" as const,
+    endpoint: `/business-books/${businessBookId}/variants/${variantId}`,
+    method: "PATCH" as const,
     body: payload,
   };
 }
 
 export function deleteVariant(businessBookId: string, variantId: string) {
   return {
-    endpoint: `/business-book/${businessBookId}/variant/${variantId}`,
+    endpoint: `/business-books/${businessBookId}/variants/${variantId}`,
     method: "DELETE" as const,
   };
 }
 
-/** Human-readable option labels for a variant row. */
 export function formatVariantConfig(config: ResolvedConfig[]): string {
   if (!config.length) return "—";
   return config.map((c) => c.variant_option_value).join(" · ");

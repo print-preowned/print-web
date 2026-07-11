@@ -52,7 +52,9 @@ export function useImageUpload({
   };
 
   const resolveValue = async (existingValue = ""): Promise<string> => {
-    if (file) return uploadBookCoverToStaging(file);
+    if (file) {
+      return uploadBookCoverToStaging(file);
+    }
     if (existingValue) return existingValue;
     return fallback;
   };

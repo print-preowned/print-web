@@ -7,7 +7,7 @@ import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { AdminBookForm } from "@/app/admin/(content)/books/form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Book, deleteBook, readBooks } from "@/lib/api/book";
+import { Book, deleteBook, readBooks, createBook } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import usePagination from "@/lib/pagination/usePagination";
@@ -24,7 +24,6 @@ import { StatusBadge } from "@/components/status-badge";
 import { useMutation } from "@tanstack/react-query";
 import { BulkUpload } from "@/components/bulk-upload";
 import { parseCSV } from "@/lib/utils/csv";
-import { createBook } from "@/lib/api/book";
 
 type BookCSVRow = {
   title: string;
@@ -235,7 +234,7 @@ export default function AdminBooksPage() {
                 for (let i = 0; i < items.length; i++) {
                   try {
                     const item = items[i];
-                    const request = await createBook({
+                    const request = createBook({
                       title: item.title,
                       image: item.image,
                       synopsis: item.synopsis,

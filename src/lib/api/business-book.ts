@@ -22,24 +22,22 @@ export type BusinessBookWithVariants = BusinessBook & {
   variants?: import("./variant").VariantWithConfig[];
 };
 
-/** Build URL for listing current business's catalog (GET). Requires BUSINESS context. */
 export function readBusinessBooks(params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl("/business-book/read", query);
+  return generateUrl("/business-books", query);
 }
 
 export function readBusinessBookById(id: string) {
-  return generateUrl(`/business-book/read/by-id/${id}`);
+  return generateUrl(`/business-books/${id}`);
 }
 
-/** Create a business_book (add book to my catalog). Server injects business_id from token. */
 export function createBusinessBook(payload: {
   book_id: string;
   synopsis?: string | null;
   image?: string | null;
 }) {
   return {
-    endpoint: "/business-book/create",
+    endpoint: "/business-books",
     method: "POST" as const,
     body: payload,
   };
@@ -47,15 +45,18 @@ export function createBusinessBook(payload: {
 
 export function updateBusinessBook(
   id: string,
-  payload: Partial<Pick<BusinessBook, "synopsis" | "image" | "status">>
+  payload: Partial<Pick<BusinessBook, "synopsis" | "image" | "status">>,
 ) {
   return {
-    endpoint: `/business-book/update/${id}`,
-    method: "PUT" as const,
+    endpoint: `/business-books/${id}`,
+    method: "PATCH" as const,
     body: payload,
   };
 }
 
 export function deleteBusinessBook(id: string) {
-  return { endpoint: `/business-book/delete/${id}`, method: "DELETE" as const };
+  return {
+    endpoint: `/business-books/${id}`,
+    method: "DELETE" as const,
+  };
 }

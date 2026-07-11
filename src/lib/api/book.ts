@@ -1,5 +1,4 @@
-import { apiFetch, generateUrl } from ".";
-import { PaginatedResponse } from "./user";
+import { generateUrl } from ".";
 import { ReadParams, buildQueryParams } from "./types";
 
 export type AuthorRef = { id: string; name: string };
@@ -13,15 +12,13 @@ export type Book = {
   status: string;
   created_at: string;
   updated_at: string;
-  /** Populated when reading books from the API */
   authors?: AuthorRef[];
   genres?: GenreRef[];
 };
 
 export function readBooks(params?: ReadParams) {
   const query = buildQueryParams(params);
-  const url = generateUrl("/book/read", query);
-  return url;
+  return generateUrl("/books", query);
 }
 
 export type BookCreatePayload = {
@@ -33,23 +30,36 @@ export type BookCreatePayload = {
 };
 
 export function createBook(payload: BookCreatePayload) {
-  return { endpoint: "/book/create", method: "POST" as const, body: payload };
+  return {
+    endpoint: "/books",
+    method: "POST" as const,
+    body: payload,
+  };
 }
 
 export function updateBook(
   id: string,
-  payload: Partial<Omit<Book, "id" | "created_at" | "updated_at" | "authors" | "genres">> & {
+  payload: Partial<
+    Omit<Book, "id" | "created_at" | "updated_at" | "authors" | "genres">
+  > & {
     author_ids?: string[];
     genre_ids?: string[];
   },
 ) {
-  return { endpoint: `/book/update/${id}`, method: "PUT" as const, body: payload };
+  return {
+    endpoint: `/books/${id}`,
+    method: "PATCH" as const,
+    body: payload,
+  };
 }
 
 export function deleteBook(id: string) {
-  return { endpoint: `/book/delete/${id}`, method: "DELETE" };
+  return {
+    endpoint: `/books/${id}`,
+    method: "DELETE",
+  };
 }
 
-export async function readBookById(id: string) {
-  return generateUrl(`/book/read/by-id/${id}`);
+export function readBookById(id: string) {
+  return generateUrl(`/books/${id}`);
 }

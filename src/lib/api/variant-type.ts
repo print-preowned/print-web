@@ -11,5 +11,5 @@ export type VariantType = {
 
 export function readVariantTypes(params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl("/variant-type/read", query);
+  return generateUrl("/variant-types", query);
 }

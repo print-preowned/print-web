@@ -1,6 +1,5 @@
-import { apiFetch, generateUrl } from ".";
-import { PaginatedResponse } from "./user";
-import { QueryFilter, ReadParams, buildQueryParams } from "./types";
+import { generateUrl } from ".";
+import { ReadParams, buildQueryParams } from "./types";
 
 export type Author = {
   id: string;
@@ -17,7 +16,7 @@ export type Author = {
 
 export function readAuthors(params?: ReadParams) {
   const queryParams = buildQueryParams(params);
-  return generateUrl("/author/read", queryParams);
+  return generateUrl("/authors", queryParams);
 }
 
 export function createAuthor(payload: {
@@ -28,22 +27,24 @@ export function createAuthor(payload: {
   image: string;
   status?: string;
 }) {
-  // Note: Backend controller uses GET for create (should be POST), but we'll use POST for consistency
-  return { endpoint: "/author/create", method: "POST" as const, body: payload };
+  return {
+    endpoint: "/authors",
+    method: "POST" as const,
+    body: payload,
+  };
 }
 
 export function updateAuthor(
   id: string,
-  payload: Partial<Omit<Author, "_id" | "created_at" | "updated_at">>
+  payload: Partial<Omit<Author, "_id" | "created_at" | "updated_at">>,
 ) {
-  return { endpoint: `/author/update/${id}`, method: "PUT" as const, body: payload };
+  return {
+    endpoint: `/authors/${id}`,
+    method: "PATCH" as const,
+    body: payload,
+  };
 }
 
-// Authors cannot be deleted per MDC-AUTHOR-2
-// export async function deleteAuthor(id: string) {
-//   return { endpoint: `/author/delete/${id}`, method: "DELETE" };
-// }
-
 export function readAuthorById(id: string) {
-  return generateUrl(`/author/read/by-id/${id}`);
+  return generateUrl(`/authors/${id}`);
 }

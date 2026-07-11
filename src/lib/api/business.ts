@@ -1,5 +1,4 @@
-import { apiFetch, generateUrl } from ".";
-import { PaginatedResponse } from "./user";
+import { generateUrl } from ".";
 
 export type Business = {
   id: string;
@@ -13,10 +12,9 @@ export type Business = {
 };
 
 export function readBusinesses(params?: { page?: number; size?: number; search?: string }) {
-  return generateUrl("/business/read", params);
+  return generateUrl("/businesses", params);
 }
 
-/** Uses dedicated /api/business/create so the route can set the auth cookie when backend returns a new token. */
 export function createBusiness(payload: {
   name: string;
   description?: string | null;
@@ -29,19 +27,18 @@ export function createBusiness(payload: {
 export function updateBusiness(
   id: string,
   payload: Partial<Omit<Business, "id" | "user_id" | "created_at" | "updated_at">>,
-): { endpoint: string; method: "PUT"; body: typeof payload } {
-  return { endpoint: `/business/update/${id}`, method: "PUT", body: payload };
+): { endpoint: string; method: "PATCH"; body: typeof payload } {
+  return { endpoint: `/businesses/${id}`, method: "PATCH", body: payload };
 }
 
 export function deleteBusiness(id: string) {
-  return { endpoint: `/business/delete/${id}`, method: "DELETE" as const };
+  return { endpoint: `/businesses/${id}`, method: "DELETE" as const };
 }
 
 export function readBusinessById(id: string) {
-  return generateUrl(`/business/read/by-id/${id}`);
+  return generateUrl(`/businesses/${id}`);
 }
 
 export function readBusinessByUserId() {
-  return generateUrl("/business/read/by-user-id");
+  return generateUrl("/businesses/me");
 }
-

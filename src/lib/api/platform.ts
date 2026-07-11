@@ -126,7 +126,7 @@ export async function readPlatformPrivilegeSets(params?: {
   search?: string;
 }) {
   return apiFetch<PaginatedResponse<PlatformPrivilegeSet>>(
-    "/platform-privilege-set",
+    "/admin/privilege-sets",
     {
       method: "GET",
       query: {
@@ -146,12 +146,12 @@ export function readPlatformPrivilegeSetsUrl(params?: {
   const query: Record<string, number> = {};
   if (params?.page != null) query.page = params.page;
   if (params?.size != null) query.size = params.size;
-  return generateUrl("/platform-privilege-set", query);
+  return generateUrl("/admin/privilege-sets", query);
 }
 
 export function createPlatformPrivilegeSet(payload: CreatePlatformPrivilegeSetRequest) {
   return {
-    endpoint: "/platform-privilege-set",
+    endpoint: "/admin/privilege-sets",
     method: "POST" as const,
     body: payload,
   };
@@ -162,21 +162,21 @@ export function updatePlatformPrivilegeSet(
   payload: UpdatePlatformPrivilegeSetRequest,
 ) {
   return {
-    endpoint: `/platform-privilege-set/${id}`,
+    endpoint: `/admin/privilege-sets/${id}`,
     method: "PUT" as const,
     body: payload,
   };
 }
 
 export function deletePlatformPrivilegeSet(id: string) {
-  return { endpoint: `/platform-privilege-set/${id}`, method: "DELETE" as const };
+  return { endpoint: `/admin/privilege-sets/${id}`, method: "DELETE" as const };
 }
 
 export async function readPlatformPrivileges(params?: {
   page?: number;
   size?: number;
 }) {
-  return apiFetch<PaginatedResponse<PlatformPrivilege>>("/platform-privilege", {
+  return apiFetch<PaginatedResponse<PlatformPrivilege>>("/admin/privileges", {
     method: "GET",
     query: {
       page: params?.page || 1,
@@ -187,7 +187,7 @@ export async function readPlatformPrivileges(params?: {
 
 export async function readPrivilegeSetPrivileges(privilegeSetId: string) {
   return apiFetch<BaseResponse<PlatformPrivilegeSetPrivilege[]>>(
-    `/platform-privilege-set-privilege/privilege-set/${privilegeSetId}`,
+    `/admin/privilege-set-privileges/by-privilege-set/${privilegeSetId}`,
     { method: "GET" },
   );
 }
@@ -198,7 +198,7 @@ export function createPrivilegeSetPrivilege(payload: {
   status?: string;
 }) {
   return {
-    endpoint: "/platform-privilege-set-privilege",
+    endpoint: "/admin/privilege-set-privileges",
     method: "POST" as const,
     body: payload,
   };
@@ -206,14 +206,14 @@ export function createPrivilegeSetPrivilege(payload: {
 
 export function deletePrivilegeSetPrivilege(id: string) {
   return {
-    endpoint: `/platform-privilege-set-privilege/${id}`,
+    endpoint: `/admin/privilege-set-privileges/${id}`,
     method: "DELETE" as const,
   };
 }
 
 export function createPlatformInvite(payload: CreateInviteRequest) {
   return {
-    endpoint: "/platform-invite/create",
+    endpoint: "/admin/invites",
     method: "POST" as const,
     body: payload,
   };
@@ -221,7 +221,7 @@ export function createPlatformInvite(payload: CreateInviteRequest) {
 
 export function resendPlatformInvite(id: string, payload: ResendInviteRequest) {
   return {
-    endpoint: `/platform-invite/${id}/resend`,
+    endpoint: `/admin/invites/${id}/resend`,
     method: "PATCH" as const,
     body: payload,
   };
@@ -229,14 +229,14 @@ export function resendPlatformInvite(id: string, payload: ResendInviteRequest) {
 
 export function revokePlatformInvite(id: string) {
   return {
-    endpoint: `/platform-invite/${id}/revoke`,
+    endpoint: `/admin/invites/${id}/revoke`,
     method: "POST" as const,
   };
 }
 
 export async function validatePlatformInvite(token: string) {
   return apiFetch<ValidateInviteResponse>(
-    "/platform-invite/validate",
+    "/admin/invites/validate",
     {
       method: "GET",
       query: { token },
@@ -246,7 +246,7 @@ export async function validatePlatformInvite(token: string) {
 
 export function acceptPlatformInvite(payload: AcceptInviteRequest) {
   return {
-    endpoint: "/platform-invite/accept",
+    endpoint: "/admin/invites/accept",
     method: "POST" as const,
     body: payload,
   };
@@ -254,7 +254,7 @@ export function acceptPlatformInvite(payload: AcceptInviteRequest) {
 
 export function rejectPlatformInvite(payload: RejectInviteRequest) {
   return {
-    endpoint: "/platform-invite/reject",
+    endpoint: "/admin/invites/reject",
     method: "POST" as const,
     body: payload,
   };
@@ -265,7 +265,7 @@ export function readPlatformUsers(params?: { page?: number; size?: number }) {
   const query: Record<string, number> = {};
   if (params?.page != null) query.page = params.page;
   if (params?.size != null) query.size = params.size;
-  return generateUrl("/platform-user", query);
+  return generateUrl("/admin/users", query);
 }
 
 /** Build URL for paginated platform invites list (GET). */
@@ -273,16 +273,16 @@ export function readPlatformInvites(params?: { page?: number; size?: number }) {
   const query: Record<string, number> = {};
   if (params?.page != null) query.page = params.page;
   if (params?.size != null) query.size = params.size;
-  return generateUrl("/platform-invite", query);
+  return generateUrl("/admin/invites", query);
 }
 
 export function deletePlatformUser(id: string) {
-  return { endpoint: `/platform-user/${id}`, method: "DELETE" as const };
+  return { endpoint: `/admin/users/${id}`, method: "DELETE" as const };
 }
 
 export function updatePlatformUser(id: string, payload: UpdatePlatformUserRequest) {
   return {
-    endpoint: `/platform-user/${id}`,
+    endpoint: `/admin/users/${id}`,
     method: "PUT" as const,
     body: payload,
   };
@@ -299,12 +299,12 @@ export interface PlatformUserMeResponse {
 }
 
 export async function readPlatformUserMe() {
-  return apiFetch<PlatformUserMeResponse>("/platform-user/me", { method: "GET" });
+  return apiFetch<PlatformUserMeResponse>("/admin/users/me", { method: "GET" });
 }
 
 export function transferSuperAdmin(payload: SuperAdminTransferRequest) {
   return {
-    endpoint: "/platform-user/transfer-super-admin",
+    endpoint: "/admin/users/transfer-super-admin",
     method: "POST" as const,
     body: payload,
   };

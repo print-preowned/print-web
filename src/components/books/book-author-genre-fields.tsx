@@ -6,6 +6,7 @@ import { readAuthors, Author } from "@/lib/api/author";
 import { readGenresListUrl, Genre } from "@/lib/api/genre";
 import { AuthorRef, GenreRef } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/lib/auth/context";
 import { PaginatedResponse } from "@/lib/api/user";
 import { AutocompleteMultiSelect } from "@/components/autocomplete-multi-select";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,9 @@ export function BookAuthorGenreFields({
   linkedGenres,
   className,
 }: BookAuthorGenreFieldsProps) {
+  const { context } = useAuth();
+  const isAdmin = context === "PLATFORM";
+
   const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
     queryKey: ["authors", { page: 1, size: 200 }],
     queryFn: () => apiFetch(readAuthors({ page: 1, size: 200 })),
@@ -54,7 +58,9 @@ export function BookAuthorGenreFields({
 
   const { data: genresData } = useQuery<PaginatedResponse<Genre>>({
     queryKey: ["genres", { page: 1, size: 200 }],
-    queryFn: () => apiFetch(readGenresListUrl({ page: 1, size: 200 })),
+    queryFn: () =>
+      apiFetch(readGenresListUrl({ page: 1, size: 200 })),
+    enabled: isAdmin || context === "BUSINESS",
   });
   const genres = genresData?.data ?? [];
 

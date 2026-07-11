@@ -1,4 +1,4 @@
-import { apiFetch } from ".";
+import { apiFetch, generateUrl } from ".";
 
 export type BookAuthor = {
   id: string;
@@ -9,44 +9,30 @@ export type BookAuthor = {
   updated_at: string;
 };
 
-export type BookAuthorListResponse = {
-  status_code: number;
-  message: string;
-  data: BookAuthor[];
-};
-
-export function createBookAuthor(payload: { book_id: string; author_id: string }) {
+export function createBookAuthor(
+  bookId: string,
+  payload: { author_id: string },
+) {
   return {
-    endpoint: "/book-author/create",
+    endpoint: `/books/${bookId}/authors`,
     method: "POST" as const,
     body: payload,
   };
 }
 
-export function deleteBookAuthor(payload: {
-  book_id: string;
-  author_id: string;
-}) {
+export function deleteBookAuthor(bookId: string, authorId: string) {
   return {
-    endpoint: `/book-author/delete/by-book/${payload.book_id}/author/${payload.author_id}`,
+    endpoint: `/books/${bookId}/authors/${authorId}`,
     method: "DELETE" as const,
   };
 }
 
-export function readBookAuthorByBook(bookId: string) {
-  return `/book-author/read/by-book/${bookId}`;
-}
-
-export function readBookAuthorByAuthor(authorId: string) {
-  return `/book-author/read/by-author/${authorId}`;
-}
-
-export async function fetchBookAuthorByBook(bookId: string) {
-  const path = readBookAuthorByBook(bookId);
-  return apiFetch<BookAuthorListResponse>(path);
+export function readBookAuthors(bookId: string) {
+  return `/books/${bookId}/authors`;
 }
 
 export async function fetchBookAuthorByAuthor(authorId: string) {
-  const path = readBookAuthorByAuthor(authorId);
-  return apiFetch<BookAuthorListResponse>(path);
+  return apiFetch<{ data: BookAuthor[] }>(
+    generateUrl(`/authors/${authorId}/books`),
+  );
 }

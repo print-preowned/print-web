@@ -21,5 +21,6 @@ export const variantOptionKeys = {
 };
 
 export const bookKeys = {
+  globalList: ["global-books"] as const,
   search: (query: string) => ["books-search", query] as const,
 };

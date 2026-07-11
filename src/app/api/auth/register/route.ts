@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const res = await backendFetch<{ status_code: number; message: string; data: unknown; token: string }>(
-      "/user/signup",
+      "/auth/signup",
       { method: "POST", body }
     );
     if (!res.token) {

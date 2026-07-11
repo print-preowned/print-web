@@ -117,7 +117,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const authorId = (res as { id?: string }).id;
       if (authorId && selectedBookIds.length > 0) {
         for (const bookId of selectedBookIds) {
-          const linkReq = createBookAuthor({ book_id: bookId, author_id: authorId });
+          const linkReq = createBookAuthor(bookId, { author_id: authorId });
           await apiFetch(linkReq.endpoint, {
             method: linkReq.method,
             body: linkReq.body,
@@ -139,7 +139,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const request = await updateAuthor(author!.id, {
+      const request = updateAuthor(author!.id, {
         first_name: data.first_name,
         last_name: data.last_name,
         middle_name: data.middle_name || null,
@@ -155,14 +155,14 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const toAdd = selectedBookIds.filter((id) => !existingBookIds.has(id));
       const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.book_id));
       for (const bookId of toAdd) {
-        const linkReq = createBookAuthor({ book_id: bookId, author_id: author!.id });
+        const linkReq = createBookAuthor(bookId, { author_id: author!.id });
         await apiFetch(linkReq.endpoint, {
           method: linkReq.method,
           body: linkReq.body,
         });
       }
       for (const link of toRemove) {
-        const delReq = deleteBookAuthor({ book_id: link.book_id, author_id: link.author_id });
+        const delReq = deleteBookAuthor(link.book_id, link.author_id);
         await apiFetch(delReq.endpoint, { method: delReq.method });
       }
     },

@@ -7,7 +7,7 @@ import { ReactNode, useState } from "react";
 
 export interface MutationVariables {
   endpoint: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: unknown;
 }
 

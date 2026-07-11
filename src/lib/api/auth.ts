@@ -20,19 +20,15 @@ export interface LoginResponse {
 }
 
 export function login(payload: Login) {
-  return { endpoint: "/user/login", method: "POST", body: payload };
+  return { endpoint: "/auth/login", method: "POST", body: payload };
 }
 
 export function signup(payload: Signup) {
-  return { endpoint: "/user/signup", method: "POST", body: payload };
+  return { endpoint: "/auth/signup", method: "POST", body: payload };
 }
 
 export function platformLogin(payload: Login) {
-  return { endpoint: "/platform-user/login", method: "POST", body: payload };
-}
-
-export interface ContextSwitchRequest {
-  target_context: "CUSTOMER" | "BUSINESS";
+  return { endpoint: "/admin/users/login", method: "POST", body: payload };
 }
 
 export interface ContextSwitchResponse {
@@ -41,10 +37,18 @@ export interface ContextSwitchResponse {
   token: string;
 }
 
-export function switchContext(targetContext: "CUSTOMER" | "BUSINESS") {
+export function switchToBusiness(businessId: string) {
   return {
-    endpoint: "/user/context/switch",
+    endpoint: `/auth/context/business/${businessId}`,
     method: "POST" as const,
-    body: { target_context: targetContext },
+    body: {},
+  };
+}
+
+export function switchToCustomer() {
+  return {
+    endpoint: "/auth/context/customer",
+    method: "POST" as const,
+    body: {},
   };
 }

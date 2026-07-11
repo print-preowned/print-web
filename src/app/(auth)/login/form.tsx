@@ -72,13 +72,16 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
 
       try {
         const businessResponse = await apiFetch<{ data: { id: string; name: string } | null }>(
-          "/business/read/by-user-id"
+          readBusinessByUserId()
         );
         if (businessResponse.data) {
           const switchRes = await fetch("/api/auth/context-switch", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ target_context: "BUSINESS" }),
+            body: JSON.stringify({
+              target_context: "BUSINESS",
+              business_id: businessResponse.data.id,
+            }),
             credentials: "include",
           });
           if (switchRes.ok) {

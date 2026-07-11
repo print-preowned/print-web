@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth, useBusinessId } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" | "BUSINESS" }) {
   const { context, refreshSession } = useAuth();
+  const businessId = useBusinessId();
   const [isSwitching, setIsSwitching] = useState(false);
   const router = useRouter();
 
@@ -22,10 +23,21 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
 
     setIsSwitching(true);
     try {
+      const body: { target_context: string; business_id?: string } = {
+        target_context: targetContext,
+      };
+      if (targetContext === "BUSINESS") {
+        if (!businessId) {
+          toast.error("No business linked to this account");
+          return;
+        }
+        body.business_id = businessId;
+      }
+
       const res = await fetch("/api/auth/context-switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_context: targetContext }),
+        body: JSON.stringify(body),
         credentials: "include",
       });
       const response = await res.json();
@@ -33,7 +45,6 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
       if (res.ok) {
         await refreshSession();
         toast.success(response.message || `Switched to ${targetContext} context`);
-        // MDC-CS-ROUTE-1: redirect after context switch so route/layout re-evaluates
         if (targetContext === "BUSINESS") {
           router.push("/seller/dashboard");
         } else {
@@ -54,4 +65,3 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
     isSwitching,
   };
 }
-

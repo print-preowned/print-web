@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = await backendFetch<{ token?: string; [k: string]: unknown }>("/business/create", {
+    const data = await backendFetch<{ token?: string; [k: string]: unknown }>("/businesses", {
       method: "POST",
       body,
       token,

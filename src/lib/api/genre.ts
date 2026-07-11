@@ -1,5 +1,4 @@
-import { apiFetch, generateUrl } from ".";
-import { PaginatedResponse } from "./user";
+import { generateUrl } from ".";
 import { ReadParams, buildQueryParams } from "./types";
 
 export type Genre = {
@@ -13,34 +12,44 @@ export type Genre = {
 
 export function readGenres(params?: ReadParams) {
   const query = buildQueryParams(params);
-  return { endpoint: "/genre/read", query };
+  return { endpoint: "/genres", query };
 }
 
-/** Returns full URL for list (for use with apiFetch(url)). */
 export function readGenresListUrl(params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl("/genre/read", query);
+  return generateUrl("/genres", query);
 }
 
-export async function createGenre(payload: {
+export function createGenre(payload: {
   name: string;
   description?: string | null;
   status?: string;
 }) {
-  return { endpoint: "/genre/create", method: "POST" as const, body: payload };
+  return {
+    endpoint: "/genres",
+    method: "POST" as const,
+    body: payload,
+  };
 }
 
-export async function updateGenre(
+export function updateGenre(
   id: string,
-  payload: Partial<Omit<Genre, "id" | "created_at" | "updated_at">>
+  payload: Partial<Omit<Genre, "id" | "created_at" | "updated_at">>,
 ) {
-  return { endpoint: `/genre/update/${id}`, method: "PUT", body: payload };
+  return {
+    endpoint: `/genres/${id}`,
+    method: "PATCH" as const,
+    body: payload,
+  };
 }
 
 export function deleteGenre(id: string) {
-  return { endpoint: `/genre/delete/${id}`, method: "DELETE" };
+  return {
+    endpoint: `/genres/${id}`,
+    method: "DELETE",
+  };
 }
 
-export async function readGenreById(id: string) {
-  return generateUrl(`/genre/read/by-id/${id}`);
+export function readGenreById(id: string) {
+  return generateUrl(`/genres/${id}`);
 }
