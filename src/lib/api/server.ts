@@ -3,6 +3,8 @@
  * Used when proxying to the backend (e.g. auth routes).
  */
 
+import { formatApiDetail } from "./format-error";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export async function backendFetch<T>(
@@ -32,7 +34,7 @@ export async function backendFetch<T>(
     let detail: string;
     try {
       const parsed = JSON.parse(text) as { detail?: string | unknown };
-      detail = typeof parsed.detail === "string" ? parsed.detail : JSON.stringify(parsed.detail ?? text);
+      detail = formatApiDetail(parsed.detail, text || `Request failed: ${res.status}`);
     } catch {
       detail = text || `Request failed: ${res.status}`;
     }

@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext, GetStaticPropsContext } from "next";
 import { getCookie, AUTH_COOKIE_NAME } from "../cookies";
 import { toast } from "sonner";
+import { formatApiDetail } from "./format-error";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -124,36 +125,11 @@ export async function apiFetch<T>(
     try {
       const text = await res.text();
       try {
-        const parsed = JSON.parse(text) as {
-          detail?:
-            | string
-            | Array<{
-                type?: string;
-                loc?: (string | number)[];
-                msg?: string;
-                input?: unknown;
-              }>;
-        };
-
-        // Handle 422 validation errors (FastAPI format)
-        if (res.status === 422 && Array.isArray(parsed.detail)) {
-          const validationErrors = parsed.detail;
-          const formattedErrors = validationErrors
-            .map((error) => {
-              const field =
-                error.loc && error.loc.length > 1
-                  ? error.loc.slice(1).join(".") // Skip "body" or "query" prefix
-                  : "field";
-              const message = error.msg || "Validation error";
-              return `${field}: ${message}`;
-            })
-            .join(", ");
-          errorMessage = `Validation error: ${formattedErrors}`;
-        } else if (typeof parsed.detail === "string") {
-          errorMessage = parsed.detail;
-        } else {
-          errorMessage = text || `Request failed: ${res.status}`;
-        }
+        const parsed = JSON.parse(text) as { detail?: unknown };
+        errorMessage = formatApiDetail(
+          parsed.detail,
+          text || `Request failed: ${res.status}`,
+        );
       } catch {
         errorMessage = text || `Request failed: ${res.status}`;
       }
