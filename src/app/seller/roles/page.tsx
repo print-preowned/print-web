@@ -6,9 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { readRoles, createRole, updateRole, deleteRole, type Role } from "@/lib/api/role";
+import { apiFetch } from "@/lib/api";
+import { createRole, deleteRole, readRoles, updateRole, type Role } from "@/lib/api/role";
+import { PaginatedResponse } from "@/lib/api/user";
 
-type RoleForm = Partial<Role>;
+type RoleForm = Partial<Pick<Role, "name" | "description">>;
 
 export default function RolesPage() {
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ export default function RolesPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await readRoles({ page: 1, size: 50, search });
+      const res = await apiFetch<PaginatedResponse<Role>>(readRoles({ page: 1, size: 50, filter: { search } }));
       setData(res.data);
     } finally {
       setLoading(false);
@@ -41,22 +43,25 @@ export default function RolesPage() {
 
   function startEdit(role: Role) {
     setEditing(role);
-    setForm({ name: role.name, description: role.description ?? undefined, _id: role._id });
+    setForm({ name: role.name, description: role.description ?? undefined });
     setOpen(true);
   }
 
   async function save() {
     if (editing) {
-      await updateRole(editing._id, { name: form.name, description: form.description });
+      const req = updateRole(editing.id, { name: form.name, description: form.description });
+      await apiFetch(req.endpoint, { method: req.method, body: req.body });
     } else {
-      await createRole({ name: form.name || "", description: form.description });
+      const req = createRole({ name: form.name || "", description: form.description });
+      await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }
     setOpen(false);
     await load();
   }
 
   async function onDelete(id: string) {
-    await deleteRole(id);
+    const req = deleteRole(id);
+    await apiFetch(req.endpoint, { method: req.method });
     await load();
   }
 
@@ -81,12 +86,12 @@ export default function RolesPage() {
           </TableHeader>
           <TableBody>
             {data.map((r) => (
-              <TableRow key={r._id}>
+              <TableRow key={r.id}>
                 <TableCell>{r.name}</TableCell>
                 <TableCell className="text-muted-foreground">{r.description}</TableCell>
                 <TableCell className="space-x-2">
                   <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => onDelete(r._id)}>Delete</Button>
+                  <Button size="sm" variant="destructive" onClick={() => onDelete(r.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -118,5 +123,3 @@ export default function RolesPage() {
     </div>
   );
 }
-
-

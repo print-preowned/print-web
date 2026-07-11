@@ -21,7 +21,7 @@ export function createBusiness(payload: {
   logo?: string | null;
   status?: string;
 }) {
-  return { endpoint: "/api/business/create", method: "POST" as const, body: payload };
+  return { endpoint: "/api/businesses", method: "POST" as const, body: payload };
 }
 
 export function updateBusiness(

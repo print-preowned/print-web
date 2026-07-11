@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer, type DrawerConfig } from "@/components/form-drawer";
 import { UserForm } from "@/app/seller/users/form";
@@ -49,7 +48,6 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-  const query = useQuery({ queryKey: ["/user/read"] });
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
 
   async function load() {

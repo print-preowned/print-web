@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiFetch, type HttpMethod } from "@/lib/api";
+import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -31,6 +32,7 @@ export function CreateBusinessForm({
   onSuccess,
 }: CreateBusinessFormProps) {
   const router = useRouter();
+  const { refreshSession } = useAuth();
 
   const {
     register,
@@ -46,7 +48,8 @@ export function CreateBusinessForm({
       const { endpoint, method, body } = await createBusiness(data);
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refreshSession();
       toast.success("Business created successfully!");
       onSuccess?.();
       router.refresh();

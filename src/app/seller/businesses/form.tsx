@@ -16,6 +16,7 @@ import { Business, createBusiness, updateBusiness } from "@/lib/api/business";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
+import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -48,6 +49,7 @@ export function BusinessForm({
   onSuccess,
 }: BusinessFormProps) {
   const router = useRouter();
+  const { refreshSession } = useAuth();
   const isEdit = !!business;
 
   const {
@@ -75,7 +77,10 @@ export function BusinessForm({
   const status = isEdit ? watch("status" as const) : undefined;
 
   const saveMutation = useApiMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (!isEdit) {
+        await refreshSession();
+      }
       toast.success(isEdit ? "Business updated" : "Business created successfully!");
       onSuccess?.();
       router.refresh();

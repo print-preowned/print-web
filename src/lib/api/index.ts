@@ -36,7 +36,7 @@ export function getAuthToken(context?: Options["context"]) {
 
 /**
  * Client: uses /api/proxy with credentials (HttpOnly cookie sent automatically).
- * Paths starting with /api/ are same-origin and used as-is (e.g. /api/business/create).
+ * Paths starting with /api/ are same-origin and used as-is (e.g. /api/businesses).
  * Server (SSR with context): calls backend directly with token from cookie.
  */
 function getFetchUrl(
