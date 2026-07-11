@@ -32,7 +32,7 @@ export function updateBusiness(
 }
 
 export function deleteBusiness(id: string) {
-  return { endpoint: `/businesses/${id}`, method: "DELETE" as const };
+  return { endpoint: `/api/businesses/${id}`, method: "DELETE" as const };
 }
 
 export function readBusinessById(id: string) {

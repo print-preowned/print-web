@@ -13,10 +13,13 @@ import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BusinessForm } from "./form";
 import { Business, readBusinesses, deleteBusiness } from "@/lib/api/business";
 import { apiFetch } from "@/lib/api";
-import { useIsOwner } from "@/lib/auth/context";
+import { useAuth, useIsOwner } from "@/lib/auth/context";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function BusinessesTable() {
+  const router = useRouter();
+  const { refreshSession } = useAuth();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
@@ -32,9 +35,11 @@ export function BusinessesTable() {
       const { endpoint } = deleteBusiness(id);
       return apiFetch(endpoint, { method: "DELETE" });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refreshSession();
       toast.success("Business deleted successfully");
       query.refetch();
+      router.push("/");
     },
     onError: (error: Error) => {
       // Server will return 403/401 if unauthorized
