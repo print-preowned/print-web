@@ -21,6 +21,7 @@ export function createRole(payload: {
   code?: string;
   description?: string | null;
   status?: string;
+  privilege_codes?: string[];
 }) {
   return {
     endpoint: "/roles",
