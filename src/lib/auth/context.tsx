@@ -11,6 +11,7 @@
  */
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { AUTH_FORCE_LOGOUT_EVENT } from "./logout";
 import { Session, TokenContext } from "./token";
 
 interface AuthContextValue {
@@ -29,6 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSession = async (): Promise<Session | null> => {
+    // After a server route replaces the auth cookie, call this to sync React state.
+    // See IMPLEMENTATION.md — "Session refresh vs force logout".
     if (typeof window === "undefined") return null;
     try {
       const res = await fetch("/api/auth/me", { credentials: "include" });
@@ -51,6 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     refreshSession().finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const onForceLogout = () => setSessionState(null);
+    window.addEventListener(AUTH_FORCE_LOGOUT_EVENT, onForceLogout);
+    return () => window.removeEventListener(AUTH_FORCE_LOGOUT_EVENT, onForceLogout);
   }, []);
 
   const setSession = (nextSession: Session | null) => {

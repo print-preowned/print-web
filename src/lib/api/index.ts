@@ -114,9 +114,9 @@ export async function apiFetch<T>(
   if (!res.ok) {
     // Handle 401 Unauthorized (token expired/invalid) - do this first
     if (res.status === 401 && isClient) {
-      const { logout } = await import("../auth/logout");
+      const { forceLogout } = await import("../auth/logout");
       toast.error("Your session has expired. Please log in again.");
-      logout();
+      forceLogout();
       throw new ApiError("Session expired", 401);
     }
 

@@ -31,6 +31,15 @@ The implementation follows the PRINT Authorization & Context Model which enforce
   - `useIsOwner()`: Check if user is owner (BUSINESS only)
   - `useBusinessId()`: Get current business ID (BUSINESS only)
 
+#### Session refresh vs force logout
+
+| Situation | Client action |
+|-----------|---------------|
+| Server route **replaced** the auth cookie with a new valid JWT (login, signup, context switch, create/delete business) | Call `refreshSession()` so React state matches the cookie via `GET /api/auth/me` |
+| API returns **401** (revoked/expired token) | `apiFetch` calls `forceLogout()` — clear cookie, clear React state, redirect to login (MDC-CS) |
+
+The JWT lives in an HttpOnly cookie; client code never reads it directly. `refreshSession()` is the bridge after cookie-changing routes. Do **not** call `refreshSession()` after revocation — the next API call gets 401 and triggers logout.
+
 ### Route Protection System
 
 **Scalable Architecture** - No need to pass props to every page!
