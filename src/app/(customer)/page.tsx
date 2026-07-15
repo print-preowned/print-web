@@ -49,12 +49,6 @@ export default async function HomePage() {
               Browse books
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link
-              href="/authors"
-              className="inline-flex items-center gap-2 border border-border bg-card px-5 py-3 text-sm font-semibold transition-colors hover:bg-muted"
-            >
-              Meet authors
-            </Link>
           </div>
         </div>
       </section>
@@ -133,25 +127,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-muted/40 py-16 md:py-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-lg">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-              Authors behind the work
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              The writers whose books you keep coming back to.
-            </p>
-          </div>
-          <Link
-            href="/authors"
-            className="inline-flex w-fit items-center gap-2 border border-border bg-card px-5 py-3 text-sm font-semibold transition-colors hover:bg-muted"
-          >
-            Explore authors
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

@@ -22,12 +22,6 @@ export async function Header() {
           >
             Books
           </Link>
-          <Link
-            href="/authors"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Authors
-          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">

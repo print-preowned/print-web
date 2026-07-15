@@ -75,12 +75,7 @@ export default async function BookDetailPage({
             </h1>
             {primaryAuthor ? (
               <p className="mt-3 text-lg text-muted-foreground">
-                <Link
-                  href={`/authors/${primaryAuthor.id}`}
-                  className="hover:text-foreground"
-                >
-                  {primaryAuthor.name}
-                </Link>
+                {primaryAuthor.name}
               </p>
             ) : null}
             {genreLabel ? (

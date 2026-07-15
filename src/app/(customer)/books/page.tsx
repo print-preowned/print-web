@@ -49,12 +49,7 @@ function BookCard({ book }: { book: Book }) {
           </h2>
         </Link>
         {primaryAuthor ? (
-          <Link
-            href={`/authors/${primaryAuthor.id}`}
-            className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {primaryAuthor.name}
-          </Link>
+          <p className="text-sm text-muted-foreground">{primaryAuthor.name}</p>
         ) : (
           <p className="text-sm text-muted-foreground">Unknown author</p>
         )}

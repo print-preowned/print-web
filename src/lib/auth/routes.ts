@@ -39,8 +39,6 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Customer routes (public access - e-commerce site)
   "/books": {requiredContext: "CUSTOMER"},
   "/books/*": {requiredContext: "CUSTOMER"},
-  "/authors": {requiredContext: "CUSTOMER"},
-  "/authors/*": {requiredContext: "CUSTOMER"},
   "/cart": {},
   "/checkout": {
     requireAuth: true,
