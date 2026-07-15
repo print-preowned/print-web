@@ -28,6 +28,12 @@
   color: var(--foreground);
   font-family: var(--font-storefront-sans), Georgia, "Times New Roman", serif;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.storefront > main {
+  flex: 1 0 auto;
 }
 
 .storefront .font-display {
