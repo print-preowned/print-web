@@ -54,6 +54,19 @@ export function readPublicBusinessBookById(id: string) {
   return generateUrl(`/business-books/${id}`);
 }
 
+export type OrderItem = {
+  id: string;
+  order_id: string;
+  variant_id: string;
+  quantity: number;
+  unit_price: number;
+  currency: string;
+  discount_applied?: number | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Order = {
   id: string;
   user_id: string;
@@ -64,9 +77,14 @@ export type Order = {
   updated_at: string;
 };
 
+export type OrderDetail = Order & {
+  items: OrderItem[];
+};
+
 export type OrderCreatePayload = {
   reference: string;
   total_amount: number;
+  items: OrderItemCreatePayload[];
 };
 
 export type OrderItemCreatePayload = {
@@ -87,24 +105,14 @@ export function readOrderById(id: string) {
 }
 
 export async function createOrder(payload: OrderCreatePayload) {
-  return apiFetch<BaseResponse<Order>>("/orders", {
-    method: "POST",
-    body: payload,
-  });
-}
-
-export async function createOrderItem(
-  orderId: string,
-  payload: OrderItemCreatePayload,
-) {
-  return apiFetch(`/orders/${orderId}/items`, {
+  return apiFetch<BaseResponse<OrderDetail>>("/orders", {
     method: "POST",
     body: payload,
   });
 }
 
 export async function fetchOrderById(id: string, token: string) {
-  return apiFetch<BaseResponse<Order>>(readOrderById(id), {
+  return apiFetch<BaseResponse<OrderDetail>>(readOrderById(id), {
     headers: { Authorization: `Bearer ${token}` },
   });
 }

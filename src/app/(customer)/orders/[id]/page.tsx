@@ -50,6 +50,30 @@ export default async function OrderConfirmationPage({
             <dt className="text-muted-foreground">Status</dt>
             <dd className="font-medium">{order.status}</dd>
           </div>
+        </dl>
+
+        {order.items.length > 0 && (
+          <ul className="divide-y divide-border/70 border-b border-border/70">
+            {order.items.map((item) => (
+              <li
+                key={item.id}
+                className="flex justify-between gap-4 py-4"
+              >
+                <div>
+                  <p className="font-medium">Item</p>
+                  <p className="text-sm text-muted-foreground">
+                    Qty {item.quantity}
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-medium">
+                  {formatPrice(Number(item.unit_price) * item.quantity)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <dl className="mt-6 space-y-4">
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Total</dt>
             <dd className="font-display text-lg font-semibold">

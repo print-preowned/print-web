@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import {
   createOrder,
-  createOrderItem,
   formatPrice,
 } from "@customer/api";
 import { clearCart, useCart } from "@customer/cart";
@@ -80,30 +79,19 @@ export default function CheckoutPage() {
                   onClick={async () => {
                     if (lines.length === 0) return;
                     setSubmitting(true);
-                    let orderId: string | null = null;
                     try {
                       const created = await createOrder({
                         reference: makeReference(),
                         total_amount: Number(total.toFixed(2)),
-                      });
-                      orderId = created.data.id;
-                      for (const line of lines) {
-                        await createOrderItem(orderId, {
+                        items: lines.map((line) => ({
                           variant_id: line.variantId,
                           quantity: line.quantity,
                           unit_price: line.unitPrice,
-                        });
-                      }
+                        })),
+                      });
                       clearCart();
-                      router.push(`/orders/${orderId}`);
+                      router.push(`/orders/${created.data.id}`);
                     } catch (err) {
-                      if (orderId) {
-                        toast.error(
-                          `Order created but some items failed. Reference order ${orderId}.`,
-                        );
-                        router.push(`/orders/${orderId}`);
-                        return;
-                      }
                       toast.error(
                         err instanceof ApiError
                           ? err.message
