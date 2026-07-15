@@ -1,0 +1,105 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { apiFetch, ApiError } from "@/lib/api";
+import { Book, readBookById } from "@/lib/api/book";
+import {
+  PublicCatalogBusinessBook,
+  readPublicBusinessBooks,
+} from "@customer/api";
+import { PaginatedResponse } from "@/lib/api/user";
+import { Marketplace } from "./marketplace";
+
+type BookResponse = { data?: Book };
+
+async function getBook(id: string): Promise<Book | null> {
+  try {
+    const res = await apiFetch<BookResponse>(readBookById(id));
+    return res.data ?? null;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+async function getOffers(bookId: string): Promise<PublicCatalogBusinessBook[]> {
+  try {
+    const res = await apiFetch<PaginatedResponse<PublicCatalogBusinessBook>>(
+      readPublicBusinessBooks({ page: 1, size: 50, book_id: bookId }),
+    );
+    return res.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function BookDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const book = await getBook(id);
+  if (!book) notFound();
+
+  const offers = await getOffers(id);
+  const primaryAuthor = book.authors?.[0];
+  const genreLabel = book.genres?.map((g) => g.name).join(", ");
+
+  return (
+    <div className="storefront-paper min-h-[70vh]">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14">
+        <div className="grid gap-10 md:grid-cols-[minmax(0,240px)_1fr]">
+          <div className="aspect-[2/3] overflow-hidden border border-border bg-muted shadow-sm">
+            {book.image ? (
+              <img
+                src={book.image}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                No cover
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              <Link href="/books" className="hover:text-foreground">
+                Books
+              </Link>
+            </p>
+            <h1 className="font-display mt-3 text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+              {book.title}
+            </h1>
+            {primaryAuthor ? (
+              <p className="mt-3 text-lg text-muted-foreground">
+                <Link
+                  href={`/authors/${primaryAuthor.id}`}
+                  className="hover:text-foreground"
+                >
+                  {primaryAuthor.name}
+                </Link>
+              </p>
+            ) : null}
+            {genreLabel ? (
+              <p className="mt-2 text-sm uppercase tracking-[0.08em] text-muted-foreground">
+                {genreLabel}
+              </p>
+            ) : null}
+            {book.synopsis ? (
+              <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
+                {book.synopsis}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <Suspense fallback={null}>
+          <Marketplace bookId={id} offers={offers} />
+        </Suspense>
+      </div>
+    </div>
+  );
+}

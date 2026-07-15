@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShoppingCart, User, Building2, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, User, Building2, ChevronDown, LogOut } from "lucide-react";
 import { useSwitchContext } from "@/components/context-switcher";
 import { logout } from "@/lib/auth/logout";
 import type { Session } from "@/lib/auth/token";
+import { useCart } from "@customer/cart";
 
 interface ActionsProps {
   session: Session | null;
@@ -19,24 +20,41 @@ interface ActionsProps {
 
 export function Actions({ session }: ActionsProps) {
   const context = session?.context ?? null;
+  const { count, ready } = useCart();
   const { handleSwitchContext: handleSwitchToBusiness, isSwitching: isSwitchingToBusiness } =
     useSwitchContext({ targetContext: "BUSINESS" });
 
   return (
-    <div className="flex items-center space-x-4">
-      <Button variant="ghost" size="icon" className="relative">
-        <ShoppingCart className="h-5 w-5" />
-        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-          0
-        </span>
+    <div className="flex items-center gap-1 sm:gap-2">
+      <Button
+        asChild
+        variant="ghost"
+        size="icon"
+        className="relative text-foreground"
+      >
+        <Link
+          href="/cart"
+          aria-label={`Cart${ready && count > 0 ? `, ${count} items` : ""}`}
+        >
+          <ShoppingCart className="h-5 w-5" />
+          {ready && count > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {count > 99 ? "99+" : count}
+            </span>
+          ) : null}
+        </Link>
       </Button>
       {session ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center">
+            <button
+              type="button"
+              className="flex items-center gap-0.5 rounded-md p-1.5 transition-colors hover:bg-muted"
+              aria-label="Account menu"
+            >
               <User className="h-5 w-5" />
-              <ChevronDown className="h-4 w-4" />
-            </div>
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
@@ -63,8 +81,8 @@ export function Actions({ session }: ActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <div className="flex items-center space-x-2">
-          <Button asChild variant="ghost" size="sm">
+        <div className="flex items-center gap-1.5">
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link href="/login">Login</Link>
           </Button>
           <Button asChild size="sm">

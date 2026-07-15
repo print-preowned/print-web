@@ -41,6 +41,17 @@ export const routeConfig: Record<string, RouteConfig> = {
   "/books/*": {requiredContext: "CUSTOMER"},
   "/authors": {requiredContext: "CUSTOMER"},
   "/authors/*": {requiredContext: "CUSTOMER"},
+  "/cart": {},
+  "/checkout": {
+    requireAuth: true,
+    requiredContext: "CUSTOMER",
+    redirectTo: "/login",
+  },
+  "/orders/*": {
+    requireAuth: true,
+    requiredContext: "CUSTOMER",
+    redirectTo: "/login",
+  },
   
   // Seller routes (require BUSINESS context)
   "/seller/*": {

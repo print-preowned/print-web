@@ -7,32 +7,33 @@ export async function Header() {
   const session = await getSessionFromRequest();
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold">PRINT</span>
+    <header className="storefront-masthead sticky top-0 z-50 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
+        <Link href="/" className="shrink-0">
+          <span className="font-display text-2xl font-bold tracking-tight">
+            PRINT
+          </span>
         </Link>
 
-        <div className="flex items-center space-x-4">
-          <nav className="hidden items-center space-x-6 md:flex">
-            <Link
-              href="/books"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Books
-            </Link>
-            <Link
-              href="/authors"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Authors
-            </Link>
-          </nav>
+        <nav className="hidden items-center gap-5 md:flex">
+          <Link
+            href="/books"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Books
+          </Link>
+          <Link
+            href="/authors"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Authors
+          </Link>
+        </nav>
 
+        <div className="ml-auto flex items-center gap-3">
           <Search />
+          <Actions session={session} />
         </div>
-
-        <Actions session={session} />
       </div>
     </header>
   );

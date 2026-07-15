@@ -1,0 +1,99 @@
+/* Customer storefront — newsprint & ink */
+
+.storefront {
+  --background: #f3ece0;
+  --foreground: #1a1814;
+  --card: #faf6ee;
+  --card-foreground: #1a1814;
+  --paper: #f3ece0;
+  --paper-foreground: #1a1814;
+  --popover: #faf6ee;
+  --popover-foreground: #1a1814;
+  --primary: #1a1814;
+  --primary-foreground: #faf6ee;
+  --secondary: #e6ddd0;
+  --secondary-foreground: #1a1814;
+  --muted: #ebe3d6;
+  --muted-foreground: #5c5348;
+  --accent: #6b3a2a;
+  --accent-foreground: #faf6ee;
+  --destructive: #9b2c2c;
+  --destructive-foreground: #fafafa;
+  --border: #c8b9a6;
+  --input: #e6ddd0;
+  --ring: #6b3a2a;
+  --radius: 0.125rem;
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-storefront-sans), Georgia, "Times New Roman", serif;
+  min-height: 100vh;
+}
+
+.storefront .font-display {
+  font-family: var(--font-storefront-display), Georgia, "Times New Roman", serif;
+}
+
+/* Subtle newsprint texture */
+.storefront-paper {
+  background-color: var(--background);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.storefront-grain {
+  background-color: var(--background);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.storefront-rule {
+  border-top: 3px double var(--border);
+}
+
+.storefront-masthead {
+  border-bottom: 4px double var(--foreground);
+}
+
+@keyframes storefront-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes storefront-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.storefront-rise {
+  animation: storefront-rise 0.6s ease both;
+}
+
+.storefront-rise-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.storefront-rise-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.storefront-fade {
+  animation: storefront-fade 0.6s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-rise,
+  .storefront-fade {
+    animation: none;
+  }
+}

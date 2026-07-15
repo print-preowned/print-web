@@ -87,7 +87,7 @@ export function useBusinessBooks(): UseBusinessBooksReturn {
     queryKey: [...businessBookKeys.all, businessId ?? ""],
     getUrl: ({ page, size }) => {
       if (!businessId) return "";
-      return readBusinessBooks({ page, size });
+      return readBusinessBooks({ page, size, mine: true });
     },
     initialPageSize: 10,
     params: {},

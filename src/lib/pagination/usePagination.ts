@@ -10,6 +10,8 @@ export interface UsePaginationOptions<T> {
   getUrl: (params: { page: number; size: number } & Record<string, unknown>) => string;
   /** Initial page size. Default 10. */
   initialPageSize?: number;
+  /** Initial page number. Default 1. */
+  initialPage?: number;
   /** Optional filter/search params included in query key and passed to getUrl. */
   params?: Record<string, unknown>;
   /** When false, the query does not run. */
@@ -37,11 +39,12 @@ export default function usePagination<T>({
   queryKey,
   getUrl,
   initialPageSize = 10,
+  initialPage = 1,
   params = {},
   enabled = true,
 }: UsePaginationOptions<T>): UsePaginationResult<T> {
   const [pagination, setPagination] = useState({
-    pageIndex: 0,
+    pageIndex: initialPage - 1,
     pageSize: initialPageSize,
   });
 

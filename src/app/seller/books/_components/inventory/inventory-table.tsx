@@ -113,7 +113,7 @@ export function InventoryTable({
         queryKey: businessBookKeys.lookupByBookId(bookId),
         queryFn: () =>
           apiFetch<PaginatedResponse<BusinessBook>>(
-            readBusinessBooks({ page: 1, size: 100 }),
+            readBusinessBooks({ page: 1, size: 100, mine: true }),
           ),
       });
       const listing = res.data.find((b) => b.book_id === bookId) ?? null;

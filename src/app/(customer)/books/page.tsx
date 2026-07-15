@@ -1,179 +1,218 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Book, readBooks } from "@/lib/api/book";
+import { bookKeys } from "@/lib/api/query-keys";
+import usePagination from "@/lib/pagination/usePagination";
 import { SearchInput } from "@/components/ui/search-input";
-import { Star, ShoppingCart, Filter } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
-// Dummy data for books
-const dummyBooks = [
-  {
-    id: "1",
-    title: "The Art of Modern Fiction",
-    author: "Jane Smith",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-    price: 24.99,
-    rating: 4.8,
-    reviews: 1243,
-    genre: "Fiction",
-    synopsis: "A captivating exploration of contemporary storytelling techniques.",
-  },
-  {
-    id: "2",
-    title: "Digital Transformation Guide",
-    author: "Michael Chen",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
-    price: 29.99,
-    rating: 4.9,
-    reviews: 892,
-    genre: "Business",
-    synopsis: "Essential strategies for navigating the digital age.",
-  },
-  {
-    id: "3",
-    title: "Culinary Adventures",
-    author: "Sarah Johnson",
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop",
-    price: 19.99,
-    rating: 4.7,
-    reviews: 567,
-    genre: "Cookbook",
-    synopsis: "Journey through flavors and cultures from around the world.",
-  },
-  {
-    id: "4",
-    title: "Mystery of the Lost City",
-    author: "David Williams",
-    image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
-    price: 22.99,
-    rating: 4.6,
-    reviews: 1201,
-    genre: "Mystery",
-    synopsis: "An ancient secret hidden in the depths of an abandoned city.",
-  },
-  {
-    id: "5",
-    title: "The Science of Success",
-    author: "Emily Rodriguez",
-    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
-    price: 27.99,
-    rating: 4.9,
-    reviews: 2103,
-    genre: "Self-Help",
-    synopsis: "Evidence-based strategies for achieving your goals.",
-  },
-  {
-    id: "6",
-    title: "Fantasy Realms",
-    author: "James Anderson",
-    image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
-    price: 25.99,
-    rating: 4.8,
-    reviews: 3456,
-    genre: "Fantasy",
-    synopsis: "Embark on an epic journey through magical worlds.",
-  },
-  {
-    id: "7",
-    title: "Historical Perspectives",
-    author: "Maria Garcia",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-    price: 23.99,
-    rating: 4.7,
-    reviews: 987,
-    genre: "History",
-    synopsis: "Uncover the untold stories of the past.",
-  },
-  {
-    id: "8",
-    title: "Poetry of the Soul",
-    author: "Robert Taylor",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
-    price: 18.99,
-    rating: 4.9,
-    reviews: 654,
-    genre: "Poetry",
-    synopsis: "A collection of heartfelt verses that touch the soul.",
-  },
-];
+function pageFromSearchParams(searchParams: URLSearchParams): number {
+  const parsed = Number.parseInt(searchParams.get("page") ?? "1", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
 
-const genres = ["All", "Fiction", "Business", "Cookbook", "Mystery", "Self-Help", "Fantasy", "History", "Poetry"];
+function booksCatalogPath(q?: string, page = 1): string {
+  const params = new URLSearchParams();
+  const trimmed = q?.trim();
+  if (trimmed) params.set("q", trimmed);
+  if (page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return qs ? `/books?${qs}` : "/books";
+}
 
-export default function BooksPage() {
-  const [search, setSearch] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("All");
+function BookCard({ book }: { book: Book }) {
+  const primaryAuthor = book.authors?.[0];
+  return (
+    <article className="group">
+      <Link href={`/books/${book.id}`} className="block">
+        <div className="aspect-[2/3] overflow-hidden bg-muted">
+          {book.image ? (
+            <img
+              src={book.image}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+              No cover
+            </div>
+          )}
+        </div>
+      </Link>
+      <div className="mt-3 space-y-1">
+        <Link href={`/books/${book.id}`}>
+          <h2 className="font-display text-base font-semibold leading-snug transition-colors group-hover:underline">
+            {book.title}
+          </h2>
+        </Link>
+        {primaryAuthor ? (
+          <Link
+            href={`/authors/${primaryAuthor.id}`}
+            className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {primaryAuthor.name}
+          </Link>
+        ) : (
+          <p className="text-sm text-muted-foreground">Unknown author</p>
+        )}
+        {book.synopsis ? (
+          <p className="line-clamp-2 pt-1 text-sm text-muted-foreground/90">
+            {book.synopsis}
+          </p>
+        ) : null}
+      </div>
+    </article>
+  );
+}
 
-  const filteredBooks = dummyBooks.filter((book) => {
-    const matchesSearch = book.title.toLowerCase().includes(search.toLowerCase()) ||
-      book.author.toLowerCase().includes(search.toLowerCase());
-    const matchesGenre = selectedGenre === "All" || book.genre === selectedGenre;
-    return matchesSearch && matchesGenre;
+function BooksCatalog() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const qFromUrl = searchParams.get("q") ?? "";
+  const pageFromUrl = pageFromSearchParams(searchParams);
+
+  const [search, setSearch] = useState(qFromUrl);
+  const [debouncedSearch, setDebouncedSearch] = useState(qFromUrl);
+
+  useEffect(() => {
+    setSearch(qFromUrl);
+    setDebouncedSearch(qFromUrl);
+  }, [qFromUrl]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const {
+    data: books,
+    isLoading,
+    pagination,
+    setPagination,
+    totalPages,
+  } = usePagination<Book>({
+    queryKey: [...bookKeys.globalList, "customer"],
+    getUrl: ({ page, size, search: q }) =>
+      readBooks({
+        page,
+        size,
+        filter: q ? { search: q as string } : undefined,
+      }),
+    initialPageSize: 20,
+    initialPage: pageFromUrl,
+    params: { search: debouncedSearch || undefined },
   });
 
+  useEffect(() => {
+    setPagination((prev) =>
+      prev.pageIndex === pageFromUrl - 1
+        ? prev
+        : { ...prev, pageIndex: pageFromUrl - 1 },
+    );
+  }, [pageFromUrl, setPagination]);
+
+  useEffect(() => {
+    const currentQ = searchParams.get("q") ?? "";
+    if (debouncedSearch === currentQ && pageFromUrl === 1) return;
+    if (debouncedSearch !== currentQ) {
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      router.replace(booksCatalogPath(debouncedSearch), { scroll: false });
+    }
+  }, [debouncedSearch, pageFromUrl, router, searchParams, setPagination]);
+
+  function goToPage(pageIndex: number) {
+    setPagination((prev) => ({ ...prev, pageIndex }));
+    router.replace(booksCatalogPath(debouncedSearch, pageIndex + 1), {
+      scroll: false,
+    });
+  }
+
+  const canGoPrev = pagination.pageIndex > 0;
+  const canGoNext = pagination.pageIndex + 1 < totalPages;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Books Grid */}
-      <div className="py-8">
-        {filteredBooks.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground">No books found. Try adjusting your filters.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {filteredBooks.map((book) => (
-              <div key={book.id} className="group pt-0 pb-2 gap-2">
-                <Link href={`/books/${book.id}`}>
-                  <div className="relative aspect-[7/8] overflow-hidden bg-muted rounded-[4px] transition-transform duration-300 group-hover:scale-101">
-                    <img
-                      src={book.image}
-                      alt={book.title}
-                      className="h-full w-full object-cover rounded-[4px]"
-                    />
-                    <Badge className="absolute right-2 top-2">{book.genre}</Badge>
-                  </div>
-                </Link>
-                <CardHeader className="px-0 pt-2 gap-0">
-                  <Link href={`/books/${book.id}`}>
-                    <CardTitle className="line-clamp-2 hover:text-primary transition-colors">
-                      {book.title}
-                    </CardTitle>
-                  </Link>
-                  <Link href={`/authors/${book.author.toLowerCase().replace(/\s+/g, "-")}`}>
-                    <CardDescription className="hover:text-primary transition-colors">
-                      {book.author}
-                    </CardDescription>
-                  </Link>
-                </CardHeader>
-                <CardContent className="px-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="ml-1 text-sm font-medium">{book.rating}</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        ({book.reviews.toLocaleString()})
-                      </span>
-                    </div>
-                    <span className="text-md font-bold">${book.price}</span>
-                  </div>
-                </CardContent>
-              </div>
+    <>
+      <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+            Books
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Search the catalog across sellers
+          </p>
+        </div>
+        <SearchInput
+          wrapperClassName="w-full sm:max-w-sm"
+          placeholder="Search books..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {isLoading && books.length === 0 ? (
+        <div className="py-20 text-center">
+          <p className="text-muted-foreground">Loading books...</p>
+        </div>
+      ) : books.length === 0 ? (
+        <div className="py-20 text-center">
+          <p className="text-muted-foreground">
+            No books found. Try adjusting your search.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {books.map((book) => (
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
-        )}
+
+          {totalPages > 1 ? (
+            <div className="mt-12 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canGoPrev}
+                onClick={() => goToPage(pagination.pageIndex - 1)}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {pagination.pageIndex + 1} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canGoNext}
+                onClick={() => goToPage(pagination.pageIndex + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          ) : null}
+        </>
+      )}
+    </>
+  );
+}
+
+export default function BooksPage() {
+  return (
+    <div className="storefront-paper min-h-[70vh]">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14">
+        <Suspense
+          fallback={
+            <div className="py-20 text-center text-muted-foreground">
+              Loading books...
+            </div>
+          }
+        >
+          <BooksCatalog />
+        </Suspense>
       </div>
     </div>
   );
 }
-
