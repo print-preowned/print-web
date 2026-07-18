@@ -73,6 +73,20 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredPrivileges: ["READ_BOOK"],
     redirectTo: "/login",
   },
+
+  // Seller orders (require READ_ORDER privilege)
+  "/seller/orders": {
+    requireAuth: true,
+    requiredContext: "BUSINESS",
+    requiredPrivileges: ["READ_ORDER"],
+    redirectTo: "/login",
+  },
+  "/seller/orders/*": {
+    requireAuth: true,
+    requiredContext: "BUSINESS",
+    requiredPrivileges: ["READ_ORDER"],
+    redirectTo: "/login",
+  },
   
   // Seller authors (require READ_AUTHOR privilege)
   "/seller/authors": {
