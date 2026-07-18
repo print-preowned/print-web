@@ -144,6 +144,10 @@ export async function apiFetch<T>(
     throw new ApiError(errorMessage, res.status);
   }
 
+  if (res.status === 204 || res.status === 205) {
+    return undefined as T;
+  }
+
   // For successful responses, handle empty bodies (e.g., 201 Created)
   const text = await res.text();
 

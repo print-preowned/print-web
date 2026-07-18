@@ -116,3 +116,9 @@ export async function fetchOrderById(id: string, token: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export async function cancelOrder(id: string) {
+  return apiFetch<void>(`/orders/${id}/cancel`, {
+    method: "POST",
+  });
+}

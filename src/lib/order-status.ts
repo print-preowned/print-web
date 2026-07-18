@@ -19,3 +19,12 @@ export function nextOrderStatuses(current: string): OrderFulfillmentStatus[] {
 export function canUpdateOrderStatus(current: string): boolean {
   return nextOrderStatuses(current).length > 0;
 }
+
+export const CUSTOMER_CANCELLABLE_ORDER_STATUSES = new Set([
+  "PLACED",
+  "CONFIRMED",
+]);
+
+export function canCustomerCancelOrder(status: string): boolean {
+  return CUSTOMER_CANCELLABLE_ORDER_STATUSES.has(status.trim().toUpperCase());
+}

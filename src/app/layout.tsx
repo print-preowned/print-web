@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ConfirmDialogProvider } from "@/components/confirm-dialog-provider";
 import QueryProvider from "../providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth/context";
@@ -35,8 +36,10 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <ThemeProvider>
-              {children}
-              <Toaster />
+              <ConfirmDialogProvider>
+                {children}
+                <Toaster />
+              </ConfirmDialogProvider>
             </ThemeProvider>
           </AuthProvider>
         </QueryProvider>

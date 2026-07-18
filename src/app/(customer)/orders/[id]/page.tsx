@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { fetchOrderById, formatPrice } from "@customer/api";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
+import { OrderCancelButton } from "./order-cancel-button";
 
 export default async function OrderConfirmationPage({
   params,
@@ -82,12 +83,15 @@ export default async function OrderConfirmationPage({
           </div>
         </dl>
 
-        <Link
-          href="/books"
-          className="mt-8 inline-flex text-sm font-semibold underline-offset-4 hover:underline"
-        >
-          Continue shopping
-        </Link>
+        <div className="mt-10 flex flex-col items-start gap-4 border-t border-border/70 pt-8">
+          <Link
+            href="/books"
+            className="inline-flex text-sm font-semibold underline-offset-4 hover:underline"
+          >
+            Continue shopping
+          </Link>
+          <OrderCancelButton orderId={order.id} status={order.status} />
+        </div>
       </div>
     </div>
   );

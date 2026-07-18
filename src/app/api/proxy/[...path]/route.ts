@@ -70,12 +70,18 @@ async function proxy(
     body: body || undefined,
   });
 
+  if (res.status === 204 || res.status === 205 || res.status === 304) {
+    return new NextResponse(null, {
+      status: res.status,
+      statusText: res.statusText,
+    });
+  }
+
   const text = await res.text();
+  const contentType = res.headers.get("Content-Type");
   return new NextResponse(text, {
     status: res.status,
     statusText: res.statusText,
-    headers: {
-      "Content-Type": res.headers.get("Content-Type") || "application/json",
-    },
+    headers: contentType ? { "Content-Type": contentType } : undefined,
   });
 }
