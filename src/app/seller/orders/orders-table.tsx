@@ -8,8 +8,8 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
-  BusinessOrderSummary,
   formatOrderAmount,
+  OrderSummary,
   readBusinessOrders,
 } from "@/lib/api/order";
 import { apiFetch } from "@/lib/api";
@@ -27,7 +27,7 @@ export function OrdersTable() {
   const [page, setPage] = useState(1);
   const hasReadOrder = usePrivilege("READ_ORDER");
 
-  const query = useQuery<PaginatedResponse<BusinessOrderSummary>>({
+  const query = useQuery<PaginatedResponse<OrderSummary>>({
     queryKey: ["business-orders", page],
     queryFn: () =>
       apiFetch(readBusinessOrders({ page, size: 10 })),
@@ -37,7 +37,7 @@ export function OrdersTable() {
   const data = query.data?.data ?? [];
   const totalPages = query.data?.pagination?.total_pages ?? 1;
 
-  const columns: ColumnDef<BusinessOrderSummary>[] = [
+  const columns: ColumnDef<OrderSummary>[] = [
     {
       accessorKey: "reference",
       header: "Reference",
@@ -65,10 +65,7 @@ export function OrdersTable() {
       id: "total",
       header: "Your total",
       cell: ({ row }) =>
-        formatOrderAmount(
-          row.original.business_total_amount,
-          row.original.currency,
-        ),
+        formatOrderAmount(row.original.total_amount, row.original.currency),
     },
     {
       accessorKey: "created_at",

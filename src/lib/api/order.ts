@@ -15,18 +15,26 @@ export type BusinessOrderItem = {
   book_title: string;
 };
 
-export type BusinessOrderSummary = {
+export type OrderSummaryItemPreview = {
+  id: string;
+  book_title: string;
+  image?: string | null;
+  quantity: number;
+};
+
+export type OrderSummary = {
   id: string;
   reference: string;
   currency: string;
   status: string;
-  business_total_amount: number;
+  total_amount: number;
   item_count: number;
+  preview_items: OrderSummaryItemPreview[];
   created_at: string;
   updated_at: string;
 };
 
-export type BusinessOrderDetail = BusinessOrderSummary & {
+export type BusinessOrderDetail = OrderSummary & {
   items: BusinessOrderItem[];
 };
 

@@ -45,6 +45,11 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredContext: "CUSTOMER",
     redirectTo: "/login",
   },
+  "/orders": {
+    requireAuth: true,
+    requiredContext: "CUSTOMER",
+    redirectTo: "/login",
+  },
   "/orders/*": {
     requireAuth: true,
     requiredContext: "CUSTOMER",

@@ -136,7 +136,7 @@ export default function OrderDetailPage() {
         <div className="rounded-lg border p-4">
           <p className="text-muted-foreground text-sm">Your total</p>
           <p className="text-xl font-semibold">
-            {formatOrderAmount(order.business_total_amount, order.currency)}
+            {formatOrderAmount(order.total_amount, order.currency)}
           </p>
         </div>
         <div className="rounded-lg border p-4">

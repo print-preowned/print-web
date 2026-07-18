@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Building2, ChevronDown, LogOut } from "lucide-react";
+import { ShoppingCart, User, Building2, ChevronDown, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -57,6 +57,12 @@ export function Actions({ session }: ActionsProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/orders">
+                <Package className="mr-2 h-4 w-4" />
+                Orders
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/account">
                 <User className="mr-2 h-4 w-4" />

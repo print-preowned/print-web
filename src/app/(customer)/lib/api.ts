@@ -65,12 +65,17 @@ export type OrderItem = {
   status: string;
   created_at: string;
   updated_at: string;
+  book_title: string;
+  book_id: string;
+  image?: string | null;
+  business_name: string;
 };
 
 export type Order = {
   id: string;
   user_id: string;
   reference: string;
+  currency: string;
   total_amount: number;
   status: string;
   created_at: string;
@@ -102,6 +107,10 @@ type BaseResponse<T> = {
 
 export function readOrderById(id: string) {
   return generateUrl(`/orders/${id}`);
+}
+
+export function readCustomerOrders(params?: { page?: number; size?: number; search?: string }) {
+  return generateUrl("/orders", buildQueryParams(params));
 }
 
 export async function createOrder(payload: OrderCreatePayload) {
