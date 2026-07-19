@@ -13,6 +13,7 @@ export type BusinessOrderItem = {
   created_at: string;
   updated_at: string;
   book_title: string;
+  image?: string | null;
 };
 
 export type OrderSummaryItemPreview = {

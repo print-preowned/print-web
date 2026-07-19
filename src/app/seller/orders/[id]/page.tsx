@@ -14,14 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { apiFetch } from "@/lib/api";
 import {
   BusinessOrderDetail,
@@ -49,6 +41,46 @@ function formatDate(value: string) {
 function statusLabel(status: string): string {
   const normalized = status.trim().toUpperCase();
   return normalized.charAt(0) + normalized.slice(1).toLowerCase();
+}
+
+function lineTotal(item: BusinessOrderDetail["items"][number]): number {
+  return Number(item.unit_price) * item.quantity;
+}
+
+function OrderLineItem({
+  item,
+  currency,
+}: {
+  item: BusinessOrderDetail["items"][number];
+  currency: string;
+}) {
+  return (
+    <li className="flex flex-col gap-4 border-b border-border/60 py-4 last:border-b-0 sm:flex-row sm:items-start">
+      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted">
+        {item.image ? (
+          <img
+            src={item.image}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-tight text-muted-foreground">
+            No cover
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-medium leading-snug">{item.book_title}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {formatOrderAmount(Number(item.unit_price), currency)} ×{" "}
+          {item.quantity}
+        </p>
+      </div>
+      <p className="shrink-0 text-sm font-semibold sm:text-right">
+        {formatOrderAmount(lineTotal(item), currency)}
+      </p>
+    </li>
+  );
 }
 
 export default function OrderDetailPage() {
@@ -181,37 +213,15 @@ export default function OrderDetailPage() {
 
       <div className="space-y-3">
         <h2 className="text-lg font-medium">Your items</h2>
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Book</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Unit price</TableHead>
-                <TableHead className="text-right">Line total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {order.items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.book_title}
-                  </TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">
-                    {formatOrderAmount(item.unit_price, item.currency)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatOrderAmount(
-                      item.unit_price * item.quantity,
-                      item.currency,
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ul className="rounded-lg border px-4">
+          {order.items.map((item) => (
+            <OrderLineItem
+              key={item.id}
+              item={item}
+              currency={order.currency}
+            />
+          ))}
+        </ul>
       </div>
     </div>
   );

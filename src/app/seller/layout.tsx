@@ -63,8 +63,10 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         />
         <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="@container/main flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-            <div className="bg-background flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-8 py-4 md:gap-6 md:py-6">
-              {children}
+            <div className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto">
+              <div className="container mx-auto flex w-full flex-col gap-4 px-8 py-4 md:gap-6 md:py-6">
+                {children}
+              </div>
             </div>
           </div>
         </SidebarInset>
