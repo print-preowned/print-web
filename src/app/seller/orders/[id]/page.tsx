@@ -71,6 +71,11 @@ function OrderLineItem({
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-medium leading-snug">{item.book_title}</p>
+        {item.author_names.length > 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {item.author_names.join(", ")}
+          </p>
+        ) : null}
         <p className="mt-2 text-sm text-muted-foreground">
           {formatOrderAmount(Number(item.unit_price), currency)} ×{" "}
           {item.quantity}

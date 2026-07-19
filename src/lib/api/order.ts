@@ -14,6 +14,7 @@ export type BusinessOrderItem = {
   updated_at: string;
   book_title: string;
   image?: string | null;
+  author_names: string[];
 };
 
 export type OrderSummaryItemPreview = {

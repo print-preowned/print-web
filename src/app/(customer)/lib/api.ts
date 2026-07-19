@@ -69,6 +69,7 @@ export type OrderItem = {
   book_id: string;
   image?: string | null;
   business_name: string;
+  author_names: string[];
 };
 
 export type Order = {

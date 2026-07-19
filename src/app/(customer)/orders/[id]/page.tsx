@@ -44,6 +44,11 @@ function OrderLineItem({
         >
           {item.book_title}
         </Link>
+        {item.author_names.length > 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {item.author_names.join(", ")}
+          </p>
+        ) : null}
         <p className="mt-2 text-sm text-muted-foreground">
           Sold by{" "}
           <span className="text-foreground">{item.business_name}</span>
