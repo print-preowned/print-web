@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,10 +19,10 @@ import {
   OrderFulfillmentStatus,
   formatOrderAmount,
   readBusinessOrderById,
-  updateBusinessOrderStatus,
 } from "@/lib/api/order";
 import { usePrivilege } from "@/lib/auth/context";
 import { canUpdateOrderStatus, nextOrderStatuses } from "@/lib/order-status";
+import { useUpdateBusinessOrderStatus } from "@/lib/hooks/use-update-business-order-status";
 
 type OrderDetailResponse = {
   status_code: number;
@@ -91,7 +90,6 @@ function OrderLineItem({
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
   const orderId = params.id;
-  const queryClient = useQueryClient();
   const hasReadOrder = usePrivilege("READ_ORDER");
   const hasUpdateOrder = usePrivilege("UPDATE_ORDER");
 
@@ -105,20 +103,7 @@ export default function OrderDetailPage() {
   const currentStatus = order?.status.trim().toUpperCase() ?? "";
   const nextStatuses = order ? nextOrderStatuses(currentStatus) : [];
 
-  const statusMutation = useMutation({
-    mutationFn: async (status: OrderFulfillmentStatus) => {
-      const req = updateBusinessOrderStatus(orderId, status);
-      return apiFetch(req.endpoint, {
-        method: req.method,
-        body: req.body,
-      });
-    },
-    onSuccess: () => {
-      toast.success("Order status updated");
-      queryClient.invalidateQueries({ queryKey: ["business-order", orderId] });
-      queryClient.invalidateQueries({ queryKey: ["business-orders"] });
-    },
-  });
+  const statusMutation = useUpdateBusinessOrderStatus();
 
   if (!hasReadOrder) {
     return (
@@ -195,7 +180,10 @@ export default function OrderDetailPage() {
               value={currentStatus}
               onValueChange={(value) => {
                 if (value === currentStatus) return;
-                statusMutation.mutate(value as OrderFulfillmentStatus);
+                statusMutation.mutate({
+                  orderId,
+                  status: value as OrderFulfillmentStatus,
+                });
               }}
             >
               <SelectTrigger className="w-[220px]">
