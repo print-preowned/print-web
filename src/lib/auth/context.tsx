@@ -102,7 +102,7 @@ export function usePrivilege(privilege: string): boolean {
   if (!session || session.context !== "BUSINESS" || !session.business) {
     return false;
   }
-  return session.business.privileges.includes(privilege);
+  return session.privileges?.includes(privilege) ?? false;
 }
 
 /**

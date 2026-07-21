@@ -55,9 +55,9 @@ rules:
       - id: MDC-TOKEN-B-1
         type: requirement
         require_fields:
-          - biz.id
-          - biz.privileges
-          - biz.is_owner
+          - privileges
+          - business.id
+          - business.is_owner
 
       - id: MDC-TOKEN-B-2
         type: invariant

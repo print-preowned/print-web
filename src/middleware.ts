@@ -18,7 +18,7 @@ interface JWTPayload {
   ctx?: PayloadContext;
   exp?: number;
   pwd_chg?: boolean;
-  business?: { privileges?: string[]; is_owner?: boolean };
+  business?: { is_owner?: boolean };
   privileges?: string[];
 }
 
@@ -49,12 +49,8 @@ function payloadContext(p: JWTPayload): PayloadContext | null {
 
 function hasPrivileges(p: JWTPayload, required: string[]): boolean {
   if (required.length === 0) return true;
-  const list =
-    p?.ctx === "BUSINESS"
-      ? p?.business?.privileges
-      : p?.ctx === "PLATFORM"
-        ? p?.privileges
-        : undefined;
+  if (p?.ctx !== "BUSINESS" && p?.ctx !== "PLATFORM") return false;
+  const list = p?.privileges;
   if (!Array.isArray(list)) return false;
   return required.every((priv) => list.includes(priv));
 }

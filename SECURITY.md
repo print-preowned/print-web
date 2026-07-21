@@ -86,7 +86,7 @@ async def delete(id: str, request: Request):
     decoded = decode_token(token)
     
     # Check privilege
-    if "DELETE_BOOK" not in decoded.business.privileges:
+    if "DELETE_BOOK" not in decoded.privileges:
         raise HTTPException(403, "Insufficient privileges")
     
     # Check ownership (if required)

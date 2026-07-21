@@ -80,7 +80,7 @@ export function RouteGuard({
       // Check required privileges
       if (requiredPrivileges.length > 0) {
         const hasAllPrivileges = requiredPrivileges.every((privilege) =>
-          session.business!.privileges.includes(privilege)
+          session.privileges?.includes(privilege) ?? false
         );
         if (!hasAllPrivileges) {
           router.push("/seller/dashboard"); // Or appropriate error page
@@ -148,7 +148,7 @@ export function RouteGuard({
   ) {
     if (requiredPrivileges.length > 0) {
       const hasAllPrivileges = requiredPrivileges.every((privilege) =>
-        session.business!.privileges.includes(privilege)
+        session.privileges?.includes(privilege) ?? false
       );
       if (!hasAllPrivileges) {
         return null;

@@ -74,7 +74,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       routeConfig.requiredPrivileges.length > 0
     ) {
       const hasAllPrivileges = routeConfig.requiredPrivileges.every(
-        (privilege) => session.business!.privileges.includes(privilege)
+        (privilege) => session.privileges?.includes(privilege) ?? false
       );
       if (!hasAllPrivileges) {
         router.push("/seller/dashboard");
@@ -157,7 +157,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       routeConfig.requiredPrivileges.length > 0
     ) {
       const hasAllPrivileges = routeConfig.requiredPrivileges.every(
-        (privilege) => session.business!.privileges.includes(privilege)
+        (privilege) => session.privileges?.includes(privilege) ?? false
       );
       if (!hasAllPrivileges) {
         return null;

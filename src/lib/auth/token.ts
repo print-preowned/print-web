@@ -4,7 +4,7 @@
  * Token structure requirements:
  * - Required base fields: iss, aud, sub, iat, exp, jti, ctx
  * - Context: CUSTOMER or BUSINESS
- * - BUSINESS tokens require: business.id, business.privileges, business.is_owner
+ * - BUSINESS tokens require: privileges, business.id, business.is_owner
  */
 
 export type TokenContext = "CUSTOMER" | "BUSINESS" | "PLATFORM";
@@ -27,7 +27,6 @@ export interface BusinessTokenData {
     is_system: boolean;
   };
   is_owner: boolean;
-  privileges: string[];
 }
 
 export interface CustomerToken extends BaseTokenFields {
@@ -39,6 +38,7 @@ export interface CustomerToken extends BaseTokenFields {
 
 export interface BusinessToken extends BaseTokenFields {
   ctx: "BUSINESS";
+  privileges: string[];
   business: BusinessTokenData;
 }
 
@@ -59,7 +59,7 @@ export type AccessToken = CustomerToken | BusinessToken | PlatformToken;
 export interface Session {
   id: string;
   context: TokenContext;
-  business?: { id: string; privileges: string[]; is_owner: boolean };
+  business?: { id: string; is_owner: boolean };
   privileges?: string[];
   /** When context is CUSTOMER, true if the user has a linked business (can switch). */
   hasBusiness?: boolean;
@@ -75,9 +75,9 @@ export function sessionFromToken(decoded: AccessToken): Session {
   if (decoded.ctx === "BUSINESS" && "business" in decoded) {
     session.business = {
       id: decoded.business.id,
-      privileges: decoded.business.privileges,
       is_owner: decoded.business.is_owner,
     };
+    session.privileges = decoded.privileges;
   }
   if (decoded.ctx === "PLATFORM" && "privileges" in decoded) {
     session.privileges = decoded.privileges;
@@ -120,7 +120,11 @@ export function decodeToken(token: string): AccessToken | null {
         console.error("BUSINESS token missing business field");
         return null;
       }
-      if (!payload.business.id || !payload.business.privileges || typeof payload.business.is_owner !== "boolean") {
+      if (!payload.privileges || !Array.isArray(payload.privileges)) {
+        console.error("BUSINESS token missing privileges field");
+        return null;
+      }
+      if (!payload.business.id || typeof payload.business.is_owner !== "boolean") {
         console.error("BUSINESS token missing required business fields");
         return null;
       }
@@ -183,11 +187,10 @@ export function hasPrivilege(token: string, privilege: string): boolean {
   if (!decoded || (decoded.ctx !== "BUSINESS" && decoded.ctx !== "PLATFORM")) {
     return false;
   }
-  if (decoded.ctx === "BUSINESS") {
-    return decoded.business.privileges.includes(privilege);
-  } else {
+  if (decoded.ctx === "BUSINESS" || decoded.ctx === "PLATFORM") {
     return decoded.privileges.includes(privilege);
   }
+  return false;
 }
 
 /**
