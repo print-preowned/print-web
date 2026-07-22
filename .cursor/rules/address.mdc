@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+addresses:
+  user_addresses:
+    api: /addresses
+    context: CUSTOMER
+    ui:
+      - /account/addresses
+    copy: Address book / Saved addresses
+
+    invariants:
+      - id: MDC-FE-ADDRESS-1
+        assertion: address_book_requires_customer_context
+
+      - id: MDC-FE-ADDRESS-2
+        assertion: delivery_phone_is_distinct_from_account_phone
+
+  deferred:
+    - business_locations
+    - checkout_address_selection

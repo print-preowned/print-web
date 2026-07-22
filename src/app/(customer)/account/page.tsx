@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,36 +40,54 @@ export default function AccountPage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-          ) : !isCreating ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Create Business</CardTitle>
-                <CardDescription>
-                  Create a new business account to start managing your business
-                  operations.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => setIsCreating(true)}>
-                  Create Business
-                </Button>
-              </CardContent>
-            </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Create Business</CardTitle>
-                <CardDescription>
-                  Fill in the details to create your business account.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CreateBusinessForm
-                  onCancel={() => setIsCreating(false)}
-                  submitLabel="Create Business"
-                />
-              </CardContent>
-            </Card>
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Addresses</CardTitle>
+                  <CardDescription>
+                    Manage saved delivery addresses for your orders.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline">
+                    <Link href="/account/addresses">Manage addresses</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {!isCreating ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create Business</CardTitle>
+                    <CardDescription>
+                      Create a new business account to start managing your
+                      business operations.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button onClick={() => setIsCreating(true)}>
+                      Create Business
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create Business</CardTitle>
+                    <CardDescription>
+                      Fill in the details to create your business account.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <CreateBusinessForm
+                      onCancel={() => setIsCreating(false)}
+                      submitLabel="Create Business"
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </div>
       </div>

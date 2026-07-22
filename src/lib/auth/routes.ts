@@ -136,6 +136,11 @@ export const routeConfig: Record<string, RouteConfig> = {
     requireAuth: true,
     redirectTo: "/login",
   },
+  "/account/addresses": {
+    requireAuth: true,
+    requiredContext: "CUSTOMER",
+    redirectTo: "/login",
+  },
   
   // Admin routes (require PLATFORM context - separate from regular UI)
   "/admin/*": {
