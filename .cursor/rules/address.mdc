@@ -16,6 +16,25 @@ addresses:
       - id: MDC-FE-ADDRESS-2
         assertion: delivery_phone_is_distinct_from_account_phone
 
+  business_locations:
+    api: /business-addresses
+    context: BUSINESS
+    ui:
+      - /seller/account
+    copy: Store locations
+
+    privileges:
+      READ_BUSINESS:
+        context: BUSINESS
+      UPDATE_BUSINESS:
+        context: BUSINESS
+
+    invariants:
+      - id: MDC-FE-ADDRESS-3
+        assertion: store_locations_require_business_context
+
+      - id: MDC-FE-ADDRESS-4
+        assertion: location_mutations_require_update_business
+
   deferred:
-    - business_locations
     - checkout_address_selection

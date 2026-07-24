@@ -86,9 +86,40 @@ export const addressFieldsSchema = z.object({
 
 export type AddressFieldsValues = z.infer<typeof addressFieldsSchema>;
 
+function optionalPhoneField() {
+  return z
+    .string()
+    .trim()
+    .max(16)
+    .refine((value) => !value || PHONE_INPUT_PATTERN.test(normalizePhoneInput(value)), {
+      message: "Enter a valid phone number",
+    })
+    .transform((value) => {
+      if (!value) return "";
+      return normalizePhoneToE164(normalizePhoneInput(value));
+    });
+}
+
+export const businessAddressFieldsSchema = z.object({
+  line1: z.string().trim().min(1, "Address line 1 is required").max(128),
+  line2: z.string().trim().max(128).optional().or(z.literal("")),
+  city: z.string().trim().min(1, "City is required").max(128),
+  state: z.enum(NIGERIAN_STATES, { message: "Select a valid state" }),
+  postal_code: z.string().trim().max(8).optional().or(z.literal("")),
+  phone_number: optionalPhoneField(),
+});
+
+export type BusinessAddressFieldsValues = z.infer<typeof businessAddressFieldsSchema>;
+
 export const userAddressFormSchema = addressFieldsSchema.extend({
   label: z.string().trim().max(32).optional().or(z.literal("")),
   recipient_name: z.string().trim().min(1, "Recipient name is required").max(64),
 });
 
 export type UserAddressFormValues = z.infer<typeof userAddressFormSchema>;
+
+export const businessLocationFormSchema = businessAddressFieldsSchema.extend({
+  label: z.string().trim().min(1, "Location name is required").max(32),
+});
+
+export type BusinessLocationFormValues = z.output<typeof businessLocationFormSchema>;

@@ -7,6 +7,7 @@ import { Business, readBusinessById, updateBusiness } from "@/lib/api/business";
 import type { HttpMethod } from "@/lib/api";
 import { toast } from "sonner";
 import { BusinessDetailsForm } from "./business-details-form";
+import { BusinessLocationsList } from "./business-locations-list";
 
 type BusinessResponse = { data: Business; message?: string; status_code?: number };
 
@@ -94,6 +95,8 @@ export default function SellerAccountPage() {
           </dl>
         </div>
       )}
+
+      <BusinessLocationsList />
     </div>
   );
 }

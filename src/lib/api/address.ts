@@ -54,6 +54,59 @@ export function setDefaultUserAddress(id: string) {
   return { endpoint: `/addresses/${id}/set-default`, method: "POST" as const };
 }
 
+export type BusinessAddress = {
+  id: string;
+  business_id: string;
+  label: string;
+  phone_number?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  postal_code?: string | null;
+  country_code: string;
+  is_primary: boolean;
+  pickup_enabled: boolean;
+};
+
+export type BusinessAddressCreatePayload = {
+  label: string;
+  phone_number?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  postal_code?: string | null;
+  country_code?: string;
+  is_primary?: boolean;
+};
+
+export type BusinessAddressUpdatePayload = Partial<BusinessAddressCreatePayload>;
+
+export function readBusinessAddresses(params?: { page?: number; size?: number }) {
+  return generateUrl("/business-addresses", params);
+}
+
+export function readBusinessAddressById(id: string) {
+  return generateUrl(`/business-addresses/${id}`);
+}
+
+export function createBusinessAddress(payload: BusinessAddressCreatePayload) {
+  return { endpoint: "/business-addresses", method: "POST" as const, body: payload };
+}
+
+export function updateBusinessAddress(id: string, payload: BusinessAddressUpdatePayload) {
+  return { endpoint: `/business-addresses/${id}`, method: "PATCH" as const, body: payload };
+}
+
+export function deleteBusinessAddress(id: string) {
+  return { endpoint: `/business-addresses/${id}`, method: "DELETE" as const };
+}
+
+export function setPrimaryBusinessAddress(id: string) {
+  return { endpoint: `/business-addresses/${id}/set-primary`, method: "POST" as const };
+}
+
 export function formatAddressLine(
   address: Pick<UserAddress, "line1" | "line2" | "city" | "state" | "postal_code">,
 ) {

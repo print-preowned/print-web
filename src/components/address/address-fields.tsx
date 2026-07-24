@@ -19,6 +19,7 @@ type AddressFieldsProps = {
   stateValue: string;
   onStateChange: (value: string) => void;
   showPhone?: boolean;
+  phoneRequired?: boolean;
   phoneHelpText?: string;
 };
 
@@ -28,6 +29,7 @@ export function AddressFields({
   stateValue,
   onStateChange,
   showPhone = true,
+  phoneRequired = true,
   phoneHelpText,
 }: AddressFieldsProps) {
   return (
@@ -95,7 +97,9 @@ export function AddressFields({
 
       {showPhone && (
         <div className="space-y-2">
-          <Label htmlFor="phone_number">Phone</Label>
+          <Label htmlFor="phone_number">
+            Phone{phoneRequired ? "" : " (optional)"}
+          </Label>
           <Input
             id="phone_number"
             type="tel"

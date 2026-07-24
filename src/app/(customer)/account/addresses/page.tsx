@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -95,19 +96,17 @@ function AddressListSkeleton() {
       {Array.from({ length: 2 }).map((_, index) => (
         <Card key={index}>
           <CardHeader className="pb-3">
-            <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-5 w-16 rounded-full" />
-                </div>
-                <Skeleton className="h-4 w-24" />
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <Skeleton className="size-8 rounded-md" />
-                <Skeleton className="size-8 rounded-md" />
-              </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-5 w-16 rounded-full" />
             </div>
+            <Skeleton className="h-4 w-24" />
+            <CardAction>
+              <div className="flex gap-1">
+                <Skeleton className="size-8 rounded-md" />
+                <Skeleton className="size-8 rounded-md" />
+              </div>
+            </CardAction>
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
             <Skeleton className="h-4 w-full max-w-xs" />
@@ -136,19 +135,17 @@ function AddressCard({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-lg">
-                {address.label || address.recipient_name}
-              </CardTitle>
-              {address.is_default && <Badge variant="secondary">Default</Badge>}
-            </div>
-            {address.label ? (
-              <CardDescription>{address.recipient_name}</CardDescription>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 items-center gap-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <CardTitle className="text-lg">
+            {address.label || address.recipient_name}
+          </CardTitle>
+          {address.is_default && <Badge variant="secondary">Default</Badge>}
+        </div>
+        {address.label ? (
+          <CardDescription>{address.recipient_name}</CardDescription>
+        ) : null}
+        <CardAction>
+          <div className="flex items-center gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -178,7 +175,7 @@ function AddressCard({
               <TooltipContent>Delete</TooltipContent>
             </Tooltip>
           </div>
-        </div>
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
         <p className="flex gap-2 text-sm text-muted-foreground">
