@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // See IMPLEMENTATION.md — "Session refresh vs force logout".
     if (typeof window === "undefined") return null;
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
       if (res.ok) {
         const { session: nextSession } = (await res.json()) as { session: Session };
         setSessionState(nextSession ?? null);

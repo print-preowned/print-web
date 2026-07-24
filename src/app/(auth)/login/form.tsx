@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,26 +18,28 @@ function platformRedirect(session: Session) {
 
 export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
   const router = useRouter();
-  const { session, refreshSession } = useAuth();
+  const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get("reason") === "session_expired";
+  const { session, isLoading, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();
 
   useEffect(() => {
-    if (session) {
-      switch (session?.context) {
-        case "BUSINESS": {
-          router.push("/seller/dashboard");
-          break;
-        }
-        case "PLATFORM": {
-          router.push(platformRedirect(session));
-          break;
-        }
-        default: {
-          router.push("/");
-        }
+    if (isLoading || !session || sessionExpired) return;
+
+    switch (session.context) {
+      case "BUSINESS": {
+        router.push("/seller/dashboard");
+        break;
+      }
+      case "PLATFORM": {
+        router.push(platformRedirect(session));
+        break;
+      }
+      default: {
+        router.push("/");
       }
     }
-  }, [session, router]);
+  }, [session, isLoading, sessionExpired, router]);
 
   const handleLogin = async (data: FieldValues) => {
     try {

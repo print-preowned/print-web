@@ -7,7 +7,10 @@ import {
   requiresAuth,
 } from "./lib/auth/routes";
 import { getJwtSecretKey } from "./lib/auth/jwt-secret";
-import { AUTH_COOKIE_NAME } from "./lib/auth/server-cookie";
+import {
+  AUTH_COOKIE_NAME,
+  getAuthCookieClearOptions,
+} from "./lib/auth/server-cookie";
 
 const JWT_SECRET = getJwtSecretKey();
 const JWT_AUDIENCE = "print-web";
@@ -22,11 +25,17 @@ interface JWTPayload {
   privileges?: string[];
 }
 
+function clearAuthCookieOnResponse(response: NextResponse) {
+  response.cookies.set(AUTH_COOKIE_NAME, "", getAuthCookieClearOptions());
+  return response;
+}
+
 function redirectToLogin(pathname: string, request: NextRequest, admin = false) {
   const loginPath = admin ? "/admin/login" : "/login";
   const url = new URL(loginPath, request.url);
   url.searchParams.set("redirect", pathname);
-  return NextResponse.redirect(url);
+  url.searchParams.set("reason", "session_expired");
+  return clearAuthCookieOnResponse(NextResponse.redirect(url));
 }
 
 async function verifyToken(token: string): Promise<JWTPayload | null> {

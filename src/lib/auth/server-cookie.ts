@@ -37,6 +37,13 @@ export function getAuthCookieOptions() {
   };
 }
 
+export function getAuthCookieClearOptions() {
+  return {
+    ...getAuthCookieOptions(),
+    maxAge: 0,
+  };
+}
+
 export async function setAuthCookie(token: string) {
   const store = await cookies();
   store.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
@@ -44,7 +51,7 @@ export async function setAuthCookie(token: string) {
 
 export async function clearAuthCookie() {
   const store = await cookies();
-  store.delete(AUTH_COOKIE_NAME);
+  store.set(AUTH_COOKIE_NAME, "", getAuthCookieClearOptions());
 }
 
 export async function getAuthTokenFromRequest(): Promise<string | null> {

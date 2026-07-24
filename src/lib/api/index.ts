@@ -116,7 +116,7 @@ export async function apiFetch<T>(
     if (res.status === 401 && isClient) {
       const { forceLogout } = await import("../auth/logout");
       toast.error("Your session has expired. Please log in again.");
-      forceLogout();
+      await forceLogout();
       throw new ApiError("Session expired", 401);
     }
 

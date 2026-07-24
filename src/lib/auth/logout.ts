@@ -9,20 +9,23 @@ export const AUTH_FORCE_LOGOUT_EVENT = "print:auth-force-logout";
 
 function redirectToLogin() {
   const isAdminRoute = window.location.pathname.startsWith("/admin");
-  window.location.href = isAdminRoute ? "/admin/login" : "/login";
+  const loginPath = isAdminRoute ? "/admin/login" : "/login";
+  window.location.href = `${loginPath}?reason=session_expired`;
 }
 
 /** Clears React session immediately, then clears cookie and redirects. */
-export function forceLogout() {
+export async function forceLogout(): Promise<void> {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(AUTH_FORCE_LOGOUT_EVENT));
   localStorage.removeItem("user");
-  fetch("/api/auth/logout", { method: "POST", credentials: "include" }).finally(
-    redirectToLogin,
-  );
+  try {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  } catch {
+    // Redirect even if the logout request fails.
+  }
+  redirectToLogin();
 }
 
 export function logout() {
-  forceLogout();
+  void forceLogout();
 }
-
