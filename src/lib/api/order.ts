@@ -24,6 +24,19 @@ export type OrderSummaryItemPreview = {
   quantity: number;
 };
 
+export type OrderFulfillmentAddress = {
+  fulfillment_type: string;
+  recipient_name: string;
+  address_label?: string | null;
+  phone_number?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  postal_code?: string | null;
+  country_code: string;
+};
+
 export type OrderSummary = {
   id: string;
   reference: string;
@@ -32,6 +45,9 @@ export type OrderSummary = {
   total_amount: number;
   item_count: number;
   preview_items: OrderSummaryItemPreview[];
+  business_id?: string | null;
+  business_name?: string | null;
+  fulfillment_address?: OrderFulfillmentAddress | null;
   created_at: string;
   updated_at: string;
 };

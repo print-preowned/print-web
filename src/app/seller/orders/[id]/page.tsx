@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { apiFetch } from "@/lib/api";
 import {
@@ -202,6 +203,10 @@ export default function OrderDetailPage() {
             </Select>
           </div>
         </div>
+      ) : null}
+
+      {order.fulfillment_address ? (
+        <FulfillmentAddressPanel address={order.fulfillment_address} />
       ) : null}
 
       <div className="space-y-3">

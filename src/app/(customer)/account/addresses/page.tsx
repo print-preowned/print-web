@@ -212,7 +212,7 @@ function AddressForm({
   onCancel: () => void;
 }) {
   const queryClient = useQueryClient();
-  const listKey = [readUserAddresses({ page: 1, size: 20 })];
+  const listKey = [readUserAddresses()];
 
   const {
     register,
@@ -312,13 +312,13 @@ function AddressForm({
 export default function AddressesPage() {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const listKey = [readUserAddresses({ page: 1, size: 20 })];
+  const listKey = [readUserAddresses()];
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<UserAddress | null>(null);
 
   const { data, isLoading, error } = useApiQuery<PaginatedUserAddresses>(
     listKey,
-    readUserAddresses({ page: 1, size: 20 }),
+    readUserAddresses(),
   );
 
   const addresses = data?.data ?? [];
@@ -425,7 +425,7 @@ export default function AddressesPage() {
                 <CardHeader>
                   <CardTitle>No saved addresses yet</CardTitle>
                   <CardDescription>
-                    Add a delivery address to use at checkout in a future update.
+                    Save delivery addresses for checkout.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

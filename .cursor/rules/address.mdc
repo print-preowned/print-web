@@ -36,5 +36,17 @@ addresses:
       - id: MDC-FE-ADDRESS-4
         assertion: location_mutations_require_update_business
 
-  deferred:
-    - checkout_address_selection
+  checkout:
+    ui:
+      - /checkout
+    requires:
+      - shipping_address_id on POST /orders
+    invariants:
+      - id: MDC-FE-ADDRESS-5
+        assertion: checkout_requires_selected_delivery_address
+
+  order_fulfillment:
+    display:
+      - customer order detail
+      - seller order detail
+    source: order.fulfillment_address

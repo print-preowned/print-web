@@ -72,6 +72,19 @@ export type OrderItem = {
   author_names: string[];
 };
 
+export type OrderFulfillmentAddress = {
+  fulfillment_type: string;
+  recipient_name: string;
+  address_label?: string | null;
+  phone_number?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  postal_code?: string | null;
+  country_code: string;
+};
+
 export type Order = {
   id: string;
   user_id: string;
@@ -79,8 +92,10 @@ export type Order = {
   currency: string;
   total_amount: number;
   status: string;
+  business_id?: string | null;
+  business_name?: string | null;
+  fulfillment_address?: OrderFulfillmentAddress | null;
   created_at: string;
-  updated_at: string;
 };
 
 export type OrderDetail = Order & {
@@ -90,6 +105,7 @@ export type OrderDetail = Order & {
 export type OrderCreatePayload = {
   reference: string;
   total_amount: number;
+  shipping_address_id: string;
   items: OrderItemCreatePayload[];
 };
 

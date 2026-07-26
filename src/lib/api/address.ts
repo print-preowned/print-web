@@ -30,8 +30,8 @@ export type UserAddressCreatePayload = {
 
 export type UserAddressUpdatePayload = Partial<UserAddressCreatePayload>;
 
-export function readUserAddresses(params?: { page?: number; size?: number }) {
-  return generateUrl("/addresses", params);
+export function readUserAddresses() {
+  return generateUrl("/addresses");
 }
 
 export function readUserAddressById(id: string) {

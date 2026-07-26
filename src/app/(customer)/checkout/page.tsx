@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CheckoutAddressPicker } from "@/components/address/checkout-address-picker";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import {
@@ -21,6 +22,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { lines, ready, total } = useCart();
   const [submitting, setSubmitting] = useState(false);
+  const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
 
   return (
     <div className="storefront-grain min-h-[70vh]">
@@ -47,6 +49,11 @@ export default function CheckoutPage() {
             </div>
           ) : (
             <div className="space-y-8">
+              <CheckoutAddressPicker
+                selectedId={shippingAddressId}
+                onSelectedIdChange={setShippingAddressId}
+              />
+
               <ul className="divide-y divide-border/70 border-y border-border/70">
                 {lines.map((line) => (
                   <li
@@ -75,14 +82,15 @@ export default function CheckoutPage() {
                 </p>
                 <Button
                   type="button"
-                  disabled={submitting}
+                  disabled={submitting || !shippingAddressId}
                   onClick={async () => {
-                    if (lines.length === 0) return;
+                    if (lines.length === 0 || !shippingAddressId) return;
                     setSubmitting(true);
                     try {
                       const created = await createOrder({
                         reference: makeReference(),
                         total_amount: Number(total.toFixed(2)),
+                        shipping_address_id: shippingAddressId,
                         items: lines.map((line) => ({
                           variant_id: line.variantId,
                           quantity: line.quantity,

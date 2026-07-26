@@ -8,8 +8,9 @@ import {
 } from "@/lib/customer-order-display";
 import { fetchOrderById, OrderDetail, OrderItem } from "@customer/api";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
-import { StatusBadge } from "@/components/status-badge";
+import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { OrderCancelButton } from "./order-cancel-button";
+import { StatusBadge } from "@/components/status-badge";
 
 function lineTotal(item: OrderItem): number {
   return Number(item.unit_price) * item.quantity;
@@ -162,6 +163,10 @@ export default async function OrderConfirmationPage({
 
         <div className="mt-8 space-y-6">
           <OrderSummaryPanel order={order} />
+
+          {order.fulfillment_address ? (
+            <FulfillmentAddressPanel address={order.fulfillment_address} />
+          ) : null}
 
           {order.items.length > 0 ? (
             <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
