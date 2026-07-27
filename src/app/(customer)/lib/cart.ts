@@ -8,6 +8,7 @@ export type CartLine = {
   unitPrice: number;
   bookTitle: string;
   image?: string | null;
+  businessId?: string | null;
   businessName?: string | null;
   configLabel?: string | null;
 };
@@ -72,6 +73,7 @@ export function addToCart(
       unitPrice: input.unitPrice,
       bookTitle: input.bookTitle,
       image: input.image ?? null,
+      businessId: input.businessId ?? null,
       businessName: input.businessName ?? null,
       configLabel: input.configLabel ?? null,
     });

@@ -105,7 +105,9 @@ export type OrderDetail = Order & {
 export type OrderCreatePayload = {
   reference: string;
   total_amount: number;
-  shipping_address_id: string;
+  fulfillment_type?: "DELIVERY" | "PICKUP";
+  shipping_address_id?: string;
+  pickup_location_id?: string;
   items: OrderItemCreatePayload[];
 };
 

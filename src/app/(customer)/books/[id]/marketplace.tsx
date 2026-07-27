@@ -57,6 +57,7 @@ function OfferAddToCart({
       unitPrice: selected.price,
       bookTitle: selected.book_title,
       image: selected.book_image ?? selected.image,
+      businessId: selected.business_id,
       businessName: selected.business_name,
       configLabel: formatVariantConfig(selected.config),
       quantity: 1,

@@ -228,10 +228,10 @@ export function CheckoutAddressPicker({
   }, [addresses, onSelectedIdChange, selectedId]);
 
   useEffect(() => {
-    if (addresses.length === 0 && !showForm) {
+    if (!isLoading && addresses.length === 0 && !showForm) {
       setShowForm(true);
     }
-  }, [addresses.length, showForm]);
+  }, [addresses.length, isLoading, showForm]);
 
   if (isLoading) {
     return (

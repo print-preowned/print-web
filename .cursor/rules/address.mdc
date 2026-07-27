@@ -36,17 +36,27 @@ addresses:
       - id: MDC-FE-ADDRESS-4
         assertion: location_mutations_require_update_business
 
+      - id: MDC-FE-ADDRESS-6
+        assertion: at_most_one_pickup_location_per_business
+
   checkout:
     ui:
       - /checkout
     requires:
-      - shipping_address_id on POST /orders
+      - fulfillment_type DELIVERY or PICKUP
+      - shipping_address_id when DELIVERY
+      - pickup_location_id when PICKUP
+    pickup_read:
+      - GET /businesses/{businessId}/pickup-location
     invariants:
       - id: MDC-FE-ADDRESS-5
-        assertion: checkout_requires_selected_delivery_address
+        assertion: checkout_requires_fulfillment_selection_for_active_mode
 
   order_fulfillment:
     display:
       - customer order detail
       - seller order detail
     source: order.fulfillment_address
+    pickup_statuses:
+      - READY_FOR_PICKUP
+      - PICKED_UP

@@ -39,6 +39,7 @@ function emptyFormValues(): BusinessLocationFormValues {
     city: "",
     state: "Lagos",
     postal_code: "",
+    pickup_enabled: false,
   };
 }
 
@@ -51,6 +52,7 @@ function toFormValues(address: BusinessAddress): BusinessLocationFormValues {
     city: address.city,
     state: address.state as BusinessLocationFormValues["state"],
     postal_code: address.postal_code ?? "",
+    pickup_enabled: address.pickup_enabled,
   };
 }
 
@@ -64,6 +66,7 @@ function toPayload(values: BusinessLocationFormValues): BusinessAddressCreatePay
     state: values.state,
     postal_code: values.postal_code || null,
     country_code: "NG",
+    pickup_enabled: values.pickup_enabled,
   };
 }
 
@@ -151,8 +154,24 @@ export function BusinessLocationForm({
               })
             }
             phoneRequired={false}
-            phoneHelpText="Contact phone for this location. Pickup will use these addresses in a future release."
+            phoneHelpText="Contact phone for this location."
           />
+
+          <label className="flex items-start gap-3 rounded-lg border border-border/70 px-3 py-3">
+            <input
+              type="checkbox"
+              className="mt-1"
+              {...register("pickup_enabled")}
+            />
+            <span className="space-y-1">
+              <span className="block text-sm font-medium">
+                Offer pickup at this location
+              </span>
+              <span className="block text-sm text-muted-foreground">
+                Only one location per business can accept pickup orders.
+              </span>
+            </span>
+          </label>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onCancel}>

@@ -120,6 +120,7 @@ export type UserAddressFormValues = z.infer<typeof userAddressFormSchema>;
 
 export const businessLocationFormSchema = businessAddressFieldsSchema.extend({
   label: z.string().trim().min(1, "Location name is required").max(32),
+  pickup_enabled: z.boolean(),
 });
 
 export type BusinessLocationFormValues = z.output<typeof businessLocationFormSchema>;

@@ -79,9 +79,14 @@ export type BusinessAddressCreatePayload = {
   postal_code?: string | null;
   country_code?: string;
   is_primary?: boolean;
+  pickup_enabled?: boolean;
 };
 
 export type BusinessAddressUpdatePayload = Partial<BusinessAddressCreatePayload>;
+
+export function readBusinessPickupLocation(businessId: string) {
+  return generateUrl(`/businesses/${businessId}/pickup-location`);
+}
 
 export function readBusinessAddresses(params?: { page?: number; size?: number }) {
   return generateUrl("/business-addresses", params);

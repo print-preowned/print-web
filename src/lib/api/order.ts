@@ -61,6 +61,8 @@ export type OrderFulfillmentStatus =
   | "CONFIRMED"
   | "SHIPPED"
   | "DELIVERED"
+  | "READY_FOR_PICKUP"
+  | "PICKED_UP"
   | "CANCELLED";
 
 export function readBusinessOrders(params?: ReadParams) {

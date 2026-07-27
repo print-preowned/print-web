@@ -14,7 +14,7 @@ const CUSTOMER_ORDER_STATUS_COPY: Record<string, CustomerOrderStatusCopy> = {
   },
   CONFIRMED: {
     headline: "Confirmed",
-    message: "Your order is confirmed and is being prepared for shipment.",
+    message: "Your order is confirmed and is being prepared.",
   },
   SHIPPED: {
     headline: "Shipped",
@@ -23,6 +23,14 @@ const CUSTOMER_ORDER_STATUS_COPY: Record<string, CustomerOrderStatusCopy> = {
   DELIVERED: {
     headline: "Delivered",
     message: "Your order was delivered.",
+  },
+  READY_FOR_PICKUP: {
+    headline: "Ready for pickup",
+    message: "Your order is ready to collect from the store.",
+  },
+  PICKED_UP: {
+    headline: "Picked up",
+    message: "Your order was collected.",
   },
   CANCELLED: {
     headline: "Cancelled",

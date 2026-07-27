@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CheckoutAddressPicker } from "@/components/address/checkout-address-picker";
+import {
+  CheckoutPickupLocationDisplay,
+  usePickupAvailable,
+} from "@/components/address/checkout-pickup-location-display";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
-import {
-  createOrder,
-  formatPrice,
-} from "@customer/api";
+import { createOrder, formatPrice } from "@customer/api";
 import { clearCart, useCart } from "@customer/cart";
 
 function makeReference() {
@@ -18,11 +19,30 @@ function makeReference() {
   return `PRT-${Date.now()}-${rand}`;
 }
 
+type FulfillmentType = "DELIVERY" | "PICKUP";
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { lines, ready, total } = useCart();
   const [submitting, setSubmitting] = useState(false);
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>("DELIVERY");
   const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
+  const [pickupLocationId, setPickupLocationId] = useState<string | null>(null);
+
+  const businessId = lines[0]?.businessId ?? null;
+  const { available: pickupAvailable, isLoading: pickupLoading } =
+    usePickupAvailable(businessId);
+
+  const handlePickupLocationLoaded = useCallback((id: string | null) => {
+    setPickupLocationId(id);
+  }, []);
+
+  const canPlaceOrder = useMemo(() => {
+    if (fulfillmentType === "DELIVERY") {
+      return Boolean(shippingAddressId);
+    }
+    return Boolean(pickupLocationId);
+  }, [fulfillmentType, pickupLocationId, shippingAddressId]);
 
   return (
     <div className="storefront-grain min-h-[70vh]">
@@ -49,10 +69,53 @@ export default function CheckoutPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              <CheckoutAddressPicker
-                selectedId={shippingAddressId}
-                onSelectedIdChange={setShippingAddressId}
-              />
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-medium">Fulfillment</legend>
+                <div className="flex flex-wrap gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2.5 has-[:checked]:border-primary has-[:checked]:bg-muted/40">
+                    <input
+                      type="radio"
+                      name="fulfillment-type"
+                      value="DELIVERY"
+                      checked={fulfillmentType === "DELIVERY"}
+                      onChange={() => setFulfillmentType("DELIVERY")}
+                    />
+                    <span className="text-sm font-medium">Delivery</span>
+                  </label>
+                  {pickupAvailable ? (
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2.5 has-[:checked]:border-primary has-[:checked]:bg-muted/40">
+                      <input
+                        type="radio"
+                        name="fulfillment-type"
+                        value="PICKUP"
+                        checked={fulfillmentType === "PICKUP"}
+                        onChange={() => setFulfillmentType("PICKUP")}
+                      />
+                      <span className="text-sm font-medium">Pickup</span>
+                    </label>
+                  ) : pickupLoading ? (
+                    <p className="self-center text-sm text-muted-foreground">
+                      Checking pickup options…
+                    </p>
+                  ) : null}
+                </div>
+              </fieldset>
+
+              {fulfillmentType === "DELIVERY" ? (
+                <CheckoutAddressPicker
+                  selectedId={shippingAddressId}
+                  onSelectedIdChange={setShippingAddressId}
+                />
+              ) : businessId ? (
+                <CheckoutPickupLocationDisplay
+                  businessId={businessId}
+                  onLocationLoaded={handlePickupLocationLoaded}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Pickup is unavailable for this cart.
+                </p>
+              )}
 
               <ul className="divide-y divide-border/70 border-y border-border/70">
                 {lines.map((line) => (
@@ -82,15 +145,18 @@ export default function CheckoutPage() {
                 </p>
                 <Button
                   type="button"
-                  disabled={submitting || !shippingAddressId}
+                  disabled={submitting || !canPlaceOrder}
                   onClick={async () => {
-                    if (lines.length === 0 || !shippingAddressId) return;
+                    if (lines.length === 0 || !canPlaceOrder) return;
                     setSubmitting(true);
                     try {
                       const created = await createOrder({
                         reference: makeReference(),
                         total_amount: Number(total.toFixed(2)),
-                        shipping_address_id: shippingAddressId,
+                        fulfillment_type: fulfillmentType,
+                        ...(fulfillmentType === "DELIVERY"
+                          ? { shipping_address_id: shippingAddressId! }
+                          : { pickup_location_id: pickupLocationId! }),
                         items: lines.map((line) => ({
                           variant_id: line.variantId,
                           quantity: line.quantity,

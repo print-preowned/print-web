@@ -35,6 +35,12 @@ const STATUS_DISPLAY: Record<string, StatusDisplay> = {
   CONFIRMED: { label: "Confirmed", variant: "default", icon: CheckCircle2 },
   SHIPPED: { label: "Shipped", variant: "default", icon: CheckCircle2 },
   DELIVERED: { label: "Delivered", variant: "default", icon: CheckCircle2 },
+  READY_FOR_PICKUP: {
+    label: "Ready for pickup",
+    variant: "default",
+    icon: CheckCircle2,
+  },
+  PICKED_UP: { label: "Picked up", variant: "default", icon: CheckCircle2 },
   SUSPENDED: { label: "Suspended", variant: "destructive", icon: ShieldAlert },
   DELETED: { label: "Deleted", variant: "destructive", icon: Trash2 },
   NEW: { label: "New", variant: "secondary", icon: Sparkles },

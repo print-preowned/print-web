@@ -78,6 +78,7 @@ function LocationCard({
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className="text-lg">{address.label}</CardTitle>
           {address.is_primary && <Badge variant="secondary">Primary</Badge>}
+          {address.pickup_enabled && <Badge variant="outline">Pickup location</Badge>}
         </div>
         {canManage && (
           <CardAction>
@@ -249,7 +250,7 @@ export function BusinessLocationsList() {
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Store locations</h2>
           <p className="text-sm text-muted-foreground">
-            Physical addresses for your business. Pickup will use these in a future release.
+            Physical addresses for your business. Designate one location for customer pickup at checkout.
           </p>
         </div>
         {canManage && !formOpen && (
@@ -271,7 +272,7 @@ export function BusinessLocationsList() {
                 <CardTitle>No store locations yet</CardTitle>
                 <CardDescription>
                   {canManage
-                    ? "Add a location where customers can pick up orders in a future release."
+                    ? "Add a location and optionally enable pickup for customer orders."
                     : "No locations have been added for this business yet."}
                 </CardDescription>
               </CardHeader>

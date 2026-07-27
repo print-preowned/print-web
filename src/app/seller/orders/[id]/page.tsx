@@ -102,7 +102,10 @@ export default function OrderDetailPage() {
 
   const order = query.data?.data;
   const currentStatus = order?.status.trim().toUpperCase() ?? "";
-  const nextStatuses = order ? nextOrderStatuses(currentStatus) : [];
+  const fulfillmentType = order?.fulfillment_address?.fulfillment_type ?? "DELIVERY";
+  const nextStatuses = order
+    ? nextOrderStatuses(currentStatus, fulfillmentType)
+    : [];
 
   const statusMutation = useUpdateBusinessOrderStatus();
 
@@ -172,7 +175,7 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {hasUpdateOrder && canUpdateOrderStatus(order.status) ? (
+      {hasUpdateOrder && canUpdateOrderStatus(order.status, fulfillmentType) ? (
         <div className="flex flex-wrap items-end gap-3 rounded-lg border p-4">
           <div className="space-y-2">
             <p className="text-sm font-medium">Update status</p>
