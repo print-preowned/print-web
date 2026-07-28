@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,6 +43,8 @@ type CheckoutAddressPickerProps = {
   onSelectedIdChange: (id: string | null) => void;
 };
 
+type PickerMode = "summary" | "picker" | "form";
+
 function emptyFormValues(): UserAddressFormValues {
   return {
     label: "",
@@ -69,6 +71,32 @@ function toPayload(values: UserAddressFormValues): UserAddressCreatePayload {
     country_code: "NG",
     is_default: true,
   };
+}
+
+function AddressDisplay({ address }: { address: UserAddress }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">
+          {address.label || address.recipient_name}
+        </span>
+        {address.is_default ? <Badge variant="secondary">Default</Badge> : null}
+      </div>
+      {address.label ? (
+        <p className="mt-1 text-sm text-muted-foreground">{address.recipient_name}</p>
+      ) : null}
+      <p className="mt-2 flex gap-2 text-sm text-muted-foreground">
+        <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <span>{formatAddressLine(address)}</span>
+      </p>
+      {address.phone_number ? (
+        <p className="mt-1 flex gap-2 text-sm text-muted-foreground">
+          <Phone className="size-4 shrink-0" aria-hidden />
+          <span>{address.phone_number}</span>
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function AddressOption({
@@ -116,9 +144,11 @@ function AddressOption({
 function InlineAddressForm({
   onCreated,
   onCancel,
+  canCancel = true,
 }: {
   onCreated: (address: UserAddress) => void;
   onCancel: () => void;
+  canCancel?: boolean;
 }) {
   const queryClient = useQueryClient();
   const listKey = [readUserAddresses()];
@@ -196,9 +226,11 @@ function InlineAddressForm({
           />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
+            {canCancel ? (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            ) : null}
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Saving…" : "Save and use"}
             </Button>
@@ -213,12 +245,17 @@ export function CheckoutAddressPicker({
   selectedId,
   onSelectedIdChange,
 }: CheckoutAddressPickerProps) {
-  const [showForm, setShowForm] = useState(false);
+  const [mode, setMode] = useState<PickerMode>("summary");
   const { data, isLoading, error } = useApiQuery<PaginatedUserAddresses>(
     [readUserAddresses()],
     readUserAddresses(),
   );
   const addresses = data?.data ?? [];
+
+  const selectedAddress = useMemo(
+    () => addresses.find((address) => address.id === selectedId) ?? null,
+    [addresses, selectedId],
+  );
 
   useEffect(() => {
     if (addresses.length === 0 || selectedId) return;
@@ -228,16 +265,20 @@ export function CheckoutAddressPicker({
   }, [addresses, onSelectedIdChange, selectedId]);
 
   useEffect(() => {
-    if (!isLoading && addresses.length === 0 && !showForm) {
-      setShowForm(true);
+    if (!isLoading && addresses.length === 0) {
+      setMode("form");
     }
-  }, [addresses.length, isLoading, showForm]);
+  }, [addresses.length, isLoading]);
+
+  function selectAddress(id: string) {
+    onSelectedIdChange(id);
+    setMode("summary");
+  }
 
   if (isLoading) {
     return (
       <div className="space-y-3">
         <Skeleton className="h-6 w-40" />
-        <Skeleton className="h-28 w-full rounded-lg" />
         <Skeleton className="h-28 w-full rounded-lg" />
       </div>
     );
@@ -259,40 +300,70 @@ export function CheckoutAddressPicker({
             Delivery address
           </h2>
           <p className="text-sm text-muted-foreground">
-            Choose where this order should be delivered.
+            {mode === "summary"
+              ? "We'll deliver your order here."
+              : mode === "picker"
+                ? "Choose a saved address."
+                : "Add an address for this order."}
           </p>
         </div>
-        {addresses.length > 0 && !showForm ? (
-          <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="size-4" />
-            Add new
+        {mode === "summary" && addresses.length > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setMode("picker")}
+          >
+            Change address
           </Button>
+        ) : null}
+        {mode === "picker" ? (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setMode("form")}
+            >
+              <Plus className="size-4" />
+              Add new
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setMode("summary")}
+            >
+              Cancel
+            </Button>
+          </div>
         ) : null}
       </div>
 
-      {addresses.length > 0 && !showForm ? (
+      {mode === "summary" && selectedAddress ? (
+        <AddressDisplay address={selectedAddress} />
+      ) : null}
+
+      {mode === "picker" ? (
         <div className="grid gap-3">
           {addresses.map((address) => (
             <AddressOption
               key={address.id}
               address={address}
               selected={selectedId === address.id}
-              onSelect={() => onSelectedIdChange(address.id)}
+              onSelect={() => selectAddress(address.id)}
             />
           ))}
         </div>
       ) : null}
 
-      {showForm ? (
+      {mode === "form" ? (
         <InlineAddressForm
-          onCancel={() => {
-            if (addresses.length > 0) {
-              setShowForm(false);
-            }
-          }}
+          canCancel={addresses.length > 0}
+          onCancel={() => setMode("picker")}
           onCreated={(address) => {
             onSelectedIdChange(address.id);
-            setShowForm(false);
+            setMode("summary");
           }}
         />
       ) : null}
