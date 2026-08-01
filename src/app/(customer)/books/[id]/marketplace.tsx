@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronUp, Store } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { formatVariantConfig } from "@/lib/api/variant";
@@ -15,13 +16,7 @@ import {
 } from "@customer/api";
 import { addToCart } from "@customer/cart";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 type Props = {
   bookId: string;
@@ -31,10 +26,8 @@ type Props = {
 type ListingResponse = { data?: PublicCatalogBusinessBookDetail };
 
 function OfferAddToCart({
-  sellerName,
   variants,
 }: {
-  sellerName: string;
   variants: PublicCatalogVariant[];
 }) {
   const available = variants.filter((v) => v.stock > 0);
@@ -66,39 +59,40 @@ function OfferAddToCart({
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-          Sold by
-        </p>
-        <p className="font-display mt-1 text-2xl font-bold tracking-tight">
-          {sellerName}
-        </p>
-      </div>
-
+    <div className="space-y-4">
       {available.length > 1 ? (
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-medium">Choose format</legend>
-          <ul className="space-y-2">
+        <fieldset>
+          <legend className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+            Choose format
+          </legend>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {available.map((variant) => {
               const label = formatVariantConfig(variant.config);
+              const checked = selected?.id === variant.id;
               return (
                 <li key={variant.id}>
-                  <label className="flex cursor-pointer items-start gap-3 border border-border px-3 py-2.5 has-[:checked]:border-primary has-[:checked]:bg-muted/40">
+                  <label
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-md border px-3 py-3 transition-colors",
+                      checked
+                        ? "border-primary bg-muted/50"
+                        : "border-border hover:border-primary/40",
+                    )}
+                  >
                     <input
                       type="radio"
                       name="variant"
                       value={variant.id}
-                      checked={selected?.id === variant.id}
+                      checked={checked}
                       onChange={() => setSelectedId(variant.id)}
-                      className="mt-1"
+                      className="mt-0.5"
                     />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-medium">
                         {label === "—" ? "Standard listing" : label}
                       </span>
                       <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {formatPrice(variant.price)} · {variant.stock} in stock
+                        {formatPrice(variant.price)}
                       </span>
                     </span>
                   </label>
@@ -109,7 +103,7 @@ function OfferAddToCart({
         </fieldset>
       ) : (
         <p className="text-sm">
-          <span className="font-medium">{formatPrice(selected?.price ?? 0)}</span>
+          <span className="font-semibold">{formatPrice(selected?.price ?? 0)}</span>
           <span className="text-muted-foreground">
             {" "}
             · {selected?.stock} in stock
@@ -121,6 +115,88 @@ function OfferAddToCart({
         Add to cart
       </Button>
     </div>
+  );
+}
+
+type OfferAccordionItemProps = {
+  offer: PublicCatalogBusinessBook;
+  expanded: boolean;
+  onToggle: () => void;
+  listing: PublicCatalogBusinessBookDetail | null | undefined;
+  isLoading: boolean;
+};
+
+function OfferAccordionItem({
+  offer,
+  expanded,
+  onToggle,
+  listing,
+  isLoading,
+}: OfferAccordionItemProps) {
+  const panelId = `offer-panel-${offer.id}`;
+
+  return (
+    <li className="overflow-hidden rounded-lg border border-border bg-card">
+      <button
+        type="button"
+        id={`offer-trigger-${offer.id}`}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={onToggle}
+        className="flex w-full items-start gap-4 p-4 text-left transition-colors hover:bg-muted/30 sm:items-center sm:p-5"
+      >
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground sm:mt-0">
+          <Store className="h-4 w-4" aria-hidden />
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="font-display block text-lg font-semibold">
+            {offer.business_name}
+          </span>
+          {offer.synopsis ? (
+            <span className="mt-1 block line-clamp-2 text-sm text-muted-foreground">
+              {offer.synopsis}
+            </span>
+          ) : null}
+          <span className="mt-1 block text-sm text-muted-foreground">
+            {offer.variant_count}{" "}
+            {offer.variant_count === 1 ? "option" : "options"}
+          </span>
+        </span>
+
+        <span className="flex shrink-0 items-center gap-3 self-center">
+          {offer.min_price != null ? (
+            <span className="font-display text-xl font-bold">
+              {formatPrice(offer.min_price)}
+            </span>
+          ) : null}
+          {expanded ? (
+            <ChevronUp className="h-5 w-5 text-muted-foreground" aria-hidden />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-muted-foreground" aria-hidden />
+          )}
+        </span>
+      </button>
+
+      {expanded ? (
+        <div
+          id={panelId}
+          role="region"
+          aria-labelledby={`offer-trigger-${offer.id}`}
+          className="border-t border-border px-4 pb-5 pt-4 sm:px-5"
+        >
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading options…</p>
+          ) : listing ? (
+            <OfferAddToCart variants={listing.variants} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Could not load this offer. Try again.
+            </p>
+          )}
+        </div>
+      ) : null}
+    </li>
   );
 }
 
@@ -138,7 +214,7 @@ export function Marketplace({ bookId, offers }: Props) {
         params.delete("listing");
       }
       const qs = params.toString();
-      router.replace(qs ? `/books/${bookId}?${qs}` : `/books/${bookId}`, {
+      router.replace(qs ? `/books/${bookId}?${qs}#buy` : `/books/${bookId}#buy`, {
         scroll: false,
       });
     },
@@ -157,120 +233,71 @@ export function Marketplace({ bookId, offers }: Props) {
     enabled: Boolean(selectedListingId),
   });
 
-  const cover = listing?.image ?? listing?.book_image;
+  useEffect(() => {
+    if (offers.length === 1 && !selectedListingId) {
+      setListing(offers[0]!.id);
+    }
+  }, [offers, selectedListingId, setListing]);
+
+  const lowestPrice = offers.reduce<number | null>((min, offer) => {
+    if (offer.min_price == null) return min;
+    return min == null ? offer.min_price : Math.min(min, offer.min_price);
+  }, null);
+
+  if (offers.length === 0) {
+    return (
+      <section className="mt-14 border-t border-border pt-10">
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          Where to buy
+        </h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          No sellers are listing this title yet. Check back soon or browse similar
+          books in the catalog.
+        </p>
+      </section>
+    );
+  }
 
   return (
-    <>
-      <section className="storefront-rule mt-14 pt-10">
-        <h2 className="font-display text-2xl font-bold tracking-tight">
-          Offers marketplace
-        </h2>
-        {offers.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            No sellers are listing this title right now.
+    <section id="buy" className="mt-14 scroll-mt-28 border-t border-border pt-10">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+            Where to buy
           </p>
-        ) : (
-          <>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {offers.length} {offers.length === 1 ? "seller" : "sellers"}{" "}
-              available
-            </p>
-            <ul className="mt-8 divide-y divide-border border-y border-border">
-              {offers.map((offer) => (
-                <li
-                  key={offer.id}
-                  className="flex flex-col gap-4 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
-                >
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="font-display text-lg font-semibold">
-                      {offer.business_name}
-                    </p>
-                    {offer.synopsis ? (
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {offer.synopsis}
-                      </p>
-                    ) : null}
-                    <p className="text-sm text-muted-foreground">
-                      {offer.variant_count}{" "}
-                      {offer.variant_count === 1 ? "option" : "options"}{" "}
-                      available
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
-                    {offer.min_price != null ? (
-                      <p className="font-display text-xl font-bold">
-                        {formatPrice(offer.min_price)}
-                      </p>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setListing(offer.id)}
-                    >
-                      View offer
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+          <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
+            Choose a seller
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {offers.length} independent{" "}
+            {offers.length === 1 ? "seller" : "sellers"} · compare price and
+            format below
+          </p>
+        </div>
+        {lowestPrice != null ? (
+          <p className="text-sm text-muted-foreground">
+            From{" "}
+            <span className="font-display text-2xl font-bold text-foreground">
+              {formatPrice(lowestPrice)}
+            </span>
+          </p>
+        ) : null}
+      </div>
 
-      <Dialog
-        open={Boolean(selectedListingId)}
-        onOpenChange={(open) => {
-          if (!open) setListing(null);
-        }}
-      >
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-xl">
-          {isLoading || !listing ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {isLoading ? "Loading offer…" : "Offer not found."}
-            </p>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-display text-left text-2xl font-bold">
-                  {listing.business_name}
-                </DialogTitle>
-                <DialogDescription className="text-left">
-                  Offer details for this listing
-                </DialogDescription>
-              </DialogHeader>
-
-              {cover ? (
-                <div className="mt-4 aspect-[2/3] max-w-[160px] overflow-hidden border border-border bg-muted">
-                  <img
-                    src={cover}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ) : null}
-
-              {listing.synopsis ? (
-                <div className="mt-6">
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                    About this listing
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {listing.synopsis}
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="storefront-rule mt-8 pt-6">
-                <OfferAddToCart
-                  sellerName={listing.business_name}
-                  variants={listing.variants}
-                />
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+      <ul className="mt-8 space-y-3">
+        {offers.map((offer) => (
+          <OfferAccordionItem
+            key={offer.id}
+            offer={offer}
+            expanded={selectedListingId === offer.id}
+            onToggle={() =>
+              setListing(selectedListingId === offer.id ? null : offer.id)
+            }
+            listing={selectedListingId === offer.id ? listing : null}
+            isLoading={selectedListingId === offer.id && isLoading}
+          />
+        ))}
+      </ul>
+    </section>
   );
 }
