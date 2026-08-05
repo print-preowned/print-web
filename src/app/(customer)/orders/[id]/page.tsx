@@ -74,7 +74,7 @@ function OrderSummaryPanel({ order }: { order: OrderDetail }) {
   const statusCopy = getCustomerOrderStatusCopy(order.status);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+    <div className="overflow-hidden border border-border/70 bg-card shadow-sm">
       <div className="grid gap-6 border-b border-border/60 bg-muted/40 px-4 py-4 sm:grid-cols-2 sm:px-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -169,7 +169,7 @@ export default async function OrderConfirmationPage({
           ) : null}
 
           {order.items.length > 0 ? (
-            <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+            <section className="overflow-hidden border border-border/70 bg-card shadow-sm">
               <div className="border-b border-border/60 px-4 py-3 sm:px-5">
                 <h2 className="font-display text-lg font-semibold">
                   {order.items.length}{" "}

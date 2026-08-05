@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import type { Metadata } from "next";
-import { Libre_Baskerville, Source_Serif_4 } from "next/font/google";
+import { DM_Sans, Libre_Baskerville } from "next/font/google";
 import { Header } from "@/app/(customer)/header/index";
 import { Footer } from "@/app/(customer)/footer";
 import "./storefront.css";
@@ -11,7 +11,7 @@ const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
 });
 
-const sourceSerif = Source_Serif_4({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-storefront-sans",
 });
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className={`storefront ${libreBaskerville.variable} ${sourceSerif.variable}`}>
+    <div className={`storefront ${libreBaskerville.variable} ${dmSans.variable}`}>
       <Header />
       <main>{children}</main>
       <Footer />

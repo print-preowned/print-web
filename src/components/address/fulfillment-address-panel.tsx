@@ -17,7 +17,7 @@ export function FulfillmentAddressPanel({
   const headline = label || address.recipient_name;
 
   return (
-    <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+    <section className="overflow-hidden border border-border/70 bg-card shadow-sm">
       <div className="border-b border-border/60 px-4 py-3 sm:px-5">
         <h2 className="font-display text-lg font-semibold">{resolvedTitle}</h2>
       </div>

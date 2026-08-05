@@ -52,7 +52,7 @@ function OrderCard({ order }: { order: OrderSummary }) {
   );
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+    <article className="overflow-hidden border border-border/70 bg-card shadow-sm">
       <div className="grid gap-4 border-b border-border/60 bg-muted/40 px-4 py-3 sm:grid-cols-[1fr_1fr_auto] sm:items-start sm:px-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -122,17 +122,17 @@ function OrderHistorySkeleton() {
       {Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
-          className="animate-pulse overflow-hidden rounded-xl border border-border/70 bg-card"
+          className="animate-pulse overflow-hidden border border-border/70 bg-card"
         >
           <div className="h-16 bg-muted/50" />
           <div className="space-y-4 px-5 py-5">
-            <div className="h-5 w-40 rounded bg-muted" />
-            <div className="h-4 w-full max-w-md rounded bg-muted" />
+            <div className="h-5 w-40 bg-muted" />
+            <div className="h-4 w-full max-w-md bg-muted" />
             <div className="flex gap-4">
-              <div className="h-20 w-14 rounded-md bg-muted" />
+              <div className="h-20 w-14 bg-muted" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-muted" />
-                <div className="h-3 w-20 rounded bg-muted" />
+                <div className="h-4 w-3/4 bg-muted" />
+                <div className="h-3 w-20 bg-muted" />
               </div>
             </div>
           </div>
@@ -159,7 +159,7 @@ export function OrderHistoryList() {
 
   if (query.isError) {
     return (
-      <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-6 text-sm text-destructive">
+      <p className="border border-destructive/30 bg-destructive/5 px-4 py-6 text-sm text-destructive">
         Could not load your orders. Please try again.
       </p>
     );
@@ -167,7 +167,7 @@ export function OrderHistoryList() {
 
   if (orders.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border/70 px-6 py-16 text-center">
+      <div className="border border-dashed border-border/70 px-6 py-16 text-center">
         <p className="font-display text-xl font-semibold">No orders yet</p>
         <p className="mt-2 text-sm text-muted-foreground">
           When you buy a book, it will show up here.

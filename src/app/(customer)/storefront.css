@@ -1,32 +1,54 @@
-/* Customer storefront — newsprint & ink */
+/* Customer storefront — newsprint warmth + bold accent bands (no green) */
 
 .storefront {
-  --background: #f3ece0;
+  /* Original newspaper anchors */
+  --tone-newsprint: #f3ece0;
+  --tone-paper: #faf6ee;
+  --tone-warm: #e6ddd0;
+
+  --background: var(--tone-newsprint);
   --foreground: #1a1814;
-  --card: #faf6ee;
+  --card: var(--tone-paper);
   --card-foreground: #1a1814;
-  --paper: #f3ece0;
+  --paper: var(--background);
   --paper-foreground: #1a1814;
-  --popover: #faf6ee;
+  --popover: var(--card);
   --popover-foreground: #1a1814;
   --primary: #1a1814;
-  --primary-foreground: #faf6ee;
-  --secondary: #e6ddd0;
+  --primary-foreground: var(--tone-paper);
+  --secondary: var(--tone-warm);
   --secondary-foreground: #1a1814;
   --muted: #ebe3d6;
   --muted-foreground: #5c5348;
+  --surface-hover: color-mix(in srgb, var(--accent) 8%, var(--card));
+
+  /* Ink terracotta — hero band, links, focus */
   --accent: #6b3a2a;
   --accent-foreground: #faf6ee;
+  --accent-bold: #6b3a2a;
+  --accent-bold-foreground: #faf6ee;
+
+  /* Warm espresso — footer band (same family as accent, not cool slate) */
+  --accent-band: #3a2822;
+  --accent-band-foreground: #f3ece0;
+
   --destructive: #9b2c2c;
   --destructive-foreground: #fafafa;
   --border: #c8b9a6;
   --input: #e6ddd0;
-  --ring: #6b3a2a;
+  --ring: var(--accent);
   --radius: 0.125rem;
+
+  --tag-ruby: #6b3a2a;
+  --tag-sapphire: #2a4a6b;
+  --tag-emerald: #2a5c4a;
+  --tag-amethyst: #5c3a6b;
+  --tag-gold: #8a6b2a;
+  --tag-coral: #6b3a2a;
 
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-storefront-sans), Georgia, "Times New Roman", serif;
+  font-family: var(--font-storefront-sans), system-ui, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,34 +59,99 @@
 }
 
 .storefront .font-display {
-  font-family: var(--font-storefront-display), Georgia, "Times New Roman", serif;
+  font-family: var(--font-storefront-display), Georgia, serif;
 }
 
-/* Subtle newsprint texture */
 .storefront-paper {
   background-color: var(--background);
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-.storefront-grain {
-  background-color: var(--background);
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+/* Bold terracotta hero */
+.storefront-hero-accent {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 15% 0%,
+      color-mix(in srgb, #ffffff 14%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 92% 15%,
+      color-mix(in srgb, #000000 12%, transparent),
+      transparent 50%
+    ),
+    var(--accent-bold);
+  color: var(--accent-bold-foreground);
 }
 
-.storefront-rule {
-  border-top: 3px double var(--border);
+.storefront-hero-accent .storefront-hero-muted {
+  color: color-mix(in srgb, var(--accent-bold-foreground) 76%, transparent);
 }
 
-.storefront-masthead {
-  border-bottom: 4px double var(--foreground);
+.storefront-hero-accent .storefront-hero-label {
+  color: color-mix(in srgb, var(--accent-bold-foreground) 90%, var(--tone-warm));
+}
+
+/* Warm paper shelf between accent bands */
+.storefront-shelf {
+  background: linear-gradient(
+    180deg,
+    var(--tone-paper) 0%,
+    var(--background) 100%
+  );
+}
+
+/* Optional mid-page warm band */
+.storefront-band-warm {
+  background: var(--tone-warm);
+  border-block: 1px solid var(--border);
+}
+
+/* Footer — warm ink, pairs with terracotta hero */
+.storefront-footer {
+  background: var(--accent-band);
+  color: var(--accent-band-foreground);
+  border-top: 3px double color-mix(in srgb, var(--accent-band-foreground) 22%, transparent);
+}
+
+.storefront-footer .storefront-footer-muted {
+  color: color-mix(in srgb, var(--accent-band-foreground) 70%, transparent);
+}
+
+.storefront-footer a {
+  color: color-mix(in srgb, var(--accent-band-foreground) 86%, transparent);
+  transition: color 0.2s ease;
+}
+
+.storefront-footer a:hover {
+  color: var(--accent-band-foreground);
+}
+
+.storefront-hover-surface {
+  transition: background-color 0.2s ease;
+}
+
+.storefront-hover-surface:hover {
+  background-color: var(--surface-hover);
+}
+
+.storefront-header {
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--tone-paper) 88%, transparent);
+}
+
+.storefront-logo {
+  color: var(--foreground);
+  transition: color 0.2s ease;
+}
+
+.storefront-logo:hover {
+  color: var(--accent);
 }
 
 @keyframes storefront-rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -82,24 +169,106 @@
 }
 
 .storefront-rise {
-  animation: storefront-rise 0.6s ease both;
+  animation: storefront-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .storefront-rise-delay-1 {
-  animation-delay: 0.1s;
+  animation-delay: 0.08s;
 }
 
 .storefront-rise-delay-2 {
-  animation-delay: 0.2s;
+  animation-delay: 0.16s;
+}
+
+.storefront-rise-delay-3 {
+  animation-delay: 0.24s;
 }
 
 .storefront-fade {
   animation: storefront-fade 0.6s ease both;
 }
 
+.book-cover {
+  border: 1px solid var(--border);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--foreground) 6%, transparent),
+    0 4px 12px color-mix(in srgb, var(--foreground) 4%, transparent);
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease;
+}
+
+.group:hover .book-cover {
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--foreground) 8%, transparent),
+    0 12px 28px color-mix(in srgb, var(--accent) 14%, transparent);
+  transform: translateY(-2px);
+}
+
+.book-listing-meta {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.book-tag {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  color: var(--accent-foreground);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+a:hover .book-tag {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.book-tag-ruby {
+  background-color: var(--tag-ruby);
+}
+
+.book-tag-sapphire {
+  background-color: var(--tag-sapphire);
+}
+
+.book-tag-emerald {
+  background-color: var(--tag-emerald);
+}
+
+.book-tag-amethyst {
+  background-color: var(--tag-amethyst);
+}
+
+.book-tag-gold {
+  background-color: var(--tag-gold);
+}
+
+.book-listing-row {
+  transition: background-color 0.2s ease;
+}
+
+.book-listing-row:hover {
+  background-color: var(--surface-hover);
+}
+
+.storefront-search-hero {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--foreground) 8%, transparent),
+    0 10px 28px color-mix(in srgb, #000000 18%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .storefront-rise,
   .storefront-fade {
     animation: none;
+  }
+
+  .group:hover .book-cover,
+  a:hover .book-tag {
+    transform: none;
   }
 }

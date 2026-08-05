@@ -2,24 +2,20 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="storefront-masthead border-t-4 border-b-0 bg-muted/50">
+    <footer className="storefront-footer">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          <p className="font-display text-2xl font-bold tracking-tight">
             PRINT
           </p>
-          <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-            Independent booksellers, printed matter, and the pleasure of a physical
-            copy.
+          <p className="storefront-footer-muted mt-2 max-w-sm text-sm">
+            Independent booksellers, printed matter, and the pleasure of a
+            physical copy.
           </p>
         </div>
-        <nav className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-          <Link href="/books" className="transition-colors hover:text-foreground">
-            Books
-          </Link>
-          <Link href="/login" className="transition-colors hover:text-foreground">
-            Sign in
-          </Link>
+        <nav className="flex flex-wrap gap-6 text-sm">
+          <Link href="/books">Books</Link>
+          <Link href="/login">Sign in</Link>
         </nav>
       </div>
     </footer>

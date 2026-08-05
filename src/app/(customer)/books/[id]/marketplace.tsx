@@ -73,7 +73,7 @@ function OfferAddToCart({
                 <li key={variant.id}>
                   <label
                     className={cn(
-                      "flex cursor-pointer items-start gap-3 rounded-md border px-3 py-3 transition-colors",
+                      "flex cursor-pointer items-start gap-3 border px-3 py-3 transition-colors",
                       checked
                         ? "border-primary bg-muted/50"
                         : "border-border hover:border-primary/40",
@@ -136,16 +136,16 @@ function OfferAccordionItem({
   const panelId = `offer-panel-${offer.id}`;
 
   return (
-    <li className="overflow-hidden rounded-lg border border-border bg-card">
+    <li className="overflow-hidden border border-border bg-card">
       <button
         type="button"
         id={`offer-trigger-${offer.id}`}
         aria-expanded={expanded}
         aria-controls={panelId}
         onClick={onToggle}
-        className="flex w-full items-start gap-4 p-4 text-left transition-colors hover:bg-muted/30 sm:items-center sm:p-5"
+        className="storefront-hover-surface flex w-full items-start gap-4 p-4 text-left sm:items-center sm:p-5"
       >
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground sm:mt-0">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center bg-muted text-muted-foreground sm:mt-0">
           <Store className="h-4 w-4" aria-hidden />
         </span>
 

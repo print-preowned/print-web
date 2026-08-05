@@ -7,9 +7,9 @@ export async function Header() {
   const session = await getSessionFromRequest();
 
   return (
-    <header className="storefront-masthead sticky top-0 z-50 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] backdrop-blur-sm">
+    <header className="storefront-header sticky top-0 z-50 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-        <Link href="/" className="shrink-0">
+        <Link href="/" className="storefront-logo shrink-0">
           <span className="font-display text-2xl font-bold tracking-tight">
             PRINT
           </span>
@@ -18,7 +18,7 @@ export async function Header() {
         <nav className="hidden items-center gap-5 md:flex">
           <Link
             href="/books"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-accent"
           >
             Books
           </Link>

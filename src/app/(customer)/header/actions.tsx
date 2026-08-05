@@ -49,7 +49,7 @@ export function Actions({ session }: ActionsProps) {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-0.5 rounded-md p-1.5 transition-colors hover:bg-muted"
+              className="storefront-hover-surface flex items-center gap-0.5 rounded-md p-1.5"
               aria-label="Account menu"
             >
               <User className="h-5 w-5" />

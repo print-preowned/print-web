@@ -8,6 +8,7 @@ import {
   readPublicBusinessBooks,
 } from "@customer/api";
 import { PaginatedResponse } from "@/lib/api/user";
+import { BookGenreTag } from "../book-genre-tag";
 import { Marketplace } from "./marketplace";
 
 type BookResponse = { data?: Book };
@@ -44,13 +45,13 @@ export default async function BookDetailPage({
 
   const offers = await getOffers(id);
   const primaryAuthor = book.authors?.[0];
-  const genreLabel = book.genres?.map((g) => g.name).join(", ");
+  const genres = book.genres ?? [];
 
   return (
     <div className="storefront-paper min-h-[70vh]">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14">
         <div className="grid gap-10 md:grid-cols-[minmax(0,240px)_1fr]">
-          <div className="aspect-[2/3] overflow-hidden border border-border bg-muted shadow-sm">
+          <div className="book-cover aspect-[2/3] overflow-hidden bg-muted md:sticky md:top-24 md:self-start">
             {book.image ? (
               <img
                 src={book.image}
@@ -78,11 +79,19 @@ export default async function BookDetailPage({
                 {primaryAuthor.name}
               </p>
             ) : null}
-            {genreLabel ? (
-              <p className="mt-2 text-sm uppercase tracking-[0.08em] text-muted-foreground">
-                {genreLabel}
-              </p>
+
+            {genres.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {genres.map((genre) => (
+                  <BookGenreTag
+                    key={genre.id}
+                    label={genre.name}
+                    href={`/books?q=${encodeURIComponent(genre.name)}`}
+                  />
+                ))}
+              </div>
             ) : null}
+
             {book.synopsis ? (
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
                 {book.synopsis}
