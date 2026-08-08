@@ -39,9 +39,11 @@ function BooksCatalog() {
   }, [qFromUrl]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 400);
+    const trimmed = search.trim();
+    if (trimmed === debouncedSearch) return;
+    const timer = setTimeout(() => setDebouncedSearch(trimmed), 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, debouncedSearch]);
 
   const {
     data: books,
@@ -70,14 +72,16 @@ function BooksCatalog() {
     );
   }, [pageFromUrl, setPagination]);
 
+  // Push debounced typing to the URL. URL → state is handled by the qFromUrl effect
+  // above; only react to debouncedSearch so genre-tag navigations don't run this
+  // with stale debounced state and fight the URL in a loop.
   useEffect(() => {
-    const currentQ = searchParams.get("q") ?? "";
-    if (debouncedSearch === currentQ && pageFromUrl === 1) return;
-    if (debouncedSearch !== currentQ) {
-      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-      router.replace(booksCatalogPath(debouncedSearch), { scroll: false });
-    }
-  }, [debouncedSearch, pageFromUrl, router, searchParams, setPagination]);
+    if (debouncedSearch === qFromUrl) return;
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    router.replace(booksCatalogPath(debouncedSearch), { scroll: false });
+    // qFromUrl intentionally omitted — compared at run time when debouncedSearch changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
+  }, [debouncedSearch, router, setPagination]);
 
   function goToPage(pageIndex: number) {
     setPagination((prev) => ({ ...prev, pageIndex }));
