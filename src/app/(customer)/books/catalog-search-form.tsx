@@ -12,6 +12,7 @@ type CatalogSearchFormProps = {
   defaultValue?: string;
   value?: string;
   onChange?: (value: string) => void;
+  onSubmitQuery?: (query: string) => void;
   size?: "default" | "hero";
 };
 
@@ -22,6 +23,7 @@ export function CatalogSearchForm({
   defaultValue = "",
   value: controlledValue,
   onChange,
+  onSubmitQuery,
   size = "default",
 }: CatalogSearchFormProps) {
   const router = useRouter();
@@ -38,6 +40,10 @@ export function CatalogSearchForm({
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const q = query.trim();
+    if (onSubmitQuery) {
+      onSubmitQuery(q);
+      return;
+    }
     router.push(q ? `/books?q=${encodeURIComponent(q)}` : "/books");
   }
 

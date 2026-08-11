@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronUp, Store } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Store } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { formatVariantConfig } from "@/lib/api/variant";
@@ -150,8 +151,19 @@ function OfferAccordionItem({
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="font-display block text-lg font-semibold">
-            {offer.business_name}
+          <span className="flex items-center gap-2">
+            <span className="font-display text-lg font-semibold">
+              {offer.business_name}
+            </span>
+            <Link
+              href={`/stores/${offer.business_id}`}
+              className="inline-flex shrink-0 rounded-sm text-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+              aria-label={`Visit ${offer.business_name} store`}
+              title="Visit store"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden />
+            </Link>
           </span>
           {offer.synopsis ? (
             <span className="mt-1 block line-clamp-2 text-sm text-muted-foreground">

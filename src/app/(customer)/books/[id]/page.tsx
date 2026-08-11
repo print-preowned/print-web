@@ -5,7 +5,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { Book, readBookById } from "@/lib/api/book";
 import {
   PublicCatalogBusinessBook,
-  readPublicBusinessBooks,
+  readOffers,
 } from "@customer/api";
 import { PaginatedResponse } from "@/lib/api/user";
 import { BookGenreTag } from "../book-genre-tag";
@@ -26,7 +26,7 @@ async function getBook(id: string): Promise<Book | null> {
 async function getOffers(bookId: string): Promise<PublicCatalogBusinessBook[]> {
   try {
     const res = await apiFetch<PaginatedResponse<PublicCatalogBusinessBook>>(
-      readPublicBusinessBooks({ page: 1, size: 50, book_id: bookId }),
+      readOffers(bookId, { page: 1, size: 50 }),
     );
     return res.data ?? [];
   } catch {

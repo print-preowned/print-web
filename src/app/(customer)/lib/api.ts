@@ -41,17 +41,38 @@ export type PublicCatalogBusinessBookDetail = PublicCatalogBusinessBook & {
   variants: PublicCatalogVariant[];
 };
 
-export function readPublicBusinessBooks(
-  params?: ReadParams & { book_id?: string; exclude_id?: string },
+export type PublicBusinessProfile = {
+  id: string;
+  name: string;
+  description?: string | null;
+  logo?: string | null;
+};
+
+export function readOffers(
+  bookId: string,
+  params?: ReadParams & { exclude_id?: string },
 ) {
   const query = buildQueryParams(params);
-  if (params?.book_id) query.book_id = params.book_id;
   if (params?.exclude_id) query.exclude_id = params.exclude_id;
-  return generateUrl("/business-books", query);
+  return generateUrl(`/books/${bookId}/offers`, query);
+}
+
+export function readPublicStoreInventory(
+  businessId: string,
+  params?: ReadParams,
+) {
+  return generateUrl(
+    `/businesses/${businessId}/storefront/catalog`,
+    buildQueryParams(params),
+  );
+}
+
+export function readPublicBusinessProfile(businessId: string) {
+  return generateUrl(`/businesses/${businessId}/storefront`);
 }
 
 export function readPublicBusinessBookById(id: string) {
-  return generateUrl(`/business-books/${id}`);
+  return generateUrl(`/offers/${id}`);
 }
 
 export type OrderItem = {

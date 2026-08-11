@@ -22,12 +22,8 @@ export type BusinessBookWithVariants = BusinessBook & {
   variants?: import("./variant").VariantWithConfig[];
 };
 
-export function readBusinessBooks(params?: ReadParams & { mine?: boolean }) {
-  const query = buildQueryParams(params);
-  if (params?.mine) {
-    query.mine = "true";
-  }
-  return generateUrl("/business-books", query);
+export function readBusinessBooks(params?: ReadParams) {
+  return generateUrl("/business-books", buildQueryParams(params));
 }
 
 export function readBusinessBookById(id: string) {
