@@ -19,13 +19,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type PendingCartItem = Omit<CartLine, "quantity"> & { quantity?: number };
-
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cartBusinessName: string | null;
-  pendingItem: PendingCartItem | null;
+  pendingItem: CartLine | null;
   onConfirm: () => void;
 };
 

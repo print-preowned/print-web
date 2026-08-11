@@ -27,8 +27,6 @@ type Props = {
 
 type ListingResponse = { data?: PublicCatalogBusinessBookDetail };
 
-type PendingCartItem = Omit<CartLine, "quantity"> & { quantity?: number };
-
 function OfferAddToCart({
   variants,
 }: {
@@ -36,9 +34,19 @@ function OfferAddToCart({
 }) {
   const available = variants.filter((v) => v.stock > 0);
   const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
+  const [quantity, setQuantity] = useState(1);
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
-  const [pendingItem, setPendingItem] = useState<PendingCartItem | null>(null);
+  const [pendingItem, setPendingItem] = useState<CartLine | null>(null);
   const [cartBusinessName, setCartBusinessName] = useState<string | null>(null);
+
+  const selected = available.find((v) => v.id === selectedId) ?? available[0];
+  const maxQuantity = selected?.stock ?? 1;
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedId]);
+
+  const quantityExceedsStock = quantity > maxQuantity;
 
   if (available.length === 0) {
     return (
@@ -48,9 +56,10 @@ function OfferAddToCart({
     );
   }
 
-  const selected = available.find((v) => v.id === selectedId) ?? available[0];
-
-  function buildCartItem(variant: PublicCatalogVariant): PendingCartItem {
+  function buildCartItem(
+    variant: PublicCatalogVariant,
+    qty: number,
+  ): CartLine {
     return {
       variantId: variant.id,
       unitPrice: variant.price,
@@ -59,13 +68,13 @@ function OfferAddToCart({
       businessId: variant.business_id,
       businessName: variant.business_name,
       configLabel: formatVariantConfig(variant.config),
-      quantity: 1,
+      quantity: qty,
     };
   }
 
   function onAdd() {
-    if (!selected) return;
-    const item = buildCartItem(selected);
+    if (!selected || quantityExceedsStock) return;
+    const item = buildCartItem(selected, quantity);
     const result = addToCart(item);
     if (!result.ok) {
       setPendingItem(item);
@@ -86,6 +95,10 @@ function OfferAddToCart({
 
   function onConfirmReplace() {
     if (!pendingItem) return;
+    if (pendingItem.quantity > maxQuantity) {
+      toast.error(`Only ${maxQuantity} available from this seller.`);
+      return;
+    }
     replaceCartWithItem(pendingItem);
     toast.success("Added to cart");
     onReplaceDialogOpenChange(false);
@@ -138,16 +151,56 @@ function OfferAddToCart({
       ) : (
         <p className="text-sm">
           <span className="font-semibold">{formatPrice(selected?.price ?? 0)}</span>
-          <span className="text-muted-foreground">
-            {" "}
-            · {selected?.stock} in stock
-          </span>
         </p>
       )}
 
-      <Button type="button" onClick={onAdd} className="w-full sm:w-auto">
-        Add to cart
-      </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <label
+            htmlFor={`offer-qty-${selected?.id ?? "variant"}`}
+            className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground"
+          >
+            Quantity
+          </label>
+          <div className="mt-2 flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <input
+                id={`offer-qty-${selected?.id ?? "variant"}`}
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(Math.max(1, Number(e.target.value) || 1))
+                }
+                aria-invalid={quantityExceedsStock}
+                className={cn(
+                  "h-9 w-16 border bg-background px-2 text-sm",
+                  quantityExceedsStock ? "border-destructive" : "border-input",
+                )}
+              />
+              {maxQuantity < 10 ? (
+                <span className="text-sm text-muted-foreground">
+                  {maxQuantity} in stock
+                </span>
+              ) : null}
+            </div>
+            {quantityExceedsStock ? (
+              <p className="text-sm text-destructive">
+                Only {maxQuantity} available. Reduce the quantity to continue.
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          onClick={onAdd}
+          disabled={quantityExceedsStock}
+          className="w-full sm:w-auto"
+        >
+          Add to cart
+        </Button>
+      </div>
     </div>
     <ReplaceSellerCartDialog
       open={replaceDialogOpen}

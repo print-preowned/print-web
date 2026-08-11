@@ -70,11 +70,9 @@ export function cartBusinessId(lines: CartLine[] = readCart()): string | null {
   return lines[0]?.businessId ?? null;
 }
 
-export function addToCart(
-  input: Omit<CartLine, "quantity"> & { quantity?: number },
-): AddToCartResult {
+export function addToCart(input: CartLine): AddToCartResult {
   const lines = readCart();
-  const quantity = Math.max(1, input.quantity ?? 1);
+  const quantity = Math.max(1, input.quantity);
   const existing = lines.find((line) => line.variantId === input.variantId);
   if (existing) {
     existing.quantity += quantity;
@@ -127,16 +125,11 @@ export function clearCart() {
   writeCart([]);
 }
 
-export function replaceCartWithItem(
-  input: Omit<CartLine, "quantity"> & { quantity?: number },
-): void {
-  const quantity = Math.max(1, input.quantity ?? 1);
+export function replaceCartWithItem(input: CartLine): void {
   writeCart([
     {
-      variantId: input.variantId,
-      quantity,
-      unitPrice: input.unitPrice,
-      bookTitle: input.bookTitle,
+      ...input,
+      quantity: Math.max(1, input.quantity),
       image: input.image ?? null,
       businessId: input.businessId ?? null,
       businessName: input.businessName ?? null,
