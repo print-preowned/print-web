@@ -15,7 +15,8 @@ import {
   type PublicCatalogBusinessBookDetail,
   type PublicCatalogVariant,
 } from "@customer/api";
-import { addToCart } from "@customer/cart";
+import { addToCart, replaceCartWithItem, type CartLine } from "@customer/cart";
+import { ReplaceSellerCartDialog } from "@customer/replace-seller-cart-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,8 @@ type Props = {
 
 type ListingResponse = { data?: PublicCatalogBusinessBookDetail };
 
+type PendingCartItem = Omit<CartLine, "quantity"> & { quantity?: number };
+
 function OfferAddToCart({
   variants,
 }: {
@@ -33,6 +36,9 @@ function OfferAddToCart({
 }) {
   const available = variants.filter((v) => v.stock > 0);
   const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
+  const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
+  const [pendingItem, setPendingItem] = useState<PendingCartItem | null>(null);
+  const [cartBusinessName, setCartBusinessName] = useState<string | null>(null);
 
   if (available.length === 0) {
     return (
@@ -44,22 +50,49 @@ function OfferAddToCart({
 
   const selected = available.find((v) => v.id === selectedId) ?? available[0];
 
+  function buildCartItem(variant: PublicCatalogVariant): PendingCartItem {
+    return {
+      variantId: variant.id,
+      unitPrice: variant.price,
+      bookTitle: variant.book_title,
+      image: variant.book_image ?? variant.image,
+      businessId: variant.business_id,
+      businessName: variant.business_name,
+      configLabel: formatVariantConfig(variant.config),
+      quantity: 1,
+    };
+  }
+
   function onAdd() {
     if (!selected) return;
-    addToCart({
-      variantId: selected.id,
-      unitPrice: selected.price,
-      bookTitle: selected.book_title,
-      image: selected.book_image ?? selected.image,
-      businessId: selected.business_id,
-      businessName: selected.business_name,
-      configLabel: formatVariantConfig(selected.config),
-      quantity: 1,
-    });
+    const item = buildCartItem(selected);
+    const result = addToCart(item);
+    if (!result.ok) {
+      setPendingItem(item);
+      setCartBusinessName(result.cartBusinessName);
+      setReplaceDialogOpen(true);
+      return;
+    }
     toast.success("Added to cart");
   }
 
+  function onReplaceDialogOpenChange(open: boolean) {
+    setReplaceDialogOpen(open);
+    if (!open) {
+      setPendingItem(null);
+      setCartBusinessName(null);
+    }
+  }
+
+  function onConfirmReplace() {
+    if (!pendingItem) return;
+    replaceCartWithItem(pendingItem);
+    toast.success("Added to cart");
+    onReplaceDialogOpenChange(false);
+  }
+
   return (
+    <>
     <div className="space-y-4">
       {available.length > 1 ? (
         <fieldset>
@@ -116,6 +149,14 @@ function OfferAddToCart({
         Add to cart
       </Button>
     </div>
+    <ReplaceSellerCartDialog
+      open={replaceDialogOpen}
+      onOpenChange={onReplaceDialogOpenChange}
+      cartBusinessName={cartBusinessName}
+      pendingItem={pendingItem}
+      onConfirm={onConfirmReplace}
+    />
+    </>
   );
 }
 

@@ -69,11 +69,11 @@ function DialogContent({ className, children }: React.HTMLAttributes<HTMLDivElem
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center">
-      <div className={cn("relative w-full max-w-lg rounded-md border bg-card p-6 shadow-lg", className)}>
+      <div className={cn("relative w-full max-w-lg border bg-card p-6 shadow-lg", className)}>
         {children}
         <button
           aria-label="Close"
-          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+          className="absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
           onClick={() => setOpen(false)}
         >
           ×
