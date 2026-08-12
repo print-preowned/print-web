@@ -79,9 +79,12 @@ export async function apiFetch<T>(
     headers?: Record<string, string>;
     query?: Record<string, string | number | undefined | null>;
     context?: Options["context"];
+    /** HTTP statuses that resolve as null without a client toast or thrown error. */
+    silentStatuses?: number[];
   } = {},
 ): Promise<T> {
-  const { method = "GET", body, headers, query, context } = options;
+  const { method = "GET", body, headers, query, context, silentStatuses } =
+    options;
   const url = path.includes("http") ? path : getFetchUrl(path, query, context);
   const isClient = typeof window !== "undefined";
   const useProxy = isClient && !context;
@@ -137,8 +140,12 @@ export async function apiFetch<T>(
       errorMessage = `Request failed: ${res.status}`;
     }
 
-    if (isClient) {
+    if (isClient && !silentStatuses?.includes(res.status)) {
       toast.error(errorMessage);
+    }
+
+    if (silentStatuses?.includes(res.status)) {
+      return null as T;
     }
 
     throw new ApiError(errorMessage, res.status);

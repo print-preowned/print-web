@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError } from "@/lib/api";
 import {
   formatAddressLine,
   readBusinessPickupLocation,
@@ -22,6 +21,8 @@ type PickupLocationResponse = {
   data: BusinessAddress;
 };
 
+const pickupFetchOptions = { silentStatuses: [404] };
+
 type CheckoutPickupLocationDisplayProps = {
   businessId: string;
   onLocationLoaded: (id: string | null) => void;
@@ -31,11 +32,12 @@ export function CheckoutPickupLocationDisplay({
   businessId,
   onLocationLoaded,
 }: CheckoutPickupLocationDisplayProps) {
-  const queryKey = [readBusinessPickupLocation(businessId)];
-  const { data, isLoading, error } = useApiQuery<PickupLocationResponse>(
-    queryKey,
-    readBusinessPickupLocation(businessId),
+  const url = readBusinessPickupLocation(businessId);
+  const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
+    [url],
+    url,
     {
+      fetchOptions: pickupFetchOptions,
       retry: false,
     },
   );
@@ -60,11 +62,7 @@ export function CheckoutPickupLocationDisplay({
     );
   }
 
-  if (error instanceof ApiError && error.status === 404) {
-    return null;
-  }
-
-  if (error || !location) {
+  if (error) {
     return (
       <Card>
         <CardHeader>
@@ -75,6 +73,10 @@ export function CheckoutPickupLocationDisplay({
         </CardHeader>
       </Card>
     );
+  }
+
+  if (!location) {
+    return null;
   }
 
   return (
@@ -109,21 +111,19 @@ export function CheckoutPickupLocationDisplay({
 
 export function usePickupAvailable(businessId: string | null | undefined) {
   const enabled = Boolean(businessId);
-  const queryKey = enabled ? [readBusinessPickupLocation(businessId!)] : [];
-  const { data, isLoading, error } = useApiQuery<PickupLocationResponse>(
-    queryKey,
-    enabled ? readBusinessPickupLocation(businessId!) : "",
+  const url = enabled ? readBusinessPickupLocation(businessId!) : "";
+  const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
+    enabled ? [url] : [],
+    url,
     {
       enabled,
+      fetchOptions: pickupFetchOptions,
       retry: false,
     },
   );
 
   const available =
-    enabled &&
-    !isLoading &&
-    !error &&
-    Boolean(data?.data);
+    enabled && !isLoading && !error && Boolean(data?.data);
 
   return { available, isLoading: enabled && isLoading };
 }
