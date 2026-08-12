@@ -15,10 +15,10 @@ import {
 import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { apiFetch } from "@/lib/api";
+import { formatPrice } from "@/lib/format-price";
 import {
   BusinessOrderDetail,
   OrderFulfillmentStatus,
-  formatOrderAmount,
   readBusinessOrderById,
 } from "@/lib/api/order";
 import { usePrivilege } from "@/lib/auth/context";
@@ -77,12 +77,12 @@ function OrderLineItem({
           </p>
         ) : null}
         <p className="mt-2 text-sm text-muted-foreground">
-          {formatOrderAmount(Number(item.unit_price), currency)} ×{" "}
+          {formatPrice(Number(item.unit_price), currency)} ×{" "}
           {item.quantity}
         </p>
       </div>
       <p className="shrink-0 text-sm font-semibold sm:text-right">
-        {formatOrderAmount(lineTotal(item), currency)}
+        {formatPrice(lineTotal(item), currency)}
       </p>
     </li>
   );
@@ -162,7 +162,7 @@ export default function OrderDetailPage() {
         <div className="rounded-lg border p-4">
           <p className="text-muted-foreground text-sm">Your total</p>
           <p className="text-xl font-semibold">
-            {formatOrderAmount(order.total_amount, order.currency)}
+            {formatPrice(order.total_amount, order.currency)}
           </p>
         </div>
         <div className="rounded-lg border p-4">

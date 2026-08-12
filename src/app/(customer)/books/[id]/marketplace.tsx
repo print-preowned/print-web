@@ -29,8 +29,10 @@ type ListingResponse = { data?: PublicCatalogBusinessBookDetail };
 
 function OfferAddToCart({
   variants,
+  onSelectedChange,
 }: {
   variants: PublicCatalogVariant[];
+  onSelectedChange?: (variant: PublicCatalogVariant | null) => void;
 }) {
   const available = variants.filter((v) => v.stock > 0);
   const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
@@ -41,6 +43,15 @@ function OfferAddToCart({
 
   const selected = available.find((v) => v.id === selectedId) ?? available[0];
   const maxQuantity = selected?.stock ?? 1;
+
+  useEffect(() => {
+    const firstAvailable = variants.find((variant) => variant.stock > 0);
+    setSelectedId(firstAvailable?.id ?? "");
+  }, [variants]);
+
+  useEffect(() => {
+    onSelectedChange?.(selected ?? null);
+  }, [selected, onSelectedChange]);
 
   useEffect(() => {
     setQuantity(1);
@@ -229,6 +240,22 @@ function OfferAccordionItem({
   isLoading,
 }: OfferAccordionItemProps) {
   const panelId = `offer-panel-${offer.id}`;
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!expanded) {
+      setSelectedPrice(null);
+    }
+  }, [expanded]);
+
+  const handleSelectedChange = useCallback(
+    (variant: PublicCatalogVariant | null) => {
+      setSelectedPrice(variant?.price ?? null);
+    },
+    [],
+  );
+
+  const displayPrice = selectedPrice ?? offer.min_price;
 
   return (
     <li className="overflow-hidden border border-border bg-card">
@@ -246,7 +273,7 @@ function OfferAccordionItem({
 
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
-            <span className="font-display text-lg font-semibold">
+            <span className="font-display text-md font-semibold">
               {offer.business_name}
             </span>
             <Link
@@ -271,9 +298,9 @@ function OfferAccordionItem({
         </span>
 
         <span className="flex shrink-0 items-center gap-3 self-center">
-          {offer.min_price != null ? (
-            <span className="font-display text-xl font-bold">
-              {formatPrice(offer.min_price)}
+          {displayPrice != null ? (
+            <span className="font-display text-lg font-bold">
+              {formatPrice(displayPrice)}
             </span>
           ) : null}
           {expanded ? (
@@ -294,7 +321,10 @@ function OfferAccordionItem({
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading options…</p>
           ) : listing ? (
-            <OfferAddToCart variants={listing.variants} />
+            <OfferAddToCart
+              variants={listing.variants}
+              onSelectedChange={handleSelectedChange}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">
               Could not load this offer. Try again.
@@ -371,7 +401,7 @@ export function Marketplace({ bookId, offers }: Props) {
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
             Where to buy
           </p>
-          <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
+          <h2 className="font-display text-xl font-bold tracking-tight md:text-2xl">
             Choose a seller
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -383,7 +413,7 @@ export function Marketplace({ bookId, offers }: Props) {
         {lowestPrice != null ? (
           <p className="text-sm text-muted-foreground">
             From{" "}
-            <span className="font-display text-2xl font-bold text-foreground">
+            <span className="font-display text-xl font-bold text-foreground">
               {formatPrice(lowestPrice)}
             </span>
           </p>

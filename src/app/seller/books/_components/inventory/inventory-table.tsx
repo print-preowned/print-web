@@ -25,6 +25,7 @@ import {
 import { businessBookKeys } from "@/lib/api/query-keys";
 import { apiFetch } from "@/lib/api";
 import { PaginatedResponse } from "@/lib/api/user";
+import { formatPrice } from "@/lib/format-price";
 import { useBusinessId } from "@/lib/auth/context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -33,13 +34,6 @@ import { useApiMutation } from "@/lib/hooks/useApiMutation";
 
 function formatCount(value: number) {
   return value.toLocaleString();
-}
-
-function formatPrice(value: number) {
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }
 
 export interface InventoryTableProps {

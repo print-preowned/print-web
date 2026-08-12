@@ -1,11 +1,7 @@
 import { apiFetch, generateUrl } from "@/lib/api";
+export { formatPrice } from "@/lib/format-price";
 import { ReadParams, buildQueryParams } from "@/lib/api/types";
 import type { ResolvedConfig } from "@/lib/api/variant";
-
-/** Display helper — server uses a single default currency today. */
-export function formatPrice(amount: number): string {
-  return `$${amount.toFixed(2)}`;
-}
 
 export type PublicCatalogVariant = {
   id: string;

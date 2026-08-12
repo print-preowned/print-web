@@ -10,16 +10,10 @@ import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import { listingStatusLabel } from "@/lib/business-book-listing-status";
 import { BusinessBook } from "@/lib/api/business-book";
 import { Book } from "@/lib/api/book";
+import { formatPrice } from "@/lib/format-price";
 
 function formatCount(value: number) {
   return value.toLocaleString();
-}
-
-function formatPrice(value: number) {
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }
 
 export default function BooksPage() {

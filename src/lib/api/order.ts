@@ -83,16 +83,3 @@ export function updateBusinessOrderStatus(
     body: { status },
   };
 }
-
-export function formatOrderAmount(amount: number, currency = "NGN"): string {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${currency} ${amount.toFixed(2)}`;
-  }
-}

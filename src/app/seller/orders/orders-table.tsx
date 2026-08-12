@@ -7,8 +7,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/format-price";
 import {
-  formatOrderAmount,
   OrderSummary,
   readBusinessOrders,
 } from "@/lib/api/order";
@@ -65,7 +65,7 @@ export function OrdersTable() {
       id: "total",
       header: "Your total",
       cell: ({ row }) =>
-        formatOrderAmount(row.original.total_amount, row.original.currency),
+        formatPrice(row.original.total_amount, row.original.currency),
     },
     {
       accessorKey: "created_at",

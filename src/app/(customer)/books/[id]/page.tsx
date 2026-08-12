@@ -71,7 +71,7 @@ export default async function BookDetailPage({
                 Books
               </Link>
             </p>
-            <h1 className="font-display mt-3 text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+            <h1 className="font-display mt-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl">
               {book.title}
             </h1>
             {primaryAuthor ? (

@@ -6,8 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
+import { formatPrice } from "@/lib/format-price";
 import {
-  formatOrderAmount,
   OrderSummary,
   OrderSummaryItemPreview,
 } from "@/lib/api/order";
@@ -67,7 +67,7 @@ function OrderCard({ order }: { order: OrderSummary }) {
             Total
           </p>
           <p className="mt-0.5 text-sm font-medium">
-            {formatOrderAmount(order.total_amount, order.currency)}
+            {formatPrice(order.total_amount, order.currency)}
           </p>
         </div>
         <div className="sm:text-right">

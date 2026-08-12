@@ -25,18 +25,8 @@ import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { AddVariantForm } from "./add-variant-form";
 import { PlusCircleIcon, Trash2 } from "lucide-react";
+import { formatPrice } from "@/lib/format-price";
 import { toast } from "sonner";
-
-function formatMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-    }).format(amount);
-  } catch {
-    return `${currency} ${amount.toFixed(2)}`;
-  }
-}
 
 export function VariantsPanel({ businessBook }: { businessBook: BusinessBook }) {
   const queryClient = useQueryClient();
@@ -110,7 +100,7 @@ export function VariantsPanel({ businessBook }: { businessBook: BusinessBook }) 
                   {formatVariantConfig(v.config)}
                 </TableCell>
                 <TableCell className="text-xs">
-                  {formatMoney(v.price, v.currency)}
+                  {formatPrice(v.price, v.currency)}
                   {v.discount != null && v.discount > 0 ? (
                     <span className="text-muted-foreground ml-1">
                       (−{v.discount}%)

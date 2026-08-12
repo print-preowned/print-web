@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { formatOrderAmount } from "@/lib/api/order";
+import { formatPrice } from "@/lib/format-price";
 import {
   formatOrderPlacedDate,
   getCustomerOrderStatusCopy,
@@ -55,12 +55,12 @@ function OrderLineItem({
           <span className="text-foreground">{item.business_name}</span>
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {formatOrderAmount(Number(item.unit_price), currency)} ×{" "}
+          {formatPrice(Number(item.unit_price), currency)} ×{" "}
           {item.quantity}
         </p>
       </div>
       <p className="shrink-0 text-sm font-semibold sm:text-right">
-        {formatOrderAmount(lineTotal(item), currency)}
+        {formatPrice(lineTotal(item), currency)}
       </p>
     </li>
   );
@@ -109,13 +109,13 @@ function OrderSummaryPanel({ order }: { order: OrderDetail }) {
           <div className="flex justify-between gap-4 sm:flex-col sm:items-end">
             <dt className="text-muted-foreground">Item(s) subtotal</dt>
             <dd className="font-medium">
-              {formatOrderAmount(itemsSubtotal, order.currency)}
+              {formatPrice(itemsSubtotal, order.currency)}
             </dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-border/60 pt-2 sm:flex-col sm:items-end">
             <dt className="font-medium">Order total</dt>
             <dd className="font-display text-lg font-semibold">
-              {formatOrderAmount(Number(order.total_amount), order.currency)}
+              {formatPrice(Number(order.total_amount), order.currency)}
             </dd>
           </div>
         </dl>
