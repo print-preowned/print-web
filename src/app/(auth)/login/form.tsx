@@ -11,9 +11,12 @@ import { useAuth } from "@/lib/auth/context";
 import { readBusinessByUserId } from "@/lib/api/business";
 import { apiFetch } from "@/lib/api";
 import { Session } from "@/lib/auth/token";
+import { type Login, login, platformLogin } from "@/lib/api/auth";
 
 function platformRedirect(session: Session) {
-  return session.passwordChangeRequired ? "/admin/change-password" : "/admin/books";
+  return session.passwordChangeRequired
+    ? "/admin/change-password"
+    : "/admin/books";
 }
 
 export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
@@ -42,67 +45,63 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
   }, [session, isLoading, sessionExpired, router]);
 
   const handleLogin = async (data: FieldValues) => {
+    let response: { data?: unknown } | undefined;
+
     try {
-      const authPath = isPlatform ? "/api/auth/platform-login" : "/api/auth/login";
-      const res = await fetch(authPath, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email, password: data.password }),
-        credentials: "include",
+      // Next /api/auth/* handlers mint the HttpOnly cookie. `/auth/login` via
+      // the proxy would reach FastAPI and drop Set-Cookie.
+      const payload: Login = { email: data.email, password: data.password };
+      const { endpoint, method, body } = isPlatform ? platformLogin(payload) : login(payload);
+      response = await apiFetch<{ data?: unknown }>(`/api/${endpoint}`, {
+        method,
+        body,
       });
-      const response = await res.json();
-
-      if (!res.ok) {
-        toast.error(response.detail ?? "Login failed");
-        return;
-      }
-
-      if (response.data) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
-      const nextSession = await refreshSession();
-
-      if (isPlatform) {
-        toast.success("Login successful!");
-        if (nextSession?.context === "PLATFORM") {
-          router.push(platformRedirect(nextSession));
-        } else {
-          router.push("/admin/books");
-        }
-        return;
-      }
-
-      try {
-        const businessResponse = await apiFetch<{ data: { id: string; name: string } | null }>(
-          readBusinessByUserId()
-        );
-        if (businessResponse.data) {
-          const switchRes = await fetch("/api/auth/context-switch", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              target_context: "BUSINESS",
-              business_id: businessResponse.data.id,
-            }),
-            credentials: "include",
-          });
-          if (switchRes.ok) {
-            await refreshSession();
-            toast.success("Login successful! Switched to Business context.");
-            router.push("/seller/dashboard");
-            return;
-          }
-        }
-      } catch {
-        // continue with CUSTOMER context
-      }
-
-      toast.success("Login successful!");
-      router.push("/");
     } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("Login failed");
+      // Error toast is handled by apiFetch
+      return;
     }
+
+    if (response.data) {
+      localStorage.setItem("user", JSON.stringify(response.data));
+    }
+    const nextSession = await refreshSession();
+
+    if (isPlatform) {
+      toast.success("Login successful!");
+      if (nextSession?.context === "PLATFORM") {
+        router.push(platformRedirect(nextSession));
+      } else {
+        router.push("/admin/books");
+      }
+      return;
+    }
+
+    try {
+      const businessResponse = await apiFetch<{
+        data: { id: string; name: string } | null;
+      }>(readBusinessByUserId());
+      if (businessResponse.data) {
+        const switched = await apiFetch("/api/auth/context-switch", {
+          method: "POST",
+          body: {
+            target_context: "BUSINESS",
+            business_id: businessResponse.data.id,
+          },
+          silentStatuses: [400, 401, 403, 422],
+        });
+        if (switched) {
+          await refreshSession();
+          toast.success("Login successful! Switched to Business context.");
+          router.push("/seller/dashboard");
+          return;
+        }
+      }
+    } catch {
+      // continue with CUSTOMER context
+    }
+
+    toast.success("Login successful!");
+    router.push("/");
   };
 
   return (
@@ -129,7 +128,12 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
                 Forgot your password?
               </a>
             </div>
-            <Input {...register("password")} name="password" type="password" required />
+            <Input
+              {...register("password")}
+              name="password"
+              type="password"
+              required
+            />
           </div>
           <Button type="submit" className="w-full">
             Login

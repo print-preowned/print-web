@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
-import { getAuthTokenFromRequest, setAuthCookie } from "@/lib/auth/server-cookie";
+import { applyAuthCookie, getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 
 export async function POST(request: NextRequest) {
   const token = await getAuthTokenFromRequest();
@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
       token,
     });
     if (typeof data.token === "string") {
-      await setAuthCookie(data.token);
       const { token: _t, ...rest } = data;
-      return NextResponse.json(rest);
+      const response = NextResponse.json(rest);
+      return applyAuthCookie(response, data.token, request);
     }
     return NextResponse.json(data);
   } catch (err) {

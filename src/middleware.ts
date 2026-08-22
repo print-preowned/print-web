@@ -8,8 +8,8 @@ import {
 } from "./lib/auth/routes";
 import { getJwtSecretKey } from "./lib/auth/jwt-secret";
 import {
+  applyClearAuthCookie,
   AUTH_COOKIE_NAME,
-  getAuthCookieClearOptions,
 } from "./lib/auth/server-cookie";
 
 const JWT_SECRET = getJwtSecretKey();
@@ -25,17 +25,12 @@ interface JWTPayload {
   privileges?: string[];
 }
 
-function clearAuthCookieOnResponse(response: NextResponse) {
-  response.cookies.set(AUTH_COOKIE_NAME, "", getAuthCookieClearOptions());
-  return response;
-}
-
 function redirectToLogin(pathname: string, request: NextRequest, admin = false) {
   const loginPath = admin ? "/admin/login" : "/login";
   const url = new URL(loginPath, request.url);
   url.searchParams.set("redirect", pathname);
   url.searchParams.set("reason", "session_expired");
-  return clearAuthCookieOnResponse(NextResponse.redirect(url));
+  return applyClearAuthCookie(NextResponse.redirect(url), request);
 }
 
 async function verifyToken(token: string): Promise<JWTPayload | null> {

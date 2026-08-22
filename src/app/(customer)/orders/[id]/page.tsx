@@ -6,7 +6,13 @@ import {
   formatOrderPlacedDate,
   getCustomerOrderStatusCopy,
 } from "@/lib/customer-order-display";
-import { fetchOrderById, OrderDetail, OrderItem } from "@customer/api";
+import {
+  type BaseResponse,
+  type OrderDetail,
+  type OrderItem,
+  readOrderById,
+} from "@customer/api";
+import { serverApiFetch } from "@/lib/api/server";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { OrderCancelButton } from "./order-cancel-button";
@@ -137,7 +143,9 @@ export default async function OrderConfirmationPage({
 
   let order: OrderDetail;
   try {
-    const res = await fetchOrderById(id, token);
+    const res = await serverApiFetch<BaseResponse<OrderDetail>>(
+      readOrderById(id),
+    );
     if (!res.data) notFound();
     order = res.data;
   } catch (err) {

@@ -1,180 +1,104 @@
-import { GetServerSidePropsContext, GetStaticPropsContext } from "next";
-import { getCookie, AUTH_COOKIE_NAME } from "../cookies";
+/**
+ * Deliberately has no `client-only` marker: public catalog pages are server
+ * components and read through `apiFetch`, so this module must stay importable
+ * from both layers. Anything that needs the auth cookie belongs in ./server,
+ * which is marked `server-only`. See SERVER_COMPONENTS.md.
+ */
+
 import { toast } from "sonner";
-import { formatApiDetail } from "./format-error";
+import {
+  ApiError,
+  buildBackendUrl,
+  buildProxyUrl,
+  requestJson,
+  type HttpMethod,
+  type QueryParams,
+  type RequestFailure,
+} from "./core";
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export { ApiError, generateUrl } from "./core";
+export type { HttpMethod, QueryParams };
 
-/** Thrown by apiFetch on non-OK or parse failure. Callers can check err.status (undefined for network/parse errors). */
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status?: number
-  ) {
-    super(message);
-    this.name = "ApiError";
-    Object.setPrototypeOf(this, ApiError.prototype);
-  }
-}
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-export interface Options {
-  method?: RequestInit["method"];
-  fetchOptions?: RequestInit;
-  context?:
-    | GetServerSidePropsContext
-    | (GetStaticPropsContext & { req?: null });
-  redirect?: "error" | "follow" | "manual";
-}
-
-export function getAuthToken(context?: Options["context"]) {
-  return (
-    getCookie(AUTH_COOKIE_NAME, context?.req?.headers.cookie ?? undefined) || ""
-  );
-}
+export type ApiFetchOptions = {
+  method?: HttpMethod;
+  body?: unknown;
+  headers?: Record<string, string>;
+  query?: QueryParams;
+  /** HTTP statuses that resolve as null without a client toast or thrown error. */
+  silentStatuses?: number[];
+};
 
 /**
- * Client: uses /api/proxy with credentials (HttpOnly cookie sent automatically).
- * Paths starting with /api/ are same-origin and used as-is (e.g. /api/businesses).
- * Server (SSR with context): calls backend directly with token from cookie.
+ * In the browser: goes through /api/proxy so the HttpOnly cookie is attached
+ * and exchanged for a bearer token server-side.
+ *
+ * During SSR: calls the backend directly and sends no credentials, so this is
+ * only usable for public endpoints. Authenticated server-side reads belong in
+ * `serverApiFetch` (src/lib/api/server.ts), which reads the cookie itself.
  */
-function getFetchUrl(
-  path: string,
-  query?: Record<string, string | number | undefined | null>,
-  context?: Options["context"]
-): string {
-  const isClient = typeof window !== "undefined";
-  const useProxy = isClient && !context;
-  const pathStr = path.startsWith("/") ? path.slice(1) : path;
-  if (useProxy) {
-    const search = query
-      ? "?" +
-        Object.entries(query)
-          .filter(([, v]) => v !== undefined && v !== null && v !== "")
-          .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
-          .join("&")
-      : "";
-    if (pathStr.startsWith("api/")) {
-      return `/${pathStr}${search}`;
-    }
-    return `/api/proxy/${pathStr}${search}`;
-  }
-  const url = new URL(`${API_BASE_URL}/${pathStr}`);
-  if (query) {
-    Object.entries(query).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== "") {
-        url.searchParams.set(k, String(v));
-      }
-    });
-  }
-  return url.href;
-}
-
 export async function apiFetch<T>(
   path: string,
-  options: {
-    method?: HttpMethod;
-    body?: unknown;
-    headers?: Record<string, string>;
-    query?: Record<string, string | number | undefined | null>;
-    context?: Options["context"];
-    /** HTTP statuses that resolve as null without a client toast or thrown error. */
-    silentStatuses?: number[];
-  } = {},
+  options: ApiFetchOptions = {}
 ): Promise<T> {
-  const { method = "GET", body, headers, query, context, silentStatuses } =
-    options;
-  const url = path.includes("http") ? path : getFetchUrl(path, query, context);
+  const { method = "GET", body, headers, query, silentStatuses } = options;
   const isClient = typeof window !== "undefined";
-  const useProxy = isClient && !context;
-  const token = useProxy ? null : getAuthToken(context);
+  const url = isClient
+    ? buildProxyUrl(path, query)
+    : buildBackendUrl(path, query);
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...headers,
-      },
-      credentials: useProxy ? "include" : "same-origin",
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store",
-      ...(context ? { next: { revalidate: 0 } } : {}),
-    });
-  } catch (err) {
-    if (isClient) {
-      toast.error("Network error. Please check your connection and try again.");
-    }
-    throw new ApiError(
-      err instanceof Error ? err.message : "Network error",
-      undefined
-    );
+  const result = await requestJson<T>(url, {
+    method,
+    body,
+    headers: {
+      // Free ngrok serves an HTML interstitial to browser UAs. Without this
+      // header, fetch gets that page instead of JSON and the call fails.
+      // Only the browser → ngrok hop needs it (page origin; proxy URLs are
+      // relative). Server fetchers talk to localhost and skip this.
+      ...(isClient && window.location.hostname.endsWith(".ngrok-free.app")
+        ? { "ngrok-skip-browser-warning": "true" }
+        : {}),
+      ...headers,
+    },
+    credentials: isClient ? "include" : "same-origin",
+  });
+
+  if (result.ok) {
+    return result.data;
   }
-
-  if (!res.ok) {
-    // Handle 401 Unauthorized (token expired/invalid) - do this first
-    if (res.status === 401 && isClient) {
-      const { forceLogout } = await import("../auth/logout");
-      toast.error("Your session has expired. Please log in again.");
-      await forceLogout();
-      throw new ApiError("Session expired", 401);
-    }
-
-    // Parse error message for other errors
-    let errorMessage: string;
-    try {
-      const text = await res.text();
-      try {
-        const parsed = JSON.parse(text) as { detail?: unknown };
-        errorMessage = formatApiDetail(
-          parsed.detail,
-          text || `Request failed: ${res.status}`,
-        );
-      } catch {
-        errorMessage = text || `Request failed: ${res.status}`;
-      }
-    } catch {
-      errorMessage = `Request failed: ${res.status}`;
-    }
-
-    if (isClient && !silentStatuses?.includes(res.status)) {
-      toast.error(errorMessage);
-    }
-
-    if (silentStatuses?.includes(res.status)) {
-      return null as T;
-    }
-
-    throw new ApiError(errorMessage, res.status);
-  }
-
-  if (res.status === 204 || res.status === 205) {
-    return undefined as T;
-  }
-
-  // For successful responses, handle empty bodies (e.g., 201 Created)
-  const text = await res.text();
-
-  if (!text || text.trim() === "") {
-    return {} as T;
-  }
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    if (isClient) {
-      toast.error("Invalid response from server.");
-    }
-    throw new ApiError("Invalid JSON response from server", res.status);
-  }
+  return reportFailure<T>(result, isClient, silentStatuses);
 }
 
-export function generateUrl(
-  path: string,
-  query?: Record<string, string | number | undefined | null>,
-  context?: Options["context"],
-) {
-  return getFetchUrl(path, query, context);
+async function reportFailure<T>(
+  failure: RequestFailure,
+  isClient: boolean,
+  silentStatuses?: number[]
+): Promise<T> {
+  const silent =
+    failure.status !== undefined && silentStatuses?.includes(failure.status);
+
+  if (failure.status === 401 && isClient && !silent) {
+    const { forceLogout } = await import("../auth/logout");
+    toast.error("Your session has expired. Please log in again.");
+    await forceLogout();
+    throw new ApiError("Session expired", 401);
+  }
+
+  if (silent) {
+    return null as T;
+  }
+
+  if (isClient) {
+    toast.error(clientMessage(failure));
+  }
+  throw new ApiError(failure.message, failure.status);
+}
+
+function clientMessage(failure: RequestFailure): string {
+  if (failure.reason === "network") {
+    return "Network error. Please check your connection and try again.";
+  }
+  if (failure.reason === "parse") {
+    return "Invalid response from server.";
+  }
+  return failure.message;
 }

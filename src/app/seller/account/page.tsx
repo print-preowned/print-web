@@ -16,8 +16,10 @@ export default function SellerAccountPage() {
   const isOwner = useIsOwner();
   const queryClient = useQueryClient();
 
+  const businessKey = ["business", businessId] as const;
+
   const { data, isLoading, error } = useQuery({
-    queryKey: [readBusinessById(businessId!)],
+    queryKey: businessKey,
     queryFn: () => apiFetch(readBusinessById(businessId!)) as Promise<BusinessResponse>,
     enabled: !!businessId,
   });
@@ -28,7 +30,7 @@ export default function SellerAccountPage() {
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [readBusinessById(businessId!)] });
+      queryClient.invalidateQueries({ queryKey: businessKey });
       toast.success("Business details updated");
     },
     onError: (err: Error) => {

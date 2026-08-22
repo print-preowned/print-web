@@ -26,7 +26,9 @@ export function BusinessesTable() {
   const isOwner = useIsOwner();
 
   const query = useQuery({
-    queryKey: [readBusinesses({ page, size: 10, search: search || undefined })],
+    queryKey: ["businesses", page, search],
+    queryFn: () =>
+      apiFetch(readBusinesses({ page, size: 10, search: search || undefined })),
   });
 
   const deleteMutation = useMutation({

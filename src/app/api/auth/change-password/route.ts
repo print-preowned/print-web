@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
 import {
-  AUTH_COOKIE_NAME,
-  getAuthCookieOptions,
+  applyAuthCookie,
   getAuthTokenFromRequest,
 } from "@/lib/auth/server-cookie";
 
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json(res);
     if (res.token) {
-      response.cookies.set(AUTH_COOKIE_NAME, res.token, getAuthCookieOptions());
+      return applyAuthCookie(response, res.token, request);
     }
     return response;
   } catch (err) {
