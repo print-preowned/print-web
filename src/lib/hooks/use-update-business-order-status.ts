@@ -89,7 +89,6 @@ export function useUpdateBusinessOrderStatus() {
       for (const [queryKey, data] of context?.previousLists ?? []) {
         queryClient.setQueryData(queryKey, data);
       }
-      toast.error("Failed to update order status");
     },
     onSuccess: () => {
       toast.success("Order status updated");

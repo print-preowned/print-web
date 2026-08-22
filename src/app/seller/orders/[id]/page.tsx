@@ -22,7 +22,7 @@ import {
   readBusinessOrderById,
 } from "@/lib/api/order";
 import { usePrivilege } from "@/lib/auth/context";
-import { canUpdateOrderStatus, nextOrderStatuses } from "@/lib/order-status";
+import { canUpdateOrderStatus, getSellerPaymentBlockedMessage, getSellerPaymentStatusBadgeLabel, nextOrderStatuses } from "@/lib/order-status";
 import { useUpdateBusinessOrderStatus } from "@/lib/hooks/use-update-business-order-status";
 
 type OrderDetailResponse = {
@@ -103,6 +103,11 @@ export default function OrderDetailPage() {
   const order = query.data?.data;
   const currentStatus = order?.status.trim().toUpperCase() ?? "";
   const fulfillmentType = order?.fulfillment_address?.fulfillment_type ?? "DELIVERY";
+  const paymentStatus = order?.payment_status ?? "NONE";
+  const paymentBlockedMessage = getSellerPaymentBlockedMessage(paymentStatus);
+  const canUpdateStatus = order
+    ? canUpdateOrderStatus(order.status, fulfillmentType, paymentStatus)
+    : false;
   const nextStatuses = order
     ? nextOrderStatuses(currentStatus, fulfillmentType)
     : [];
@@ -158,7 +163,7 @@ export default function OrderDetailPage() {
         <StatusBadge status={order.status} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <p className="text-muted-foreground text-sm">Your total</p>
           <p className="text-xl font-semibold">
@@ -173,9 +178,25 @@ export default function OrderDetailPage() {
           <p className="text-muted-foreground text-sm">Currency</p>
           <p className="text-xl font-semibold">{order.currency}</p>
         </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-muted-foreground text-sm">Payment</p>
+          <div className="mt-1">
+            <StatusBadge
+              status={paymentStatus}
+              label={getSellerPaymentStatusBadgeLabel(paymentStatus)}
+              showIcon={false}
+            />
+          </div>
+        </div>
       </div>
 
-      {hasUpdateOrder && canUpdateOrderStatus(order.status, fulfillmentType) ? (
+      {paymentBlockedMessage ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+          {paymentBlockedMessage}
+        </p>
+      ) : null}
+
+      {hasUpdateOrder && canUpdateStatus ? (
         <div className="flex flex-wrap items-end gap-3 rounded-lg border p-4">
           <div className="space-y-2">
             <p className="text-sm font-medium">Update status</p>

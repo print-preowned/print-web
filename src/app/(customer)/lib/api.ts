@@ -1,4 +1,5 @@
-import { apiFetch, generateUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { buildRelativeUrl } from "@/lib/api/core";
 export { formatPrice } from "@/lib/format-price";
 import { ReadParams, buildQueryParams } from "@/lib/api/types";
 import type { ResolvedConfig } from "@/lib/api/variant";
@@ -50,25 +51,25 @@ export function readOffers(
 ) {
   const query = buildQueryParams(params);
   if (params?.exclude_id) query.exclude_id = params.exclude_id;
-  return generateUrl(`/books/${bookId}/offers`, query);
+  return buildRelativeUrl(`/books/${bookId}/offers`, query);
 }
 
 export function readPublicStoreInventory(
   businessId: string,
   params?: ReadParams,
 ) {
-  return generateUrl(
+  return buildRelativeUrl(
     `/businesses/${businessId}/storefront/catalog`,
     buildQueryParams(params),
   );
 }
 
 export function readPublicBusinessProfile(businessId: string) {
-  return generateUrl(`/businesses/${businessId}/storefront`);
+  return buildRelativeUrl(`/businesses/${businessId}/storefront`);
 }
 
 export function readPublicBusinessBookById(id: string) {
-  return generateUrl(`/offers/${id}`);
+  return buildRelativeUrl(`/offers/${id}`);
 }
 
 export type OrderItem = {
@@ -102,6 +103,8 @@ export type OrderFulfillmentAddress = {
   country_code: string;
 };
 
+export type OrderPaymentStatus = "NONE" | "PENDING" | "PAID" | "REFUNDED";
+
 export type Order = {
   id: string;
   user_id: string;
@@ -109,6 +112,7 @@ export type Order = {
   currency: string;
   total_amount: number;
   status: string;
+  payment_status: OrderPaymentStatus;
   business_id?: string | null;
   business_name?: string | null;
   fulfillment_address?: OrderFulfillmentAddress | null;
@@ -135,18 +139,18 @@ export type OrderItemCreatePayload = {
   discount_applied?: number | null;
 };
 
-type BaseResponse<T> = {
+export type BaseResponse<T> = {
   status_code: number;
   message: string;
   data: T;
 };
 
 export function readOrderById(id: string) {
-  return generateUrl(`/orders/${id}`);
+  return buildRelativeUrl(`/orders/${id}`);
 }
 
 export function readCustomerOrders(params?: { page?: number; size?: number; search?: string }) {
-  return generateUrl("/orders", buildQueryParams(params));
+  return buildRelativeUrl("/orders", buildQueryParams(params));
 }
 
 export async function createOrder(payload: OrderCreatePayload) {
@@ -156,14 +160,56 @@ export async function createOrder(payload: OrderCreatePayload) {
   });
 }
 
-export async function fetchOrderById(id: string, token: string) {
-  return apiFetch<BaseResponse<OrderDetail>>(readOrderById(id), {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
 export async function cancelOrder(id: string) {
   return apiFetch<void>(`/orders/${id}/cancel`, {
     method: "POST",
   });
+}
+
+export type PaymentCheckoutType = "CHARGE" | "VIRTUAL_ACCOUNT";
+export type PaymentMethodType = "opay" | "ussd";
+
+export type PaymentInitiatePayload = {
+  checkout_type?: PaymentCheckoutType;
+  payment_method_type?: PaymentMethodType;
+  redirect_url: string;
+  ussd_bank_code?: string | null;
+};
+
+export type PaymentCheckoutAction = {
+  type: string;
+  redirect_url?: string | null;
+  payment_instruction?: string | null;
+};
+
+export type VirtualAccountCheckoutDetails = {
+  account_number: string;
+  bank_name: string;
+  expiry_datetime: string;
+  amount: number;
+  reference: string;
+};
+
+export type PaymentInitiateResponse = {
+  payment_id: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  checkout_type: string;
+  provider_charge_id?: string | null;
+  next_action?: PaymentCheckoutAction | null;
+  virtual_account?: VirtualAccountCheckoutDetails | null;
+};
+
+export async function initiateOrderPayment(
+  orderId: string,
+  payload: PaymentInitiatePayload,
+) {
+  return apiFetch<BaseResponse<PaymentInitiateResponse>>(
+    `/orders/${orderId}/payments`,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 }

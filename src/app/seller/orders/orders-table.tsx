@@ -14,6 +14,7 @@ import {
 } from "@/lib/api/order";
 import { apiFetch } from "@/lib/api";
 import { usePrivilege } from "@/lib/auth/context";
+import { getSellerPaymentStatusBadgeLabel } from "@/lib/order-status";
 import { PaginatedResponse } from "@/lib/model";
 
 function formatDate(value: string) {
@@ -53,8 +54,21 @@ export function OrdersTable() {
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: "Fulfillment",
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "payment_status",
+      header: "Payment",
+      cell: ({ row }) => {
+        const paymentStatus = row.original.payment_status ?? "NONE";
+        return (
+          <StatusBadge
+            status={paymentStatus}
+            label={getSellerPaymentStatusBadgeLabel(paymentStatus)}
+          />
+        );
+      },
     },
     {
       id: "items",

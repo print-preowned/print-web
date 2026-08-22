@@ -53,6 +53,9 @@ const STATUS_DISPLAY: Record<string, StatusDisplay> = {
   MERGED: { label: "Merged", variant: "outline", icon: GitMerge },
   DEPRECATED: { label: "Deprecated", variant: "outline", icon: Archive },
   CANCELLED: { label: "Cancelled", variant: "outline", icon: XCircle },
+  PAID: { label: "Paid", variant: "default", icon: CheckCircle2 },
+  REFUNDED: { label: "Refunded", variant: "outline", icon: XCircle },
+  NONE: { label: "No online payment", variant: "outline", icon: CircleDashed },
 };
 
 function formatStatusLabel(status: string): string {

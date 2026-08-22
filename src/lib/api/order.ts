@@ -1,4 +1,4 @@
-import { generateUrl } from ".";
+import { buildRelativeUrl } from "./core";
 import { ReadParams, buildQueryParams } from "./types";
 
 export type BusinessOrderItem = {
@@ -42,6 +42,7 @@ export type OrderSummary = {
   reference: string;
   currency: string;
   status: string;
+  payment_status: string;
   total_amount: number;
   item_count: number;
   preview_items: OrderSummaryItemPreview[];
@@ -66,11 +67,11 @@ export type OrderFulfillmentStatus =
   | "CANCELLED";
 
 export function readBusinessOrders(params?: ReadParams) {
-  return generateUrl("/business-orders", buildQueryParams(params));
+  return buildRelativeUrl("/business-orders", buildQueryParams(params));
 }
 
 export function readBusinessOrderById(id: string) {
-  return generateUrl(`/business-orders/${id}`);
+  return buildRelativeUrl(`/business-orders/${id}`);
 }
 
 export function updateBusinessOrderStatus(

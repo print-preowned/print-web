@@ -7,14 +7,18 @@ import { useConfirm } from "@/components/confirm-dialog-provider";
 import { Button } from "@/components/ui/button";
 import { cancelOrder } from "@customer/api";
 import { ApiError } from "@/lib/api";
-import { canCustomerCancelOrder } from "@/lib/order-status";
+import {
+  canCustomerCancelOrder,
+  getCustomerCancelConfirmDescription,
+} from "@/lib/order-status";
 
 type Props = {
   orderId: string;
   status: string;
+  paymentStatus?: string;
 };
 
-export function OrderCancelButton({ orderId, status }: Props) {
+export function OrderCancelButton({ orderId, status, paymentStatus }: Props) {
   const router = useRouter();
   const confirm = useConfirm();
   const [pending, setPending] = useState(false);
@@ -26,8 +30,7 @@ export function OrderCancelButton({ orderId, status }: Props) {
   async function handleCancel() {
     const confirmed = await confirm({
       title: "Cancel this order?",
-      description:
-        "Items will be returned to stock and this cannot be undone.",
+      description: getCustomerCancelConfirmDescription(paymentStatus),
       confirmLabel: "Cancel order",
       cancelLabel: "Keep order",
       destructive: true,

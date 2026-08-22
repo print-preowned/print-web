@@ -34,9 +34,37 @@ const CUSTOMER_ORDER_STATUS_COPY: Record<string, CustomerOrderStatusCopy> = {
   },
   CANCELLED: {
     headline: "Cancelled",
-    message: "Your order was cancelled. You have not been charged for this order.",
+    message: "This order was cancelled.",
   },
 };
+
+type CustomerPaymentStatusCopy = {
+  label: string;
+  message: string;
+};
+
+const CUSTOMER_PAYMENT_STATUS_COPY: Record<string, CustomerPaymentStatusCopy> = {
+  PENDING: {
+    label: "Awaiting payment",
+    message: "Complete payment to confirm this order with the seller.",
+  },
+  REFUNDED: {
+    label: "Refunded",
+    message: "Your payment was refunded for this order.",
+  },
+};
+
+export function getCustomerPaymentStatusCopy(
+  paymentStatus: string,
+): CustomerPaymentStatusCopy {
+  const key = paymentStatus.trim().toUpperCase();
+  return (
+    CUSTOMER_PAYMENT_STATUS_COPY[key] ?? {
+      label: key,
+      message: "Check payment details below.",
+    }
+  );
+}
 
 export function getCustomerOrderStatusCopy(status: string): CustomerOrderStatusCopy {
   const key = status.trim().toUpperCase();

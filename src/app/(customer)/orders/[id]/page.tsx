@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/format-price";
@@ -16,7 +17,9 @@ import { serverApiFetch } from "@/lib/api/server";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { OrderCancelButton } from "./order-cancel-button";
+import { OrderPaymentPanel } from "./order-payment-panel";
 import { StatusBadge } from "@/components/status-badge";
+import { getCustomerPaymentStatusCopy } from "@/lib/customer-order-display";
 
 function lineTotal(item: OrderItem): number {
   return Number(item.unit_price) * item.quantity;
@@ -78,6 +81,10 @@ function OrderSummaryPanel({ order }: { order: OrderDetail }) {
     0,
   );
   const statusCopy = getCustomerOrderStatusCopy(order.status);
+  const paymentCopy =
+    order.payment_status !== "NONE" && order.payment_status !== "PAID"
+      ? getCustomerPaymentStatusCopy(order.payment_status)
+      : null;
 
   return (
     <div className="overflow-hidden border border-border/70 bg-card shadow-sm">
@@ -105,10 +112,17 @@ function OrderSummaryPanel({ order }: { order: OrderDetail }) {
               {statusCopy.headline}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {statusCopy.message}
+              {paymentCopy?.message ?? statusCopy.message}
             </p>
           </div>
-          <StatusBadge status={order.status} />
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge status={order.status} />
+            {paymentCopy ? (
+              <span className="inline-flex items-center rounded-full border border-amber-500/50 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-900 dark:text-amber-100">
+                {paymentCopy.label}
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <dl className="space-y-2 text-sm sm:text-right">
@@ -172,6 +186,15 @@ export default async function OrderConfirmationPage({
         <div className="mt-8 space-y-6">
           <OrderSummaryPanel order={order} />
 
+          <Suspense fallback={null}>
+            <OrderPaymentPanel
+              orderId={order.id}
+              paymentStatus={order.payment_status ?? "NONE"}
+              totalAmount={Number(order.total_amount)}
+              currency={order.currency}
+            />
+          </Suspense>
+
           {order.fulfillment_address ? (
             <FulfillmentAddressPanel address={order.fulfillment_address} />
           ) : null}
@@ -203,7 +226,11 @@ export default async function OrderConfirmationPage({
             >
               Continue shopping
             </Link>
-            <OrderCancelButton orderId={order.id} status={order.status} />
+            <OrderCancelButton
+              orderId={order.id}
+              status={order.status}
+              paymentStatus={order.payment_status}
+            />
           </div>
         </div>
       </div>

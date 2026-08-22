@@ -20,15 +20,15 @@ export interface LoginResponse {
 }
 
 export function login(payload: Login) {
-  return { endpoint: "/auth/login", method: "POST", body: payload };
+  return { endpoint: "/auth/login", method: "POST" as const, body: payload };
 }
 
 export function signup(payload: Signup) {
-  return { endpoint: "/auth/signup", method: "POST", body: payload };
+  return { endpoint: "/auth/signup", method: "POST" as const, body: payload };
 }
 
 export function platformLogin(payload: Login) {
-  return { endpoint: "/admin/users/login", method: "POST", body: payload };
+  return { endpoint: "/admin/users/login", method: "POST" as const, body: payload };
 }
 
 export interface ContextSwitchResponse {

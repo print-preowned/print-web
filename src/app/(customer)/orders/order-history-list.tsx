@@ -14,6 +14,7 @@ import {
 import {
   formatOrderPlacedDate,
   getCustomerOrderStatusCopy,
+  getCustomerPaymentStatusCopy,
 } from "@/lib/customer-order-display";
 import { readCustomerOrders } from "@customer/api";
 import { PaginatedResponse } from "@/lib/model";
@@ -46,6 +47,10 @@ function OrderItemPreview({ item }: { item: OrderSummaryItemPreview }) {
 
 function OrderCard({ order }: { order: OrderSummary }) {
   const statusCopy = getCustomerOrderStatusCopy(order.status);
+  const paymentPending = order.payment_status === "PENDING";
+  const paymentCopy = paymentPending
+    ? getCustomerPaymentStatusCopy(order.payment_status!)
+    : null;
   const hiddenItemCount = Math.max(
     0,
     order.item_count - order.preview_items.length,
@@ -89,7 +94,14 @@ function OrderCard({ order }: { order: OrderSummary }) {
           <h2 className="font-display text-lg font-semibold tracking-tight">
             {statusCopy.headline}
           </h2>
-          <p className="text-sm text-muted-foreground">{statusCopy.message}</p>
+          <p className="text-sm text-muted-foreground">
+            {paymentCopy?.message ?? statusCopy.message}
+          </p>
+          {paymentCopy ? (
+            <p className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-200">
+              {paymentCopy.label}
+            </p>
+          ) : null}
         </div>
 
         {order.preview_items.length > 0 ? (

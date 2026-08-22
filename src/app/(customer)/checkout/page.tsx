@@ -11,8 +11,12 @@ import {
 } from "@/components/address/checkout-pickup-location-display";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
-import { createOrder, formatPrice } from "@customer/api";
+import { createOrder, formatPrice, initiateOrderPayment } from "@customer/api";
 import { clearCart, useCart } from "@customer/cart";
+import {
+  buildPaymentReturnUrl,
+  redirectToPaymentCheckout,
+} from "@/lib/payment-checkout";
 
 function makeReference() {
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -163,8 +167,20 @@ export default function CheckoutPage() {
                           unit_price: line.unitPrice,
                         })),
                       });
+                      const orderId = created.data.id;
                       clearCart();
-                      router.push(`/orders/${created.data.id}`);
+
+                      const payment = await initiateOrderPayment(orderId, {
+                        redirect_url: buildPaymentReturnUrl(orderId),
+                        checkout_type: "CHARGE",
+                        payment_method_type: "opay",
+                      });
+
+                      if (redirectToPaymentCheckout(payment.data)) {
+                        return;
+                      }
+
+                      router.push(`/orders/${orderId}`);
                     } catch (err) {
                       toast.error(
                         err instanceof ApiError
@@ -176,7 +192,7 @@ export default function CheckoutPage() {
                     }
                   }}
                 >
-                  {submitting ? "Placing order…" : "Place order"}
+                  {submitting ? "Processing…" : "Proceed to payment"}
                 </Button>
               </div>
             </div>
