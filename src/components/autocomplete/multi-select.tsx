@@ -9,23 +9,23 @@ import {
   ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
-  ComboboxItem,
   ComboboxList,
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
-
-export type LocalAutocompleteOption = {
-  id: string;
-  label: string;
-};
+import { AutocompleteOptionItem } from "./option-item";
+import {
+  autocompleteOptionSearchLabel,
+  indexAutocompleteOptions,
+  type AutocompleteOption,
+} from "./option";
 
 export type AutocompleteMultiSelectProps = {
   id: string;
   label: string;
   placeholder?: string;
-  options: LocalAutocompleteOption[];
+  options: AutocompleteOption[];
   selectedIds: string[];
   onSelectedIdsChange: (ids: string[]) => void;
   onInputValueChange?: (value: string) => void;
@@ -47,41 +47,36 @@ export function AutocompleteMultiSelect({
   className,
 }: AutocompleteMultiSelectProps) {
   const anchor = useComboboxAnchor();
-
-  const labelById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const option of options) {
-      map.set(option.id, option.label);
-    }
-    return map;
-  }, [options]);
-
-  const optionIds = useMemo(() => options.map((option) => option.id), [options]);
+  const { byValue, values } = useMemo(() => indexAutocompleteOptions(options), [options]);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <Label htmlFor={id}>{label}</Label>
       <Combobox
         multiple
-        items={optionIds}
+        items={values}
         value={selectedIds}
         onValueChange={(next) => {
           onSelectedIdsChange(Array.isArray(next) ? next : []);
         }}
-        itemToStringLabel={(optionId) => labelById.get(optionId) ?? optionId}
-        {...(onInputValueChange ? { onInputValueChange: (next) => {
-          onInputValueChange(next)
-        } } : {})}
+        itemToStringLabel={(optionValue) => {
+          const option = byValue.get(optionValue);
+          return option ? autocompleteOptionSearchLabel(option) : optionValue;
+        }}
+        {...(onInputValueChange
+          ? {
+              onInputValueChange: (next) => {
+                onInputValueChange(next);
+              },
+            }
+          : {})}
       >
         <ComboboxChips ref={anchor} id={id} className="w-full">
           <ComboboxValue>
-            {(values: string[]) =>
-              values.map((optionId) => (
-                <ComboboxChip
-                  key={optionId}
-                  className={selectedChipClassName}
-                >
-                  {labelById.get(optionId) ?? optionId}
+            {(selectedValues: string[]) =>
+              selectedValues.map((optionValue) => (
+                <ComboboxChip key={optionValue} className={selectedChipClassName}>
+                  {byValue.get(optionValue)?.label ?? optionValue}
                 </ComboboxChip>
               ))
             }
@@ -91,11 +86,11 @@ export function AutocompleteMultiSelect({
         <ComboboxContent anchor={anchor} className="pointer-events-auto">
           <ComboboxEmpty>{noResultsMessage}</ComboboxEmpty>
           <ComboboxList>
-            {(optionId: string) => (
-              <ComboboxItem key={optionId} value={optionId}>
-                {labelById.get(optionId) ?? optionId}
-              </ComboboxItem>
-            )}
+            {(optionValue: string) => {
+              const option = byValue.get(optionValue);
+              if (!option) return null;
+              return <AutocompleteOptionItem key={optionValue} option={option} />;
+            }}
           </ComboboxList>
         </ComboboxContent>
       </Combobox>

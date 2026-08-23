@@ -8,7 +8,10 @@ import { AuthorRef, GenreRef } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/auth/context";
 import { PaginatedResponse } from "@/lib/api/user";
-import { AutocompleteMultiSelect } from "@/components/autocomplete-multi-select";
+import {
+  AutocompleteMultiSelect,
+  mergeAutocompleteOptions,
+} from "@/components/autocomplete";
 import { cn } from "@/lib/utils";
 
 export type BookAuthorGenreFieldsProps = {
@@ -23,19 +26,6 @@ export type BookAuthorGenreFieldsProps = {
 
 function authorLabel(author: Author) {
   return [author.first_name, author.last_name].filter(Boolean).join(" ");
-}
-
-function mergeOptions(
-  primary: { id: string; label: string }[],
-  extras?: { id: string; label: string }[],
-) {
-  const merged = new Map(primary.map((option) => [option.id, option]));
-  for (const extra of extras ?? []) {
-    if (!merged.has(extra.id)) {
-      merged.set(extra.id, extra);
-    }
-  }
-  return [...merged.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
 export function BookAuthorGenreFields({
@@ -66,13 +56,13 @@ export function BookAuthorGenreFields({
 
   const authorOptions = useMemo(
     () =>
-      mergeOptions(
+      mergeAutocompleteOptions(
         authors.map((author) => ({
-          id: author.id,
+          value: author.id,
           label: authorLabel(author),
         })),
         linkedAuthors?.map((author) => ({
-          id: author.id,
+          value: author.id,
           label: author.name,
         })),
       ),
@@ -81,13 +71,13 @@ export function BookAuthorGenreFields({
 
   const genreOptions = useMemo(
     () =>
-      mergeOptions(
+      mergeAutocompleteOptions(
         genres.map((genre) => ({
-          id: genre.id,
+          value: genre.id,
           label: genre.name,
         })),
         linkedGenres?.map((genre) => ({
-          id: genre.id,
+          value: genre.id,
           label: genre.name,
         })),
       ),
