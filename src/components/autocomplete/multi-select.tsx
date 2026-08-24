@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { AutocompleteOptionItem } from "./option-item";
 import {
-  autocompleteOptionSearchLabel,
+  autocompleteOptionFilter,
   indexAutocompleteOptions,
   type AutocompleteOption,
 } from "./option";
@@ -48,6 +48,7 @@ export function AutocompleteMultiSelect({
 }: AutocompleteMultiSelectProps) {
   const anchor = useComboboxAnchor();
   const { byValue, values } = useMemo(() => indexAutocompleteOptions(options), [options]);
+  const filter = useMemo(() => autocompleteOptionFilter(byValue), [byValue]);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -61,8 +62,9 @@ export function AutocompleteMultiSelect({
         }}
         itemToStringLabel={(optionValue) => {
           const option = byValue.get(optionValue);
-          return option ? autocompleteOptionSearchLabel(option) : optionValue;
+          return option?.label ?? optionValue;
         }}
+        filter={filter}
         {...(onInputValueChange
           ? {
               onInputValueChange: (next) => {

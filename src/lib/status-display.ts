@@ -55,6 +55,7 @@ const STATUS_DISPLAY: Record<string, StatusDisplay> = {
   CANCELLED: { label: "Cancelled", variant: "outline", icon: XCircle },
   PAID: { label: "Paid", variant: "default", icon: CheckCircle2 },
   REFUNDED: { label: "Refunded", variant: "outline", icon: XCircle },
+  FAILED: { label: "Failed", variant: "destructive", icon: XCircle },
   NONE: { label: "No online payment", variant: "outline", icon: CircleDashed },
 };
 

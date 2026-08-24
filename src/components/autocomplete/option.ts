@@ -16,6 +16,18 @@ export function autocompleteOptionSearchLabel(option: AutocompleteOption): strin
     .join(" ");
 }
 
+export function autocompleteOptionFilter(
+  byValue: ReadonlyMap<string, AutocompleteOption>,
+) {
+  return (optionValue: string, query: string) => {
+    const option = byValue.get(optionValue);
+    if (!option) return false;
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return true;
+    return autocompleteOptionSearchLabel(option).toLowerCase().includes(normalizedQuery);
+  };
+}
+
 export function indexAutocompleteOptions(options: readonly AutocompleteOption[]) {
   const byValue = new Map<string, AutocompleteOption>();
   for (const option of options) {
