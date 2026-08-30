@@ -6,16 +6,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/format-price";
+import { paymentErrorMessage } from "@/lib/payment-errors";
 import {
+  applyPaymentCheckoutStart,
+  buildStandardCheckoutPayload,
   buildPaymentReturnUrl,
   pollOrderPaymentStatus,
-  redirectToPaymentCheckout,
+  startPaymentCheckout,
 } from "@/lib/payment-checkout";
-import {
-  initiateOrderPayment,
-  type OrderPaymentStatus,
-  type VirtualAccountCheckoutDetails,
-} from "@customer/api";
+import { initiateOrderPayment, type OrderPaymentStatus } from "@customer/api";
 
 type Props = {
   orderId: string;
@@ -23,53 +22,6 @@ type Props = {
   totalAmount: number;
   currency: string;
 };
-
-function VirtualAccountPanel({
-  details,
-  currency,
-}: {
-  details: VirtualAccountCheckoutDetails;
-  currency: string;
-}) {
-  const expires = new Date(details.expiry_datetime).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-
-  return (
-    <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 px-4 py-4 text-sm">
-      <p className="font-medium">Pay by bank transfer</p>
-      <dl className="grid gap-2 sm:grid-cols-2">
-        <div>
-          <dt className="text-muted-foreground">Bank</dt>
-          <dd className="font-medium">{details.bank_name}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Account number</dt>
-          <dd className="font-mono font-medium">{details.account_number}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Amount</dt>
-          <dd className="font-medium">
-            {formatPrice(Number(details.amount), currency)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Reference</dt>
-          <dd className="font-mono text-xs">{details.reference}</dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="text-muted-foreground">Expires</dt>
-          <dd>{expires}</dd>
-        </div>
-      </dl>
-      <p className="text-muted-foreground">
-        Transfer the exact amount using this reference. We will confirm your order
-        automatically once payment is received.
-      </p>
-    </div>
-  );
-}
 
 export function OrderPaymentPanel({
   orderId,
@@ -80,8 +32,6 @@ export function OrderPaymentPanel({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paying, setPaying] = useState(false);
-  const [virtualAccount, setVirtualAccount] =
-    useState<VirtualAccountCheckoutDetails | null>(null);
   const returnPollStarted = useRef(false);
 
   useEffect(() => {
@@ -101,10 +51,10 @@ export function OrderPaymentPanel({
     void pollOrderPaymentStatus(
       orderId,
       {
-        maxAttempts: fromReturn ? 15 : 30,
-        intervalMs: fromReturn ? 2000 : 4000,
+        maxAttempts: fromReturn ? 5 : 10,
+        intervalMs: fromReturn ? 4000 : 8000,
         onPaid: () => {
-          toast.success("Payment confirmed. Your order is placed.");
+          toast.success("Payment confirmed.");
           router.refresh();
         },
         onRefunded: () => {
@@ -143,23 +93,23 @@ export function OrderPaymentPanel({
   async function handlePay() {
     setPaying(true);
     try {
-      const res = await initiateOrderPayment(orderId, {
-        redirect_url: buildPaymentReturnUrl(orderId),
-        checkout_type: "CHARGE",
-        payment_method_type: "opay",
-      });
-      if (redirectToPaymentCheckout(res.data)) {
+      const res = await initiateOrderPayment(
+        orderId,
+        buildStandardCheckoutPayload(buildPaymentReturnUrl(orderId)),
+      );
+      const start = startPaymentCheckout(res.data);
+
+      if (start.type === "redirect") {
+        applyPaymentCheckoutStart(start);
         return;
       }
-      if (res.data.virtual_account) {
-        setVirtualAccount(res.data.virtual_account);
-        toast.success("Bank transfer details are ready below.");
-        return;
-      }
+
       toast.error("Could not start checkout. Try again.");
     } catch (err) {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not start payment.",
+        err instanceof ApiError
+          ? paymentErrorMessage(err.message)
+          : "Could not start payment.",
       );
     } finally {
       setPaying(false);
@@ -175,12 +125,10 @@ export function OrderPaymentPanel({
           <span className="font-medium text-foreground">
             {formatPrice(totalAmount, currency)}
           </span>{" "}
-          to confirm this order. The seller is notified after payment succeeds.
+          to confirm this order. You will choose your payment method on the
+          secure Flutterwave checkout page.
         </p>
       </div>
-      {virtualAccount ? (
-        <VirtualAccountPanel details={virtualAccount} currency={currency} />
-      ) : null}
       <Button type="button" disabled={paying} onClick={handlePay}>
         {paying ? "Starting checkout…" : "Pay now"}
       </Button>

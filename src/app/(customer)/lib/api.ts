@@ -166,28 +166,10 @@ export async function cancelOrder(id: string) {
   });
 }
 
-export type PaymentCheckoutType = "CHARGE" | "VIRTUAL_ACCOUNT";
-export type PaymentMethodType = "opay" | "ussd";
 
 export type PaymentInitiatePayload = {
-  checkout_type?: PaymentCheckoutType;
-  payment_method_type?: PaymentMethodType;
+  checkout_type?: "STANDARD";
   redirect_url: string;
-  ussd_bank_code?: string | null;
-};
-
-export type PaymentCheckoutAction = {
-  type: string;
-  redirect_url?: string | null;
-  payment_instruction?: string | null;
-};
-
-export type VirtualAccountCheckoutDetails = {
-  account_number: string;
-  bank_name: string;
-  expiry_datetime: string;
-  amount: number;
-  reference: string;
 };
 
 export type PaymentInitiateResponse = {
@@ -197,8 +179,7 @@ export type PaymentInitiateResponse = {
   currency: string;
   checkout_type: string;
   provider_charge_id?: string | null;
-  next_action?: PaymentCheckoutAction | null;
-  virtual_account?: VirtualAccountCheckoutDetails | null;
+  checkout_url?: string | null;
 };
 
 export async function initiateOrderPayment(

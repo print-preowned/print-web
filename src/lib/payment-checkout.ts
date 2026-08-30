@@ -1,3 +1,4 @@
+import { SELLER_PAYMENTS_UNAVAILABLE } from "@/lib/payment-errors";
 import { apiFetch } from "@/lib/api";
 import {
   readOrderById,
@@ -6,18 +7,6 @@ import {
   type OrderPaymentStatus,
   type PaymentInitiateResponse,
 } from "@customer/api";
-
-
-function getPublicAppBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
-  if (configured) {
-    return configured;
-  }
-  if (typeof window !== "undefined") {
-    return window.location.origin;
-  }
-  return "";
-}
 
 function buildPublicAppUrl(path: string): string {
   let baseUrl = "";
@@ -33,16 +22,39 @@ function buildPublicAppUrl(path: string): string {
   return baseUrl ? `${baseUrl}${normalized}` : normalized;
 }
 
-
 /** Customer return URL after Flutterwave redirect checkout (must be HTTPS in sandbox/live). */
 export function buildPaymentReturnUrl(orderId: string): string {
   return buildPublicAppUrl(`/orders/${orderId}?payment=return`);
 }
 
-export function redirectToPaymentCheckout(response: PaymentInitiateResponse): boolean {
-  const url = response.next_action?.redirect_url;
-  if (url) {
-    window.location.assign(url);
+export function buildStandardCheckoutPayload(redirectUrl: string) {
+  return {
+    checkout_type: "STANDARD" as const,
+    redirect_url: redirectUrl,
+  };
+}
+
+/** @deprecated Use buildStandardCheckoutPayload */
+export function buildCheckoutSessionPayload(redirectUrl: string) {
+  return buildStandardCheckoutPayload(redirectUrl);
+}
+
+export type PaymentCheckoutStart =
+  | { type: "redirect"; url: string }
+  | { type: "pending"; response: PaymentInitiateResponse };
+
+export function startPaymentCheckout(
+  response: PaymentInitiateResponse,
+): PaymentCheckoutStart {
+  if (response.checkout_url) {
+    return { type: "redirect", url: response.checkout_url };
+  }
+  return { type: "pending", response };
+}
+
+export function applyPaymentCheckoutStart(start: PaymentCheckoutStart): boolean {
+  if (start.type === "redirect") {
+    window.location.assign(start.url);
     return true;
   }
   return false;
@@ -106,3 +118,5 @@ export async function pollOrderPaymentStatus(
     options.onTimeout?.();
   }
 }
+
+export { SELLER_PAYMENTS_UNAVAILABLE };

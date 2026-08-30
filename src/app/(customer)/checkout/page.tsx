@@ -11,11 +11,14 @@ import {
 } from "@/components/address/checkout-pickup-location-display";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
+import { paymentErrorMessage } from "@/lib/payment-errors";
 import { createOrder, formatPrice, initiateOrderPayment } from "@customer/api";
 import { clearCart, useCart } from "@customer/cart";
 import {
+  applyPaymentCheckoutStart,
+  buildStandardCheckoutPayload,
   buildPaymentReturnUrl,
-  redirectToPaymentCheckout,
+  startPaymentCheckout,
 } from "@/lib/payment-checkout";
 
 function makeReference() {
@@ -153,6 +156,7 @@ export default function CheckoutPage() {
                   onClick={async () => {
                     if (lines.length === 0 || !canPlaceOrder) return;
                     setSubmitting(true);
+                    let orderId: string | null = null;
                     try {
                       const created = await createOrder({
                         reference: makeReference(),
@@ -167,26 +171,35 @@ export default function CheckoutPage() {
                           unit_price: line.unitPrice,
                         })),
                       });
-                      const orderId = created.data.id;
+                      orderId = created.data.id;
                       clearCart();
 
-                      const payment = await initiateOrderPayment(orderId, {
-                        redirect_url: buildPaymentReturnUrl(orderId),
-                        checkout_type: "CHARGE",
-                        payment_method_type: "opay",
-                      });
+                      const payment = await initiateOrderPayment(
+                        orderId,
+                        buildStandardCheckoutPayload(
+                          buildPaymentReturnUrl(orderId),
+                        ),
+                      );
+                      const start = startPaymentCheckout(payment.data);
 
-                      if (redirectToPaymentCheckout(payment.data)) {
+                      if (start.type === "redirect") {
+                        applyPaymentCheckoutStart(start);
                         return;
                       }
 
+                      toast.error("Could not start checkout. Try again.");
                       router.push(`/orders/${orderId}`);
                     } catch (err) {
-                      toast.error(
+                      const message =
                         err instanceof ApiError
-                          ? err.message
-                          : "Could not place order.",
-                      );
+                          ? paymentErrorMessage(err.message)
+                          : "Could not place order.";
+                      if (orderId) {
+                        toast.error(message);
+                        router.push(`/orders/${orderId}`);
+                      } else {
+                        toast.error(message);
+                      }
                     } finally {
                       setSubmitting(false);
                     }

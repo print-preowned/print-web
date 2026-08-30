@@ -1,8 +1,8 @@
 /**
  * Route Configuration System
- * 
+ *
  * Centralized route protection configuration following PRINT Authorization & Context Model
- * 
+ *
  * This eliminates the need to pass props to RouteGuard on every page.
  * Routes are protected based on their path pattern.
  */
@@ -30,16 +30,15 @@ export const routeConfig: Record<string, RouteConfig> = {
   "/forgot-password": {},
   "/reset-password": {},
 
-
   "/change-password": {
     requireAuth: true,
     redirectTo: "/login",
   },
-  
+
   // Customer routes (public access - e-commerce site)
-  "/books": {requiredContext: "CUSTOMER"},
-  "/books/*": {requiredContext: "CUSTOMER"},
-  "/stores/*": {requiredContext: "CUSTOMER"},
+  "/books": { requiredContext: "CUSTOMER" },
+  "/books/*": { requiredContext: "CUSTOMER" },
+  "/stores/*": { requiredContext: "CUSTOMER" },
   "/cart": {},
   "/checkout": {
     requireAuth: true,
@@ -56,14 +55,14 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredContext: "CUSTOMER",
     redirectTo: "/login",
   },
-  
+
   // Seller routes (require BUSINESS context)
   "/seller/*": {
     requireAuth: true,
     requiredContext: "BUSINESS",
     redirectTo: "/login",
   },
-  
+
   // Seller users (require specific privilege)
   "/seller/users": {
     requireAuth: true,
@@ -71,7 +70,7 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredPrivileges: ["READ_USER"], // Example privilege
     redirectTo: "/login",
   },
-  
+
   // Seller books (require READ_BOOK privilege)
   "/seller/books": {
     requireAuth: true,
@@ -93,7 +92,7 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredPrivileges: ["READ_ORDER"],
     redirectTo: "/login",
   },
-  
+
   // Seller authors (require READ_AUTHOR privilege)
   "/seller/authors": {
     requireAuth: true,
@@ -101,14 +100,14 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredPrivileges: ["READ_AUTHOR"],
     redirectTo: "/login",
   },
-  
+
   // Seller businesses (require BUSINESS context, owner for delete)
   "/seller/businesses": {
     requireAuth: true,
     requiredContext: "BUSINESS",
     redirectTo: "/login",
   },
-  
+
   // Owner-only routes
   "/seller/settings": {
     requireAuth: true,
@@ -123,14 +122,14 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredContext: "BUSINESS",
     redirectTo: "/login",
   },
-  
+
   // Dashboard (require auth, any context)
   "/seller/dashboard": {
     requireAuth: true,
     requiredContext: "BUSINESS",
     redirectTo: "/login",
   },
-  
+
   // Account page (require auth)
   "/account": {
     requiredContext: "CUSTOMER",
@@ -142,14 +141,14 @@ export const routeConfig: Record<string, RouteConfig> = {
     requiredContext: "CUSTOMER",
     redirectTo: "/login",
   },
-  
+
   // Admin routes (require PLATFORM context - separate from regular UI)
   "/admin/*": {
     requireAuth: true,
     requiredContext: "PLATFORM",
     redirectTo: "/admin/login",
   },
-  
+
   // Admin login (public)
   "/admin/login": {},
 
@@ -200,7 +199,7 @@ export function getRouteConfig(pathname: string): RouteConfig | null {
   if (routeConfig[pathname]) {
     return routeConfig[pathname];
   }
-  
+
   // Wildcard matching
   for (const [pattern, config] of Object.entries(routeConfig)) {
     if (pattern.includes("*")) {
@@ -210,7 +209,7 @@ export function getRouteConfig(pathname: string): RouteConfig | null {
       }
     }
   }
-  
+
   // Default: require auth for unknown routes
   // Context-aware default redirect
   if (pathname.startsWith("/admin")) {
