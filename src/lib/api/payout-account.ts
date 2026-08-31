@@ -12,7 +12,9 @@ export type BusinessPayoutAccount = {
   bank_code: string;
   account_number: string;
   account_name: string;
-  provider_recipient_id?: string | null;
+  /** Flutterwave payout subaccount reference (PSA…). Escrow wallet. */
+  provider_payout_subaccount_id?: string | null;
+  provider_barter_id?: string | null;
   account_status: "PENDING" | "ACTIVE" | "FAILED" | "INACTIVE";
   created_at: string;
   updated_at: string;
