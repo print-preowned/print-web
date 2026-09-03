@@ -9,16 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Modal } from "@/components/ui/modal";
 
 export type ConfirmOptions = {
   title: string;
@@ -61,40 +52,19 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={value}>
       {children}
-      <Dialog
+      <Modal
         open={request !== null}
         onOpenChange={(open) => {
           if (!open) close(false);
         }}
-      >
-        <DialogOverlay />
-        {request ? (
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader className="space-y-2 mb-4">
-              <DialogTitle>{request.title}</DialogTitle>
-              {request.description ? (
-                <DialogDescription>{request.description}</DialogDescription>
-              ) : null}
-            </DialogHeader>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => close(false)}
-              >
-                {request.cancelLabel ?? "Cancel"}
-              </Button>
-              <Button
-                type="button"
-                variant={request.destructive ? "destructive" : "default"}
-                onClick={() => close(true)}
-              >
-                {request.confirmLabel ?? "Continue"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        ) : null}
-      </Dialog>
+        title={request?.title ?? ""}
+        description={request?.description}
+        cancelLabel={request?.cancelLabel ?? "Cancel"}
+        confirmLabel={request?.confirmLabel ?? "Continue"}
+        confirmVariant={request?.destructive ? "destructive" : "default"}
+        onConfirm={() => close(true)}
+        contentClassName="sm:max-w-md"
+      />
     </ConfirmContext.Provider>
   );
 }

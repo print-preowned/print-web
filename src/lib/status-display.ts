@@ -57,6 +57,17 @@ const STATUS_DISPLAY: Record<string, StatusDisplay> = {
   REFUNDED: { label: "Refunded", variant: "outline", icon: XCircle },
   FAILED: { label: "Failed", variant: "destructive", icon: XCircle },
   NONE: { label: "No online payment", variant: "outline", icon: CircleDashed },
+  OPEN: { label: "Open", variant: "secondary", icon: Clock },
+  RESOLVED_REFUND: {
+    label: "Resolved — refund",
+    variant: "outline",
+    icon: CheckCircle2,
+  },
+  RESOLVED_RELEASE: {
+    label: "Resolved — release",
+    variant: "outline",
+    icon: CheckCircle2,
+  },
 };
 
 function formatStatusLabel(status: string): string {

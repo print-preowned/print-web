@@ -10,13 +10,17 @@ import {
 import {
   type BaseResponse,
   type OrderDetail,
+  type OrderDispute,
   type OrderItem,
   readOrderById,
+  readOrderDisputes,
 } from "@customer/api";
 import { serverApiFetch } from "@/lib/api/server";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";
 import { OrderCancelButton } from "./order-cancel-button";
+import { OrderDisputesPanel } from "./order-disputes-panel";
+import { OrderOpenDisputeButton } from "./order-open-dispute-button";
 import { OrderPaymentPanel } from "./order-payment-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { getCustomerPaymentStatusCopy } from "@/lib/customer-order-display";
@@ -156,12 +160,15 @@ export default async function OrderConfirmationPage({
   }
 
   let order: OrderDetail;
+  let disputes: OrderDispute[] = [];
   try {
-    const res = await serverApiFetch<BaseResponse<OrderDetail>>(
-      readOrderById(id),
-    );
-    if (!res.data) notFound();
-    order = res.data;
+    const [orderRes, disputesRes] = await Promise.all([
+      serverApiFetch<BaseResponse<OrderDetail>>(readOrderById(id)),
+      serverApiFetch<BaseResponse<OrderDispute[]>>(readOrderDisputes(id)),
+    ]);
+    if (!orderRes.data) notFound();
+    order = orderRes.data;
+    disputes = disputesRes.data ?? [];
   } catch (err) {
     if (err instanceof ApiError && (err.status === 404 || err.status === 401)) {
       notFound();
@@ -199,6 +206,8 @@ export default async function OrderConfirmationPage({
             <FulfillmentAddressPanel address={order.fulfillment_address} />
           ) : null}
 
+          <OrderDisputesPanel disputes={disputes} />
+
           {order.items.length > 0 ? (
             <section className="overflow-hidden border border-border/70 bg-card shadow-sm">
               <div className="border-b border-border/60 px-4 py-3 sm:px-5">
@@ -226,11 +235,17 @@ export default async function OrderConfirmationPage({
             >
               Continue shopping
             </Link>
-            <OrderCancelButton
-              orderId={order.id}
-              status={order.status}
-              paymentStatus={order.payment_status}
-            />
+            <div className="flex flex-wrap gap-3">
+              <OrderOpenDisputeButton
+                orderId={order.id}
+                canOpenDispute={Boolean(order.can_open_dispute)}
+              />
+              <OrderCancelButton
+                orderId={order.id}
+                status={order.status}
+                paymentStatus={order.payment_status}
+              />
+            </div>
           </div>
         </div>
       </div>

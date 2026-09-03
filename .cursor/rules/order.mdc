@@ -7,17 +7,32 @@ alwaysApply: true
         allowed:
           - CREATE_ORDER
           - READ_OWN_ORDER
+          - OPEN_DISPUTE
+          - READ_OWN_DISPUTES
       BUSINESS:
         allowed:
           - READ_ORDER
           - UPDATE_ORDER_STATUS
           - REFUND_ORDER
+      PLATFORM:
+        allowed:
+          - LIST_OPEN_DISPUTES
+          - RESOLVE_DISPUTE
 
     privileges:
       CREATE_ORDER:
         context: CUSTOMER
 
       READ_OWN_ORDER:
+        context: CUSTOMER
+
+      OPEN_DISPUTE:
+        context: CUSTOMER
+        requires:
+          - paid_order
+          - escrow_dispute_window
+
+      READ_OWN_DISPUTES:
         context: CUSTOMER
 
       READ_ORDER:
@@ -30,6 +45,14 @@ alwaysApply: true
         context: BUSINESS
         owner_only: true
 
+      LIST_OPEN_DISPUTES:
+        context: PLATFORM
+        privilege: MANAGE_BUSINESSES
+
+      RESOLVE_DISPUTE:
+        context: PLATFORM
+        privilege: MANAGE_BUSINESSES
+
     invariants:
       - id: MDC-ORDER-1
         assertion: orders_are_single_currency
@@ -39,3 +62,9 @@ alwaysApply: true
 
       - id: MDC-ORDER-3
         assertion: refunds_require_owner
+
+      - id: MDC-ORDER-4
+        assertion: open_dispute_blocks_psa_bank_release
+
+      - id: MDC-ORDER-5
+        assertion: platform_only_resolves_disputes

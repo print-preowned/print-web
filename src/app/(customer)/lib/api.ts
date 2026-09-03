@@ -121,6 +121,23 @@ export type Order = {
 
 export type OrderDetail = Order & {
   items: OrderItem[];
+  can_open_dispute?: boolean;
+};
+
+export type DisputeStatus = "OPEN" | "RESOLVED_REFUND" | "RESOLVED_RELEASE";
+
+export type OrderDispute = {
+  id: string;
+  order_id: string;
+  reason: string;
+  dispute_status: DisputeStatus;
+  resolved_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrderDisputeCreatePayload = {
+  reason: string;
 };
 
 export type OrderCreatePayload = {
@@ -164,6 +181,23 @@ export async function cancelOrder(id: string) {
   return apiFetch<void>(`/orders/${id}/cancel`, {
     method: "POST",
   });
+}
+
+export function readOrderDisputes(orderId: string) {
+  return buildRelativeUrl(`/orders/${orderId}/disputes`);
+}
+
+export async function openOrderDispute(
+  orderId: string,
+  payload: OrderDisputeCreatePayload,
+) {
+  return apiFetch<BaseResponse<OrderDispute>>(
+    `/orders/${orderId}/disputes`,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 }
 
 
