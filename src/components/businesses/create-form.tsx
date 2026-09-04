@@ -28,7 +28,7 @@ type CreateSellerFormProps = {
 
 export function CreateSellerForm({
   onCancel,
-  submitLabel = "Create Business",
+  submitLabel = "Create storefront",
   onSuccess,
 }: CreateSellerFormProps) {
   const router = useRouter();
@@ -46,11 +46,25 @@ export function CreateSellerForm({
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createSellerSchema>) => {
       const { endpoint, method, body } = await createSeller(data);
-      return apiFetch(endpoint, { method: method as HttpMethod, body });
+      return apiFetch<{ id?: string }>(endpoint, { method: method as HttpMethod, body });
     },
-    onSuccess: async () => {
+    onSuccess: async (created) => {
       await refreshSession();
-      toast.success("Business created successfully!");
+      toast.success("Storefront created");
+      if (created?.id) {
+        try {
+          await apiFetch("/api/auth/context-switch", {
+            method: "POST",
+            body: { target_context: "SELLER", seller_id: created.id },
+            silentStatuses: [400, 401, 403, 422],
+          });
+          await refreshSession();
+          router.push("/seller/dashboard");
+          return;
+        } catch {
+          // stay in customer context
+        }
+      }
       onSuccess?.();
       router.refresh();
     },
@@ -63,7 +77,7 @@ export function CreateSellerForm({
         <Input
           id="name"
           {...register("name")}
-          placeholder="Business Name"
+          placeholder="Storefront name"
           className={errors.name ? "border-red-500" : ""}
         />
         {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
@@ -74,7 +88,7 @@ export function CreateSellerForm({
         <Textarea
           id="description"
           {...register("description")}
-          placeholder="Business description..."
+          placeholder="Storefront description..."
           rows={4}
         />
         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}

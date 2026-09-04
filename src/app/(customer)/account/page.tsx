@@ -11,10 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateSellerForm } from "@/components/businesses/create-form";
-import { useAuth } from "@/lib/auth/context";
 
 export default function AccountPage() {
-  const { context } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
 
   return (
@@ -26,68 +24,54 @@ export default function AccountPage() {
               Account
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Manage your account settings and create a business
+              Manage your account settings and create a storefront
             </p>
           </div>
 
-          {context === "SELLER" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Addresses</CardTitle>
+              <CardDescription>
+                Manage saved delivery addresses for your orders.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline">
+                <Link href="/account/addresses">Manage addresses</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {!isCreating ? (
             <Card>
               <CardHeader>
-                <CardTitle>Business Account</CardTitle>
+                <CardTitle>Create storefront</CardTitle>
                 <CardDescription>
-                  You are currently using a business account. Switch to customer
-                  context to create a new business.
+                  Open a storefront. Additional shops reuse the same legal
+                  profile.
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <Button onClick={() => setIsCreating(true)}>
+                  Create storefront
+                </Button>
+              </CardContent>
             </Card>
           ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Addresses</CardTitle>
-                  <CardDescription>
-                    Manage saved delivery addresses for your orders.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild variant="outline">
-                    <Link href="/account/addresses">Manage addresses</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {!isCreating ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create Business</CardTitle>
-                    <CardDescription>
-                      Create a new business account to start managing your
-                      business operations.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button onClick={() => setIsCreating(true)}>
-                      Create Business
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create Business</CardTitle>
-                    <CardDescription>
-                      Fill in the details to create your business account.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <CreateSellerForm
-                      onCancel={() => setIsCreating(false)}
-                      submitLabel="Create Business"
-                    />
-                  </CardContent>
-                </Card>
-              )}
-            </>
+            <Card>
+              <CardHeader>
+                <CardTitle>Create storefront</CardTitle>
+                <CardDescription>
+                  Fill in the details for this storefront.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CreateSellerForm
+                  onCancel={() => setIsCreating(false)}
+                  submitLabel="Create storefront"
+                />
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

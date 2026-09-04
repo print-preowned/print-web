@@ -7,19 +7,25 @@ import { useRouter } from "next/navigation";
 
 export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" | "SELLER" }) {
   const { context, refreshSession } = useAuth();
-  const sellerId = useSellerId();
+  const currentSellerId = useSellerId();
   const [isSwitching, setIsSwitching] = useState(false);
   const router = useRouter();
 
-  if (context === targetContext) {
-    return {
-      handleSwitchContext: () => Promise.resolve(),
-      isSwitching: false,
-    };
-  }
-
-  const handleSwitchContext = async () => {
+  const handleSwitchContext = async (sellerId?: string) => {
     if (isSwitching) return;
+
+    if (targetContext === "CUSTOMER" && context === "CUSTOMER") {
+      return;
+    }
+    const nextSellerId = sellerId ?? currentSellerId;
+    if (
+      targetContext === "SELLER" &&
+      context === "SELLER" &&
+      nextSellerId &&
+      nextSellerId === currentSellerId
+    ) {
+      return;
+    }
 
     setIsSwitching(true);
     try {
@@ -27,11 +33,11 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
         target_context: targetContext,
       };
       if (targetContext === "SELLER") {
-        if (!sellerId) {
-          toast.error("No seller linked to this account");
+        if (!nextSellerId) {
+          toast.error("No storefront selected");
           return;
         }
-        body.seller_id = sellerId;
+        body.seller_id = nextSellerId;
       }
 
       const res = await fetch("/api/auth/context-switch", {

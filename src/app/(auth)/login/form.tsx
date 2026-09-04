@@ -8,7 +8,7 @@ import { FieldValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/context";
-import { readSellerByUserId } from "@/lib/api/seller";
+import { readSellers, type Seller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { Session } from "@/lib/auth/token";
 import { type Login, login, platformLogin } from "@/lib/api/auth";
@@ -77,15 +77,16 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
     }
 
     try {
-      const businessResponse = await apiFetch<{
-        data: { id: string; name: string } | null;
-      }>(readSellerByUserId());
-      if (businessResponse.data) {
+      const memberships = await apiFetch<{ data?: Seller[] }>(
+        readSellers(),
+      );
+      const sellers = memberships.data ?? [];
+      if (sellers.length === 1) {
         const switched = await apiFetch("/api/auth/context-switch", {
           method: "POST",
           body: {
             target_context: "SELLER",
-            seller_id: businessResponse.data.id,
+            seller_id: sellers[0].id,
           },
           silentStatuses: [400, 401, 403, 422],
         });

@@ -81,12 +81,12 @@ export function BusinessForm({
       if (!isEdit) {
         await refreshSession();
       }
-      toast.success(isEdit ? "Business updated" : "Business created successfully!");
+      toast.success(isEdit ? "Storefront updated" : "Storefront created");
       onSuccess?.();
       router.refresh();
     },
     onError: (error: Error) => {
-      toast.error(error.message || (isEdit ? "Failed to update business" : "Failed to create business"));
+      toast.error(error.message || (isEdit ? "Failed to update storefront" : "Failed to create storefront"));
     },
   });
 
@@ -124,7 +124,7 @@ export function BusinessForm({
         <Input
           id="name"
           {...register("name")}
-          placeholder="Business Name"
+          placeholder="Storefront name"
           className={errors.name ? "border-red-500" : ""}
         />
         {errors.name && (
@@ -137,7 +137,7 @@ export function BusinessForm({
         <Textarea
           id="description"
           {...register("description")}
-          placeholder="Business description..."
+          placeholder="Storefront description..."
           rows={4}
         />
         {errors.description && (
@@ -200,7 +200,7 @@ export function BusinessForm({
             ? "Saving…"
             : isEdit
               ? "Save changes"
-              : "Create business"}
+              : "Create storefront"}
         </Button>
       </div>
     </form>

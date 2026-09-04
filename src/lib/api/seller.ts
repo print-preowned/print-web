@@ -12,8 +12,8 @@ export type Seller = {
   updated_at: string;
 };
 
-export function readSellers(params?: { page?: number; size?: number; search?: string }) {
-  return generateUrl("/sellers", params);
+export function readSellers() {
+  return generateUrl("/sellers");
 }
 
 export function createSeller(payload: {

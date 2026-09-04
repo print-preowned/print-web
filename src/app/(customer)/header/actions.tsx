@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Building2, ChevronDown, LogOut, Package } from "lucide-react";
+import { ShoppingCart, User, ChevronDown, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSwitchContext } from "@/components/context-switcher";
+import { SwitchToSeller, SwitchToSellerMenuItem } from "@/components/switch-to-seller";
 import { logout } from "@/lib/auth/logout";
 import type { Session } from "@/lib/auth/token";
 import { useCart } from "@customer/cart";
@@ -21,9 +21,6 @@ interface ActionsProps {
 export function Actions({ session }: ActionsProps) {
   const context = session?.context ?? null;
   const { count, ready } = useCart();
-  const { handleSwitchContext: handleSwitchToBusiness, isSwitching: isSwitchingToBusiness } =
-    useSwitchContext({ targetContext: "SELLER" });
-
   return (
     <div className="flex items-center gap-1 sm:gap-2">
       <Button
@@ -45,47 +42,45 @@ export function Actions({ session }: ActionsProps) {
         </Link>
       </Button>
       {session ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="storefront-hover-surface flex items-center gap-0.5 rounded-md p-1.5"
-              aria-label="Account menu"
-            >
-              <User className="h-5 w-5" />
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href="/orders">
-                <Package className="mr-2 h-4 w-4" />
-                Orders
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/account">
-                <User className="mr-2 h-4 w-4" />
-                Account
-              </Link>
-            </DropdownMenuItem>
-            {context === "CUSTOMER" && session.hasSeller && (
-              <DropdownMenuItem
-                onClick={handleSwitchToBusiness}
-                disabled={isSwitchingToBusiness}
-              >
-                <Building2 className="mr-2 h-4 w-4" />
-                Switch to Seller
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem asChild onClick={logout}>
-              <div className="flex items-center">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SwitchToSeller>
+          {(startSwitch, busy) => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="storefront-hover-surface flex items-center gap-0.5 rounded-md p-1.5"
+                  aria-label="Account menu"
+                >
+                  <User className="h-5 w-5" />
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/orders">
+                    <Package className="mr-2 h-4 w-4" />
+                    Orders
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account">
+                    <User className="mr-2 h-4 w-4" />
+                    Account
+                  </Link>
+                </DropdownMenuItem>
+                {context === "CUSTOMER" && session.hasSeller && (
+                  <SwitchToSellerMenuItem startSwitch={startSwitch} busy={busy} />
+                )}
+                <DropdownMenuItem asChild onClick={logout}>
+                  <div className="flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </SwitchToSeller>
       ) : (
         <div className="flex items-center gap-1.5">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">

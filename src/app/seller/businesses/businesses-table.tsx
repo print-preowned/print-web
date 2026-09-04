@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "@/components/status-badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,43 +12,48 @@ import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BusinessForm } from "./form";
 import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
-import { useAuth, useIsOwner } from "@/lib/auth/context";
+import { useAuth, useSellerId } from "@/lib/auth/context";
+import { useSwitchContext } from "@/components/context-switcher";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function BusinessesTable() {
   const router = useRouter();
-  const { refreshSession } = useAuth();
-  const [search, setSearch] = useState("");
+  const { session, refreshSession } = useAuth();
+  const currentSellerId = useSellerId();
+  const { handleSwitchContext, isSwitching } = useSwitchContext({ targetContext: "SELLER" });
   const [page, setPage] = useState(1);
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
-  const isOwner = useIsOwner();
 
   const query = useQuery({
-    queryKey: ["sellers", page, search],
+    queryKey: ["sellers", page],
     queryFn: () =>
-      apiFetch(readSellers({ page, size: 10, search: search || undefined })),
+      apiFetch<{ data?: Seller[]; pagination?: { total_pages?: number } }>(
+        readSellers(),
+      ),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Server must enforce authorization - client checks are for UX only
       const { endpoint } = deleteSeller(id);
       return apiFetch(endpoint, { method: "DELETE" });
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, id) => {
       await refreshSession();
-      toast.success("Business deleted successfully");
+      toast.success("Storefront deleted");
+      if (id === currentSellerId) {
+        router.push("/");
+        return;
+      }
       query.refetch();
-      router.push("/");
     },
     onError: (error: Error) => {
-      // Server will return 403/401 if unauthorized
-      toast.error(error.message || "Failed to delete business");
+      toast.error(error.message || "Failed to delete storefront");
     },
   });
 
-  const data = (query.data as { data?: Seller[] } | undefined)?.data || [];
+  const data = query.data?.data || [];
+  const totalPages = query.data?.pagination?.total_pages ?? 1;
 
   const handleFormSuccess = () => {
     closeDrawer();
@@ -58,28 +62,16 @@ export function BusinessesTable() {
 
   const columns: ColumnDef<Seller>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">
+          {row.getValue("name")}
+          {row.original.id === currentSellerId ? (
+            <span className="ml-2 text-xs font-normal text-muted-foreground">Current</span>
+          ) : null}
+        </div>
+      ),
     },
     {
       accessorKey: "description",
@@ -102,52 +94,64 @@ export function BusinessesTable() {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end" size="icon">
-              <EllipsisVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-32">
-            {isOwner && (
-              <DropdownMenuItem
-                onClick={() =>
-                  openDrawer({
-                    title: "Business Form",
-                    description: "Edit business details",
-                    children: (
-                      <BusinessForm
-                        business={row.original}
-                        onCancel={closeDrawer}
-                        onSuccess={handleFormSuccess}
-                      />
-                    ),
-                  })
-                }
-              >
-                Edit
-              </DropdownMenuItem>
-            )}
-            {isOwner && (
-              <>
-                <DropdownMenuSeparator />
+      cell: ({ row }) => {
+        const isRowOwner = session?.id === row.original.user_id;
+        const isCurrent = row.original.id === currentSellerId;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end" size="icon">
+                <EllipsisVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              {!isCurrent && (
                 <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete this business?")) {
-                      deleteMutation.mutate(row.original.id);
-                    }
-                  }}
+                  disabled={isSwitching}
+                  onClick={() => void handleSwitchContext(row.original.id)}
                 >
-                  Delete
+                  Switch
                 </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+              )}
+              {isRowOwner && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    openDrawer({
+                      title: "Edit storefront",
+                      description: "Update storefront details",
+                      children: (
+                        <BusinessForm
+                          business={row.original}
+                          onCancel={closeDrawer}
+                          onSuccess={handleFormSuccess}
+                        />
+                      ),
+                    })
+                  }
+                >
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {isRowOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete this storefront?")) {
+                        deleteMutation.mutate(row.original.id);
+                      }
+                    }}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
       enableHiding: false,
     },
   ];
@@ -157,11 +161,8 @@ export function BusinessesTable() {
       <DataTable
         data={data}
         columns={columns}
-        meta={{
-          onDelete: isOwner ? (id: string) => deleteMutation.mutate(id) : undefined,
-        }}
         isLoading={query.isLoading}
-        totalPages={1}
+        totalPages={totalPages}
         pageIndex={page - 1}
         pageSize={10}
         onPaginationChange={(updater) => {
@@ -176,8 +177,8 @@ export function BusinessesTable() {
           <Button
             onClick={() =>
               openDrawer({
-                title: "Business Form",
-                description: "Add a new business",
+                title: "New storefront",
+                description: "Create another storefront on your legal profile",
                 children: (
                   <BusinessForm
                     onCancel={closeDrawer}
@@ -188,7 +189,7 @@ export function BusinessesTable() {
             }
           >
             <PlusCircleIcon className="size-4" />
-            Add Business
+            Add storefront
           </Button>
         </div>
       </DataTable>
@@ -196,4 +197,3 @@ export function BusinessesTable() {
     </div>
   );
 }
-
