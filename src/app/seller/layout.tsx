@@ -44,7 +44,7 @@ const sidebarData = {
       icon: IconBuildingStore,
     },
   ],
-  accountHref: "seller/account"
+  accountHref: "/seller/account",
 };
 
 export default function SellerLayout({ children }: { children: ReactNode }) {
