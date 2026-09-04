@@ -18,16 +18,16 @@ alwaysApply: true
         context: CUSTOMER
 
       READ_VARIANT:
-        context: BUSINESS
+        context: SELLER
 
       CREATE_VARIANT:
-        context: BUSINESS
+        context: SELLER
 
       UPDATE_VARIANT:
-        context: BUSINESS
+        context: SELLER
 
       DELETE_VARIANT:
-        context: BUSINESS
+        context: SELLER
         owner_only: true
 
     notes: >

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Business } from "@/lib/api/business";
+import type { Seller } from "@/lib/api/seller";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -26,7 +26,7 @@ const schema = z.object({
 export type BusinessDetailsFormValues = z.infer<typeof schema>;
 
 type BusinessDetailsFormProps = {
-  business: Business;
+  business: Seller;
   onSubmit: (values: BusinessDetailsFormValues) => void;
   isPending?: boolean;
 };

@@ -8,17 +8,17 @@ import {
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import {
-  BusinessOrderDetail,
+  SellerOrderDetail,
   OrderFulfillmentStatus,
   OrderSummary,
-  updateBusinessOrderStatus,
+  updateSellerOrderStatus,
 } from "@/lib/api/order";
 import { PaginatedResponse } from "@/lib/model";
 
 type OrderDetailResponse = {
   status_code: number;
   message: string;
-  data: BusinessOrderDetail;
+  data: SellerOrderDetail;
 };
 
 type UpdateBusinessOrderStatusInput = {
@@ -31,20 +31,20 @@ type MutationContext = {
   previousLists: Array<[QueryKey, PaginatedResponse<OrderSummary> | undefined]>;
 };
 
-export function useUpdateBusinessOrderStatus() {
+export function useUpdateSellerOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ orderId, status }: UpdateBusinessOrderStatusInput) => {
-      const req = updateBusinessOrderStatus(orderId, status);
+      const req = updateSellerOrderStatus(orderId, status);
       return apiFetch(req.endpoint, {
         method: req.method,
         body: req.body,
       });
     },
     onMutate: async ({ orderId, status }) => {
-      await queryClient.cancelQueries({ queryKey: ["business-order", orderId] });
-      await queryClient.cancelQueries({ queryKey: ["business-orders"] });
+      await queryClient.cancelQueries({ queryKey: ["seller-order", orderId] });
+      await queryClient.cancelQueries({ queryKey: ["seller-orders"] });
 
       const previousDetail = queryClient.getQueryData<OrderDetailResponse>([
         "business-order",
@@ -52,11 +52,11 @@ export function useUpdateBusinessOrderStatus() {
       ]);
       const previousLists = queryClient.getQueriesData<
         PaginatedResponse<OrderSummary>
-      >({ queryKey: ["business-orders"] });
+      >({ queryKey: ["seller-orders"] });
 
       if (previousDetail?.data) {
         queryClient.setQueryData<OrderDetailResponse>(
-          ["business-order", orderId],
+          ["seller-order", orderId],
           {
             ...previousDetail,
             data: { ...previousDetail.data, status },
@@ -65,7 +65,7 @@ export function useUpdateBusinessOrderStatus() {
       }
 
       queryClient.setQueriesData<PaginatedResponse<OrderSummary>>(
-        { queryKey: ["business-orders"] },
+        { queryKey: ["seller-orders"] },
         (current) => {
           if (!current?.data) return current;
           return {
@@ -82,7 +82,7 @@ export function useUpdateBusinessOrderStatus() {
     onError: (_error, { orderId }, context) => {
       if (context?.previousDetail) {
         queryClient.setQueryData(
-          ["business-order", orderId],
+          ["seller-order", orderId],
           context.previousDetail,
         );
       }
@@ -94,8 +94,8 @@ export function useUpdateBusinessOrderStatus() {
       toast.success("Order status updated");
     },
     // onSettled: (_data, _error, { orderId }) => {
-    //   queryClient.invalidateQueries({ queryKey: ["business-order", orderId] });
-    //   queryClient.invalidateQueries({ queryKey: ["business-orders"] });
+    //   queryClient.invalidateQueries({ queryKey: ["seller-order", orderId] });
+    //   queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
     // },
   });
 }

@@ -22,7 +22,7 @@ export function Actions({ session }: ActionsProps) {
   const context = session?.context ?? null;
   const { count, ready } = useCart();
   const { handleSwitchContext: handleSwitchToBusiness, isSwitching: isSwitchingToBusiness } =
-    useSwitchContext({ targetContext: "BUSINESS" });
+    useSwitchContext({ targetContext: "SELLER" });
 
   return (
     <div className="flex items-center gap-1 sm:gap-2">
@@ -69,13 +69,13 @@ export function Actions({ session }: ActionsProps) {
                 Account
               </Link>
             </DropdownMenuItem>
-            {context === "CUSTOMER" && session.hasBusiness && (
+            {context === "CUSTOMER" && session.hasSeller && (
               <DropdownMenuItem
                 onClick={handleSwitchToBusiness}
                 disabled={isSwitchingToBusiness}
               >
                 <Building2 className="mr-2 h-4 w-4" />
-                Switch to Business
+                Switch to Seller
               </DropdownMenuItem>
             )}
             <DropdownMenuItem asChild onClick={logout}>

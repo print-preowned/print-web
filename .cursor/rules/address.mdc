@@ -17,17 +17,17 @@ addresses:
         assertion: delivery_phone_is_distinct_from_account_phone
 
   business_locations:
-    api: /business-addresses
-    context: BUSINESS
+    api: /seller-addresses
+    context: SELLER
     ui:
       - /seller/account
     copy: Store locations
 
     privileges:
-      READ_BUSINESS:
-        context: BUSINESS
-      UPDATE_BUSINESS:
-        context: BUSINESS
+      READ_SELLER:
+        context: SELLER
+      UPDATE_SELLER:
+        context: SELLER
 
     invariants:
       - id: MDC-FE-ADDRESS-3
@@ -47,7 +47,7 @@ addresses:
       - shipping_address_id when DELIVERY
       - pickup_location_id when PICKUP
     pickup_read:
-      - GET /businesses/{businessId}/pickup-location
+      - GET /sellers/{sellerId}/pickup-location
     invariants:
       - id: MDC-FE-ADDRESS-5
         assertion: checkout_requires_fulfillment_selection_for_active_mode

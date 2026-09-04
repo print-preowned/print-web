@@ -1,16 +1,16 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BusinessBook } from "@/lib/api/business-book";
-import { BusinessBookForm } from "./business-book-form";
+import { SellerBook } from "@/lib/api/seller-book";
+import { SellerBookForm } from "./business-book-form";
 import { VariantsPanel } from "./variants-panel";
 
-export function BusinessBookEditTabs({
+export function SellerBookEditTabs({
   businessBook,
   initialTab = "listing",
   onSuccess,
 }: {
-  businessBook: BusinessBook;
+  businessBook: SellerBook;
   initialTab?: "listing" | "variants";
   onSuccess?: () => void;
 }) {
@@ -25,7 +25,7 @@ export function BusinessBookEditTabs({
         </TabsTrigger>
       </TabsList>
       <TabsContent value="listing" className="mt-4">
-        <BusinessBookForm businessBook={businessBook} onSuccess={onSuccess} />
+        <SellerBookForm businessBook={businessBook} onSuccess={onSuccess} />
       </TabsContent>
       <TabsContent value="variants" className="mt-4">
         <VariantsPanel businessBook={businessBook} />

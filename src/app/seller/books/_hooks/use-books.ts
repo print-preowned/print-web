@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { Book, readBooks } from "@/lib/api/book";
 import {
-  BusinessBook,
-  readBusinessBooks,
-} from "@/lib/api/business-book";
-import { bookKeys, businessBookKeys } from "@/lib/api/query-keys";
-import { useBusinessId } from "@/lib/auth/context";
+  SellerBook,
+  readSellerBooks,
+} from "@/lib/api/seller-book";
+import { bookKeys, sellerBookKeys } from "@/lib/api/query-keys";
+import { useSellerId } from "@/lib/auth/context";
 import usePagination from "@/lib/pagination/usePagination";
 
 function searchOrUndefined(s: string): string | undefined {
@@ -64,8 +64,8 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
   };
 }
 
-export interface UseBusinessBooksReturn {
-  businessBooks: BusinessBook[];
+export interface UseSellerBooksReturn {
+  businessBooks: SellerBook[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -74,8 +74,8 @@ export interface UseBusinessBooksReturn {
   totalPages: number;
 }
 
-export function useBusinessBooks(): UseBusinessBooksReturn {
-  const businessId = useBusinessId();
+export function useSellerBooks(): UseSellerBooksReturn {
+  const sellerId = useSellerId();
 
   const {
     data: businessBooks,
@@ -83,15 +83,15 @@ export function useBusinessBooks(): UseBusinessBooksReturn {
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<BusinessBook>({
-    queryKey: [...businessBookKeys.all, businessId ?? ""],
+  } = usePagination<SellerBook>({
+    queryKey: [...sellerBookKeys.all, sellerId ?? ""],
     getUrl: ({ page, size }) => {
-      if (!businessId) return "";
-      return readBusinessBooks({ page, size });
+      if (!sellerId) return "";
+      return readSellerBooks({ page, size });
     },
     initialPageSize: 10,
     params: {},
-    enabled: Boolean(businessId),
+    enabled: Boolean(sellerId),
   });
 
   return {

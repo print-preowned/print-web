@@ -55,7 +55,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       } else if (context === "PLATFORM") {
         // Platform user trying to access non-platform route - redirect to admin dashboard
         router.push("/admin/dashboard");
-      } else if (routeConfig.requiredContext === "BUSINESS") {
+      } else if (routeConfig.requiredContext === "SELLER") {
         router.push("/seller/dashboard");
       } else {
         // CUSTOMER context - redirect to home (only if not platform user)
@@ -64,12 +64,12 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       return;
     }
 
-    // Check privileges (BUSINESS context only)
+    // Check privileges (SELLER context only)
     if (
       routeConfig.requireAuth &&
-      context === "BUSINESS" &&
-      session?.context === "BUSINESS" &&
-      session.business &&
+      context === "SELLER" &&
+      session?.context === "SELLER" &&
+      session.seller &&
       routeConfig.requiredPrivileges &&
       routeConfig.requiredPrivileges.length > 0
     ) {
@@ -86,10 +86,10 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
     if (
       routeConfig.requireAuth &&
       routeConfig.requireOwner &&
-      context === "BUSINESS" &&
-      session?.context === "BUSINESS" &&
-      session.business &&
-      !session.business.is_owner
+      context === "SELLER" &&
+      session?.context === "SELLER" &&
+      session.seller &&
+      !session.seller.is_owner
     ) {
       router.push("/seller/dashboard");
       return;
@@ -148,9 +148,9 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
   if (
     routeConfig &&
     routeConfig.requireAuth &&
-    context === "BUSINESS" &&
-    session?.context === "BUSINESS" &&
-    session.business
+    context === "SELLER" &&
+    session?.context === "SELLER" &&
+    session.seller
   ) {
     if (
       routeConfig.requiredPrivileges &&
@@ -164,7 +164,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
       }
     }
 
-    if (routeConfig.requireOwner && !session.business.is_owner) {
+    if (routeConfig.requireOwner && !session.seller.is_owner) {
       return null;
     }
   }

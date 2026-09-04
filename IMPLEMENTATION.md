@@ -6,7 +6,7 @@ This document describes the implementation of the PRINT Authorization & Context 
 
 The implementation follows the PRINT Authorization & Context Model which enforces:
 - Single global identity per user
-- Single execution context (CUSTOMER or BUSINESS)
+- Single execution context (CUSTOMER or SELLER)
 - Token-based authorization with proper structure
 - Privilege-based access control
 - Route guards for protected routes
@@ -15,21 +15,21 @@ The implementation follows the PRINT Authorization & Context Model which enforce
 
 ### Token Management (`src/lib/auth/token.ts`)
 
-- **Token Types**: `CustomerToken` and `BusinessToken` with proper structure
+- **Token Types**: `CustomerToken` and `SellerToken` with proper structure
 - **Required Fields**: `iss`, `aud`, `sub`, `iat`, `exp`, `jti`, `ctx`
 - **Validation**: `decodeToken()` validates token structure and expiration
-- **Utilities**: `hasPrivilege()`, `isOwner()`, `getBusinessId()` for BUSINESS context
+- **Utilities**: `hasPrivilege()`, `isOwner()`, `getSellerId()` for SELLER context
 
 ### Context Management (`src/lib/auth/context.tsx`)
 
 - **AuthProvider**: Provides authentication context to the app
 - **Token Hydration**: Automatically loads token from cookie/localStorage on mount
-- **Single Active Context**: Enforces one context at a time (CUSTOMER or BUSINESS)
+- **Single Active Context**: Enforces one context at a time (CUSTOMER or SELLER)
 - **Hooks**:
   - `useAuth()`: Access current auth state
   - `usePrivilege(privilege)`: Check if user has privilege (BUSINESS only)
   - `useIsOwner()`: Check if user is owner (BUSINESS only)
-  - `useBusinessId()`: Get current business ID (BUSINESS only)
+  - `useSellerId()`: Get current business ID (BUSINESS only)
 
 #### Session refresh vs force logout
 
@@ -66,7 +66,7 @@ The JWT lives in an HttpOnly cookie; client code never reads it directly. `refre
 
 **Before (not scalable):**
 ```tsx
-<RouteGuard requireAuth={true} requiredContext="BUSINESS" requiredPrivileges={["READ_USER"]}>
+<RouteGuard requireAuth={true} requiredContext="SELLER" requiredPrivileges={["READ_USER"]}>
   <YourComponent />
 </RouteGuard>
 ```
@@ -76,7 +76,7 @@ The JWT lives in an HttpOnly cookie; client code never reads it directly. `refre
 ```typescript
 "/admin/users": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
   requiredPrivileges: ["READ_USER"],
 },
 ```
@@ -95,7 +95,7 @@ See `src/lib/auth/README.md` for detailed documentation.
 ### Token Generation (`app/utility/token.py`)
 
 - **create_customer_token()**: Creates CUSTOMER context token
-- **create_business_token()**: Creates BUSINESS context token with:
+- **create_seller_token()**: Creates SELLER context token with:
   - Business ID
   - Role information
   - Materialized privileges
@@ -106,7 +106,7 @@ See `src/lib/auth/README.md` for detailed documentation.
 ### Login Service (`app/user/service.py`)
 
 - Updated to use `create_customer_token()` instead of encoding user directly
-- Currently creates CUSTOMER tokens (can be extended for BUSINESS context)
+- Currently creates CUSTOMER tokens (can be extended for SELLER context)
 
 ## Key Rules Implemented
 
@@ -131,8 +131,8 @@ See `src/lib/auth/README.md` for detailed documentation.
 
 ## Next Steps
 
-1. **Business Context**: Implement business selection and BUSINESS token generation
-2. **Context Switching**: Add UI for switching between CUSTOMER and BUSINESS contexts
+1. **Business Context**: Implement business selection and SELLER token generation
+2. **Context Switching**: Add UI for switching between CUSTOMER and SELLER contexts
 3. **Privilege Management**: Connect to backend role/privilege system
 4. **Middleware Updates**: Update backend middleware to validate token structure properly
 5. **Route Protection**: Apply RouteGuard to all protected routes

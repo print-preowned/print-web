@@ -1,6 +1,6 @@
 /**
  * Server-only session builder. Use in API routes and server components.
- * Session is derived from the JWT only (hasBusiness is set at login/context-switch on the backend).
+ * Session is derived from the JWT only (hasSeller is set at login/context-switch on the backend).
  */
 
 import { getAuthTokenFromRequest } from "./server-cookie";

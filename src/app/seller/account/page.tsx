@@ -1,9 +1,9 @@
 "use client";
 
-import { useBusinessId, useIsOwner } from "@/lib/auth/context";
+import { useSellerId, useIsOwner } from "@/lib/auth/context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { Business, readBusinessById, updateBusiness } from "@/lib/api/business";
+import { Seller, readSellerById, updateSeller } from "@/lib/api/seller";
 import type { HttpMethod } from "@/lib/api";
 import { toast } from "sonner";
 import { BusinessDetailsForm } from "./business-details-form";
@@ -11,24 +11,24 @@ import { BusinessLocationsList } from "./business-locations-list";
 import { LegalEntityForm } from "./legal-entity-form";
 import { PayoutAccountPanel } from "./payout-account-panel";
 
-type BusinessResponse = { data: Business; message?: string; status_code?: number };
+type SellerResponse = { data: Seller; message?: string; status_code?: number };
 
 export default function SellerAccountPage() {
-  const businessId = useBusinessId();
+  const sellerId = useSellerId();
   const isOwner = useIsOwner();
   const queryClient = useQueryClient();
 
-  const businessKey = ["business", businessId] as const;
+  const businessKey = ["seller", sellerId] as const;
 
   const { data, isLoading, error } = useQuery({
     queryKey: businessKey,
-    queryFn: () => apiFetch(readBusinessById(businessId!)) as Promise<BusinessResponse>,
-    enabled: !!businessId,
+    queryFn: () => apiFetch(readSellerById(sellerId!)) as Promise<SellerResponse>,
+    enabled: !!sellerId,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (payload: { name?: string; description?: string | null; logo?: string | null; status?: string }) => {
-      const { endpoint, method, body } = updateBusiness(businessId!, payload);
+      const { endpoint, method, body } = updateSeller(sellerId!, payload);
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
     onSuccess: () => {
@@ -42,7 +42,7 @@ export default function SellerAccountPage() {
 
   const business = data?.data;
 
-  if (!businessId) {
+  if (!sellerId) {
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">No business context. Switch to a business to manage its details.</p>

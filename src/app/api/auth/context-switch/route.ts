@@ -10,14 +10,14 @@ export async function POST(request: Request) {
     }
     const body = await request.json();
     const targetContext = body?.target_context as string | undefined;
-    const businessId = body?.business_id as string | undefined;
+    const sellerId = body?.seller_id as string | undefined;
 
     let path: string;
-    if (targetContext === "BUSINESS") {
-      if (!businessId) {
-        return NextResponse.json({ detail: "business_id required" }, { status: 400 });
+    if (targetContext === "SELLER") {
+      if (!sellerId) {
+        return NextResponse.json({ detail: "seller_id required" }, { status: 400 });
       }
-      path = `/auth/context/business/${businessId}`;
+      path = `/auth/context/seller/${sellerId}`;
     } else if (targetContext === "CUSTOMER") {
       path = "/auth/context/customer";
     } else {

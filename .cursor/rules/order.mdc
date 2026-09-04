@@ -36,22 +36,22 @@ alwaysApply: true
         context: CUSTOMER
 
       READ_ORDER:
-        context: BUSINESS
+        context: SELLER
 
       UPDATE_ORDER_STATUS:
-        context: BUSINESS
+        context: SELLER
 
       REFUND_ORDER:
-        context: BUSINESS
+        context: SELLER
         owner_only: true
 
       LIST_OPEN_DISPUTES:
         context: PLATFORM
-        privilege: MANAGE_BUSINESSES
+        privilege: MANAGE_SELLERS
 
       RESOLVE_DISPUTE:
         context: PLATFORM
-        privilege: MANAGE_BUSINESSES
+        privilege: MANAGE_SELLERS
 
     invariants:
       - id: MDC-ORDER-1

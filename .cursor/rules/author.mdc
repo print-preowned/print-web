@@ -17,7 +17,7 @@ alwaysApply: true
           - bio
           - metadata
           - status: [CANONICAL, PROVISIONAL, MERGED, DEPRECATED]
-          - created_by_business_id    #nullable
+          - created_by_seller_id    #nullable
           - created_at
           - updated_at
 
@@ -30,7 +30,7 @@ alwaysApply: true
       AUTHOR_REQUEST:
         fields:
           - id
-          - business_id
+          - seller_id
           - request_type: [UPDATE, MERGE, LINK_BOOK]
           - author_id: nullable   # required for UPDATE, MERGE, LINK_BOOK
           - target_author_id: nullable   # used for MERGE (from → to)
@@ -96,24 +96,24 @@ alwaysApply: true
           - author_status_active_only
 
       # -------- BUSINESS --------
-      GET /business/{businessId}/authors/search:
-        context: BUSINESS
+      GET /business/{sellerId}/authors/search:
+        context: SELLER
         privilege: READ_AUTHOR
         enforce:
-          - business_id_match
+          - seller_id_match
           - author_status_active_only
 
-      POST /business/{businessId}/authors/requests:
-        context: BUSINESS
+      POST /business/{sellerId}/authors/requests:
+        context: SELLER
         privilege: CREATE_AUTHOR_REQUEST
         enforce:
-          - business_id_match
+          - seller_id_match
 
-      GET /business/{businessId}/authors/requests:
-        context: BUSINESS
+      GET /business/{sellerId}/authors/requests:
+        context: SELLER
         privilege: READ_AUTHOR_REQUEST
         enforce:
-          - business_id_match
+          - seller_id_match
           - requester_or_business_scope
 
       # -------- PLATFORM --------
@@ -157,7 +157,7 @@ alwaysApply: true
 
     invariants:
       - id: MDC-BE-AUTHOR-1
-        assertion: authors_have_no_business_id
+        assertion: authors_have_no_seller_id
 
       - id: MDC-BE-AUTHOR-2
         assertion: businesses_cannot_mutate_authors

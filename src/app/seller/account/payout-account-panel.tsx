@@ -40,8 +40,8 @@ type ResolveResponse = {
 
 export function PayoutAccountPanel() {
   const queryClient = useQueryClient();
-  const canRead = usePrivilege("READ_BUSINESS");
-  const canManage = usePrivilege("UPDATE_BUSINESS");
+  const canRead = usePrivilege("READ_SELLER");
+  const canManage = usePrivilege("UPDATE_SELLER");
 
   const currentKey = readCurrentPayoutAccount();
   const banksKey = readBanks();

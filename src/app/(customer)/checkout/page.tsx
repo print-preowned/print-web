@@ -36,9 +36,9 @@ export default function CheckoutPage() {
   const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
   const [pickupLocationId, setPickupLocationId] = useState<string | null>(null);
 
-  const businessId = lines[0]?.businessId ?? null;
+  const sellerId = lines[0]?.sellerId ?? null;
   const { available: pickupAvailable, isLoading: pickupLoading } =
-    usePickupAvailable(businessId);
+    usePickupAvailable(sellerId);
 
   const handlePickupLocationLoaded = useCallback((id: string | null) => {
     setPickupLocationId(id);
@@ -113,9 +113,9 @@ export default function CheckoutPage() {
                   selectedId={shippingAddressId}
                   onSelectedIdChange={setShippingAddressId}
                 />
-              ) : businessId ? (
+              ) : sellerId ? (
                 <CheckoutPickupLocationDisplay
-                  businessId={businessId}
+                  sellerId={sellerId}
                   onLocationLoaded={handlePickupLocationLoaded}
                 />
               ) : (

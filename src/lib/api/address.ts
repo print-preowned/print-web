@@ -54,9 +54,9 @@ export function setDefaultUserAddress(id: string) {
   return { endpoint: `/addresses/${id}/set-default`, method: "POST" as const };
 }
 
-export type BusinessAddress = {
+export type SellerAddress = {
   id: string;
-  business_id: string;
+  seller_id: string;
   label: string;
   phone_number?: string | null;
   line1: string;
@@ -69,7 +69,7 @@ export type BusinessAddress = {
   pickup_enabled: boolean;
 };
 
-export type BusinessAddressCreatePayload = {
+export type SellerAddressCreatePayload = {
   label: string;
   phone_number?: string | null;
   line1: string;
@@ -82,34 +82,34 @@ export type BusinessAddressCreatePayload = {
   pickup_enabled?: boolean;
 };
 
-export type BusinessAddressUpdatePayload = Partial<BusinessAddressCreatePayload>;
+export type SellerAddressUpdatePayload = Partial<SellerAddressCreatePayload>;
 
-export function readBusinessPickupLocation(businessId: string) {
-  return generateUrl(`/businesses/${businessId}/pickup-location`);
+export function readSellerPickupLocation(sellerId: string) {
+  return generateUrl(`/sellers/${sellerId}/pickup-location`);
 }
 
-export function readBusinessAddresses(params?: { page?: number; size?: number }) {
-  return generateUrl("/business-addresses", params);
+export function readSellerAddresses(params?: { page?: number; size?: number }) {
+  return generateUrl("/seller-addresses", params);
 }
 
-export function readBusinessAddressById(id: string) {
-  return generateUrl(`/business-addresses/${id}`);
+export function readSellerAddressById(id: string) {
+  return generateUrl(`/seller-addresses/${id}`);
 }
 
-export function createBusinessAddress(payload: BusinessAddressCreatePayload) {
-  return { endpoint: "/business-addresses", method: "POST" as const, body: payload };
+export function createSellerAddress(payload: SellerAddressCreatePayload) {
+  return { endpoint: "/seller-addresses", method: "POST" as const, body: payload };
 }
 
-export function updateBusinessAddress(id: string, payload: BusinessAddressUpdatePayload) {
-  return { endpoint: `/business-addresses/${id}`, method: "PATCH" as const, body: payload };
+export function updateSellerAddress(id: string, payload: SellerAddressUpdatePayload) {
+  return { endpoint: `/seller-addresses/${id}`, method: "PATCH" as const, body: payload };
 }
 
-export function deleteBusinessAddress(id: string) {
-  return { endpoint: `/business-addresses/${id}`, method: "DELETE" as const };
+export function deleteSellerAddress(id: string) {
+  return { endpoint: `/seller-addresses/${id}`, method: "DELETE" as const };
 }
 
-export function setPrimaryBusinessAddress(id: string) {
-  return { endpoint: `/business-addresses/${id}/set-primary`, method: "POST" as const };
+export function setPrimarySellerAddress(id: string) {
+  return { endpoint: `/seller-addresses/${id}/set-primary`, method: "POST" as const };
 }
 
 export function formatAddressLine(

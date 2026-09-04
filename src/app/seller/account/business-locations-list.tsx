@@ -24,18 +24,18 @@ import {
 import type { HttpMethod } from "@/lib/api";
 import { apiFetch } from "@/lib/api";
 import {
-  deleteBusinessAddress,
+  deleteSellerAddress,
   formatAddressLine,
-  readBusinessAddresses,
-  setPrimaryBusinessAddress,
-  type BusinessAddress,
+  readSellerAddresses,
+  setPrimarySellerAddress,
+  type SellerAddress,
 } from "@/lib/api/address";
 import { usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
-import { BusinessLocationForm } from "./business-location-form";
+import { SellerLocationForm } from "./business-location-form";
 
-type PaginatedBusinessAddresses = {
-  data: BusinessAddress[];
+type PaginatedSellerAddresses = {
+  data: SellerAddress[];
   pagination?: { total_results: number };
 };
 
@@ -65,7 +65,7 @@ function LocationCard({
   onSetPrimary,
   isSettingPrimary,
 }: {
-  address: BusinessAddress;
+  address: SellerAddress;
   canManage: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -145,15 +145,15 @@ function LocationCard({
 export function BusinessLocationsList() {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const canRead = usePrivilege("READ_BUSINESS");
-  const canManage = usePrivilege("UPDATE_BUSINESS");
-  const listKey = [readBusinessAddresses({ page: 1, size: 20 })];
+  const canRead = usePrivilege("READ_SELLER");
+  const canManage = usePrivilege("UPDATE_SELLER");
+  const listKey = [readSellerAddresses({ page: 1, size: 20 })];
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<BusinessAddress | null>(null);
+  const [editing, setEditing] = useState<SellerAddress | null>(null);
 
-  const { data, isLoading, error } = useApiQuery<PaginatedBusinessAddresses>(
+  const { data, isLoading, error } = useApiQuery<PaginatedSellerAddresses>(
     listKey,
-    readBusinessAddresses({ page: 1, size: 20 }),
+    readSellerAddresses({ page: 1, size: 20 }),
     { enabled: canRead },
   );
 
@@ -161,13 +161,13 @@ export function BusinessLocationsList() {
 
   const setPrimaryMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { endpoint, method } = setPrimaryBusinessAddress(id);
+      const { endpoint, method } = setPrimarySellerAddress(id);
       return apiFetch(endpoint, { method: method as HttpMethod });
     },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: listKey });
-      const previous = queryClient.getQueryData<PaginatedBusinessAddresses>(listKey);
-      queryClient.setQueryData<PaginatedBusinessAddresses>(listKey, (current) => {
+      const previous = queryClient.getQueryData<PaginatedSellerAddresses>(listKey);
+      queryClient.setQueryData<PaginatedSellerAddresses>(listKey, (current) => {
         if (!current?.data) return current;
         return {
           ...current,
@@ -192,7 +192,7 @@ export function BusinessLocationsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { endpoint, method } = deleteBusinessAddress(id);
+      const { endpoint, method } = deleteSellerAddress(id);
       return apiFetch(endpoint, { method: method as HttpMethod });
     },
     onSuccess: () => {
@@ -222,7 +222,7 @@ export function BusinessLocationsList() {
     setFormOpen(true);
   };
 
-  const openEdit = (location: BusinessAddress) => {
+  const openEdit = (location: SellerAddress) => {
     setEditing(location);
     setFormOpen(true);
   };
@@ -232,7 +232,7 @@ export function BusinessLocationsList() {
     setEditing(null);
   };
 
-  const handleDeleteLocation = async (location: BusinessAddress) => {
+  const handleDeleteLocation = async (location: SellerAddress) => {
     const confirmed = await confirm({
       title: "Delete location?",
       description: "This location will be removed from your business.",
@@ -303,7 +303,7 @@ export function BusinessLocationsList() {
       )}
 
       {canManage && formOpen && (
-        <BusinessLocationForm editing={editing} onCancel={closeForm} />
+        <SellerLocationForm editing={editing} onCancel={closeForm} />
       )}
     </div>
   );

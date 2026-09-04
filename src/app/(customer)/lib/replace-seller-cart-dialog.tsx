@@ -22,7 +22,7 @@ import {
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  cartBusinessName: string | null;
+  cartSellerName: string | null;
   pendingItem: CartLine | null;
   onConfirm: () => void;
 };
@@ -34,15 +34,15 @@ function formatItemCount(count: number): string {
 export function ReplaceSellerCartDialog({
   open,
   onOpenChange,
-  cartBusinessName,
+  cartSellerName,
   pendingItem,
   onConfirm,
 }: Props) {
   if (!pendingItem) return null;
 
   const cartCount = cartItemCount(readCart());
-  const currentSeller = cartBusinessName ?? "Another store";
-  const nextSeller = pendingItem.businessName ?? "This store";
+  const currentSeller = cartSellerName ?? "Another store";
+  const nextSeller = pendingItem.sellerName ?? "This store";
   const configLabel =
     pendingItem.configLabel && pendingItem.configLabel !== "—"
       ? pendingItem.configLabel

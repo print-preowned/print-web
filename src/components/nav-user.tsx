@@ -122,7 +122,7 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              {context === "BUSINESS" && (
+              {context === "SELLER" && (
                 <DropdownMenuItem
                   onClick={handleSwitchToCustomer}
                   disabled={isSwitchingToCustomer}

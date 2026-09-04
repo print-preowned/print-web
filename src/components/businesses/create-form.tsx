@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import z from "zod";
-import { createBusiness } from "@/lib/api/business";
+import { createSeller } from "@/lib/api/seller";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -14,23 +14,23 @@ import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export const createBusinessSchema = z.object({
+export const createSellerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   logo: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
-type CreateBusinessFormProps = {
+type CreateSellerFormProps = {
   onCancel?: () => void;
   submitLabel?: string;
   onSuccess?: () => void;
 };
 
-export function CreateBusinessForm({
+export function CreateSellerForm({
   onCancel,
   submitLabel = "Create Business",
   onSuccess,
-}: CreateBusinessFormProps) {
+}: CreateSellerFormProps) {
   const router = useRouter();
   const { refreshSession } = useAuth();
 
@@ -38,14 +38,14 @@ export function CreateBusinessForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<z.infer<typeof createBusinessSchema>>({
-    resolver: zodResolver(createBusinessSchema),
+  } = useForm<z.infer<typeof createSellerSchema>>({
+    resolver: zodResolver(createSellerSchema),
     defaultValues: { name: "", description: "", logo: "" },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof createBusinessSchema>) => {
-      const { endpoint, method, body } = await createBusiness(data);
+    mutationFn: async (data: z.infer<typeof createSellerSchema>) => {
+      const { endpoint, method, body } = await createSeller(data);
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
     onSuccess: async () => {

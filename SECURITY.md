@@ -90,7 +90,7 @@ async def delete(id: str, request: Request):
         raise HTTPException(403, "Insufficient privileges")
     
     # Check ownership (if required)
-    if not decoded.business.is_owner:
+    if not decoded.seller.is_owner:
         raise HTTPException(403, "Owner only action")
     
     # Proceed with deletion

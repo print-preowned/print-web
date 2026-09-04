@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BusinessForm } from "./form";
-import { Business, readBusinesses, deleteBusiness } from "@/lib/api/business";
+import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { useAuth, useIsOwner } from "@/lib/auth/context";
 import { toast } from "sonner";
@@ -26,15 +26,15 @@ export function BusinessesTable() {
   const isOwner = useIsOwner();
 
   const query = useQuery({
-    queryKey: ["businesses", page, search],
+    queryKey: ["sellers", page, search],
     queryFn: () =>
-      apiFetch(readBusinesses({ page, size: 10, search: search || undefined })),
+      apiFetch(readSellers({ page, size: 10, search: search || undefined })),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       // Server must enforce authorization - client checks are for UX only
-      const { endpoint } = deleteBusiness(id);
+      const { endpoint } = deleteSeller(id);
       return apiFetch(endpoint, { method: "DELETE" });
     },
     onSuccess: async () => {
@@ -49,14 +49,14 @@ export function BusinessesTable() {
     },
   });
 
-  const data = (query.data as { data?: Business[] } | undefined)?.data || [];
+  const data = (query.data as { data?: Seller[] } | undefined)?.data || [];
 
   const handleFormSuccess = () => {
     closeDrawer();
     void query.refetch();
   };
 
-  const columns: ColumnDef<Business>[] = [
+  const columns: ColumnDef<Seller>[] = [
     {
       id: "select",
       header: ({ table }) => (

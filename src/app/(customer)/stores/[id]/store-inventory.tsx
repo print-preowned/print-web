@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   readPublicStoreInventory,
-  type PublicCatalogBusinessBook,
+  type PublicCatalogSellerBook,
 } from "@customer/api";
 import usePagination from "@/lib/pagination/usePagination";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<PublicCatalogBusinessBook>({
+  } = usePagination<PublicCatalogSellerBook>({
     queryKey: ["store-inventory", storeId],
     getUrl: ({ page, size, search: q }) =>
       readPublicStoreInventory(storeId, {

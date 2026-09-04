@@ -1,4 +1,4 @@
-export const BUSINESS_BOOK_LISTING_STATUSES = [
+export const SELLER_BOOK_LISTING_STATUSES = [
   "DRAFT",
   "ACTIVE",
   "INACTIVE",
@@ -6,8 +6,8 @@ export const BUSINESS_BOOK_LISTING_STATUSES = [
   "DELETED",
 ] as const;
 
-export type BusinessBookListingStatus =
-  (typeof BUSINESS_BOOK_LISTING_STATUSES)[number];
+export type SellerBookListingStatus =
+  (typeof SELLER_BOOK_LISTING_STATUSES)[number];
 
 export const SELLER_MUTABLE_LISTING_STATUSES = [
   "DRAFT",
@@ -18,7 +18,7 @@ export const SELLER_MUTABLE_LISTING_STATUSES = [
 export type SellerMutableListingStatus =
   (typeof SELLER_MUTABLE_LISTING_STATUSES)[number];
 
-const LABELS: Record<BusinessBookListingStatus, string> = {
+const LABELS: Record<SellerBookListingStatus, string> = {
   DRAFT: "Draft",
   ACTIVE: "Live",
   INACTIVE: "Paused",
@@ -26,7 +26,7 @@ const LABELS: Record<BusinessBookListingStatus, string> = {
   DELETED: "Deleted",
 };
 
-const DESCRIPTIONS: Partial<Record<BusinessBookListingStatus, string>> = {
+const DESCRIPTIONS: Partial<Record<SellerBookListingStatus, string>> = {
   DRAFT:
     "Not published yet — customers cannot see or buy this listing. Only available before first go-live.",
   ACTIVE: "Live — visible when variants are active and in stock",
@@ -63,11 +63,11 @@ export function allowedSellerListingStatuses(
 }
 
 export function listingStatusLabel(status: string): string {
-  return LABELS[status as BusinessBookListingStatus] ?? status;
+  return LABELS[status as SellerBookListingStatus] ?? status;
 }
 
 export function listingStatusDescription(status: string): string | undefined {
-  return DESCRIPTIONS[status as BusinessBookListingStatus];
+  return DESCRIPTIONS[status as SellerBookListingStatus];
 }
 
 export function isSellerMutableListingStatus(

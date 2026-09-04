@@ -37,9 +37,9 @@ export interface ContextSwitchResponse {
   token: string;
 }
 
-export function switchToBusiness(businessId: string) {
+export function switchToSeller(sellerId: string) {
   return {
-    endpoint: `/auth/context/business/${businessId}`,
+    endpoint: `/auth/context/seller/${sellerId}`,
     method: "POST" as const,
     body: {},
   };

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Book, readBookById } from "@/lib/api/book";
 import {
-  PublicCatalogBusinessBook,
+  PublicCatalogSellerBook,
   readOffers,
 } from "@customer/api";
 import { PaginatedResponse } from "@/lib/api/user";
@@ -23,9 +23,9 @@ async function getBook(id: string): Promise<Book | null> {
   }
 }
 
-async function getOffers(bookId: string): Promise<PublicCatalogBusinessBook[]> {
+async function getOffers(bookId: string): Promise<PublicCatalogSellerBook[]> {
   try {
-    const res = await apiFetch<PaginatedResponse<PublicCatalogBusinessBook>>(
+    const res = await apiFetch<PaginatedResponse<PublicCatalogSellerBook>>(
       readOffers(bookId, { page: 1, size: 50 }),
     );
     return res.data ?? [];

@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { BusinessBookEditTabs } from "./business-book-edit-tabs";
+import { SellerBookEditTabs } from "./business-book-edit-tabs";
 import { AddBookToInventoryForm } from "../global-books/add-to-inventory-form";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -14,19 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/status-badge";
-import { listingStatusLabel } from "@/lib/business-book-listing-status";
+import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import {
-  BusinessBook,
-  deleteBusinessBook,
-  readBusinessBooks,
-} from "@/lib/api/business-book";
-import { businessBookKeys } from "@/lib/api/query-keys";
+  SellerBook,
+  deleteSellerBook,
+  readSellerBooks,
+} from "@/lib/api/seller-book";
+import { sellerBookKeys } from "@/lib/api/query-keys";
 import { apiFetch } from "@/lib/api";
 import { PaginatedResponse } from "@/lib/api/user";
 import { formatPrice } from "@/lib/format-price";
-import { useBusinessId } from "@/lib/auth/context";
+import { useSellerId } from "@/lib/auth/context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,7 +39,7 @@ function formatCount(value: number) {
 export interface InventoryTableProps {
   selectedIds: Set<string>;
   onSelectId: (ids: Set<string>) => void;
-  books: BusinessBook[];
+  books: SellerBook[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -58,13 +58,13 @@ export function InventoryTable({
   totalPages,
 }: InventoryTableProps) {
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
-  const businessId = useBusinessId();
+  const sellerId = useSellerId();
   const queryClient = useQueryClient();
 
   const deleteMutation = useApiMutation<unknown>({
     onSuccess: () => {
       toast.success("Removed from inventory");
-      void queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
     },
     onError: (e: Error) => toast.error(e.message || "Failed to remove"),
   });
@@ -81,14 +81,14 @@ export function InventoryTable({
 
   const openEditDrawer = useCallback(
     (
-      businessBook: BusinessBook,
+      businessBook: SellerBook,
       initialTab: "listing" | "variants" = "listing",
     ) => {
       openDrawer({
         title: "Edit listing",
         description: "Update your listing or manage variants",
         children: (
-          <BusinessBookEditTabs
+          <SellerBookEditTabs
             businessBook={businessBook}
             initialTab={initialTab}
             onSuccess={closeDrawer}
@@ -102,12 +102,12 @@ export function InventoryTable({
   const handleAddedToInventory = useCallback(
     async (bookId: string) => {
       closeDrawer();
-      await queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      await queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       const res = await queryClient.fetchQuery({
-        queryKey: businessBookKeys.lookupByBookId(bookId),
+        queryKey: sellerBookKeys.lookupByBookId(bookId),
         queryFn: () =>
-          apiFetch<PaginatedResponse<BusinessBook>>(
-            readBusinessBooks({ page: 1, size: 100 }),
+          apiFetch<PaginatedResponse<SellerBook>>(
+            readSellerBooks({ page: 1, size: 100 }),
           ),
       });
       const listing = res.data.find((b) => b.book_id === bookId) ?? null;
@@ -123,7 +123,7 @@ export function InventoryTable({
   );
 
   const toggleAllOnPage = useCallback(
-    (books: BusinessBook[]) => {
+    (books: SellerBook[]) => {
       const next = new Set(selectedIds);
       const pageIds = new Set(books.map((b) => b.id));
       const allSelected =
@@ -135,7 +135,7 @@ export function InventoryTable({
     [selectedIds, setSelectedIds],
   );
 
-  const columns: ColumnDef<BusinessBook>[] = [
+  const columns: ColumnDef<SellerBook>[] = [
     {
       id: "select",
       header: ({ table }) => {
@@ -254,7 +254,7 @@ export function InventoryTable({
                     "Remove this book from your inventory? Your listing will be removed.",
                   )
                 ) {
-                  deleteMutation.mutate(deleteBusinessBook(row.original.id));
+                  deleteMutation.mutate(deleteSellerBook(row.original.id));
                 }
               }}
             >
@@ -266,7 +266,7 @@ export function InventoryTable({
     },
   ];
 
-  if (!businessId) {
+  if (!sellerId) {
     return (
       <p className="text-muted-foreground text-sm">
         Switch to a business context to manage your inventory.

@@ -8,8 +8,8 @@ export type CartLine = {
   unitPrice: number;
   bookTitle: string;
   image?: string | null;
-  businessId?: string | null;
-  businessName?: string | null;
+  sellerId?: string | null;
+  sellerName?: string | null;
   configLabel?: string | null;
 };
 
@@ -63,11 +63,11 @@ export type AddToCartResult =
   | {
       ok: false;
       reason: "mixed_seller";
-      cartBusinessName: string | null;
+      cartSellerName: string | null;
     };
 
-export function cartBusinessId(lines: CartLine[] = readCart()): string | null {
-  return lines[0]?.businessId ?? null;
+export function cartSellerId(lines: CartLine[] = readCart()): string | null {
+  return lines[0]?.sellerId ?? null;
 }
 
 export function addToCart(input: CartLine): AddToCartResult {
@@ -81,13 +81,13 @@ export function addToCart(input: CartLine): AddToCartResult {
   }
 
   if (lines.length > 0) {
-    const cartBusinessId = lines[0]?.businessId ?? null;
-    const incomingBusinessId = input.businessId ?? null;
-    if (cartBusinessId !== incomingBusinessId) {
+    const cartSellerId = lines[0]?.sellerId ?? null;
+    const incomingBusinessId = input.sellerId ?? null;
+    if (cartSellerId !== incomingBusinessId) {
       return {
         ok: false,
         reason: "mixed_seller",
-        cartBusinessName: lines[0]?.businessName ?? null,
+        cartSellerName: lines[0]?.sellerName ?? null,
       };
     }
   }
@@ -98,8 +98,8 @@ export function addToCart(input: CartLine): AddToCartResult {
     unitPrice: input.unitPrice,
     bookTitle: input.bookTitle,
     image: input.image ?? null,
-    businessId: input.businessId ?? null,
-    businessName: input.businessName ?? null,
+    sellerId: input.sellerId ?? null,
+    sellerName: input.sellerName ?? null,
     configLabel: input.configLabel ?? null,
   });
   writeCart(lines);
@@ -131,8 +131,8 @@ export function replaceCartWithItem(input: CartLine): void {
       ...input,
       quantity: Math.max(1, input.quantity),
       image: input.image ?? null,
-      businessId: input.businessId ?? null,
-      businessName: input.businessName ?? null,
+      sellerId: input.sellerId ?? null,
+      sellerName: input.sellerName ?? null,
       configLabel: input.configLabel ?? null,
     },
   ]);

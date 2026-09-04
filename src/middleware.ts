@@ -15,13 +15,13 @@ import {
 const JWT_SECRET = getJwtSecretKey();
 const JWT_AUDIENCE = "print-web";
 
-type PayloadContext = "CUSTOMER" | "BUSINESS" | "PLATFORM";
+type PayloadContext = "CUSTOMER" | "SELLER" | "PLATFORM";
 
 interface JWTPayload {
   ctx?: PayloadContext;
   exp?: number;
   pwd_chg?: boolean;
-  business?: { is_owner?: boolean };
+  seller?: { is_owner?: boolean };
   privileges?: string[];
 }
 
@@ -47,20 +47,20 @@ async function verifyToken(token: string): Promise<JWTPayload | null> {
 
 function payloadContext(p: JWTPayload): PayloadContext | null {
   const ctx = p?.ctx;
-  if (ctx === "CUSTOMER" || ctx === "BUSINESS" || ctx === "PLATFORM") return ctx;
+  if (ctx === "CUSTOMER" || ctx === "SELLER" || ctx === "PLATFORM") return ctx;
   return null;
 }
 
 function hasPrivileges(p: JWTPayload, required: string[]): boolean {
   if (required.length === 0) return true;
-  if (p?.ctx !== "BUSINESS" && p?.ctx !== "PLATFORM") return false;
+  if (p?.ctx !== "SELLER" && p?.ctx !== "PLATFORM") return false;
   const list = p?.privileges;
   if (!Array.isArray(list)) return false;
   return required.every((priv) => list.includes(priv));
 }
 
 function isOwner(p: JWTPayload): boolean {
-  return p?.ctx === "BUSINESS" && p?.business?.is_owner === true;
+  return p?.ctx === "SELLER" && p?.seller?.is_owner === true;
 }
 
 export async function middleware(request: NextRequest) {
@@ -112,9 +112,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
 
-  // Seller/Customer routes: require BUSINESS/CUSTOMER context
+  // Seller/Customer routes: require SELLER/CUSTOMER context
   if (config.requiredContext && config.requiredContext !== ctx) {
-    const redirectTo = config.redirectTo ?? (config.requiredContext === "BUSINESS" ? "/" : "/seller/dashboard");
+    const redirectTo = config.redirectTo ?? (config.requiredContext === "SELLER" ? "/" : "/seller/dashboard");
     const url = new URL(redirectTo, request.url);
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);

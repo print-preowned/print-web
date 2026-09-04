@@ -6,12 +6,12 @@ import type { ResolvedConfig } from "@/lib/api/variant";
 
 export type PublicCatalogVariant = {
   id: string;
-  business_book_id: string;
+  seller_book_id: string;
   book_id: string;
   book_title: string;
   book_image?: string | null;
-  business_id: string;
-  business_name: string;
+  seller_id: string;
+  seller_name: string;
   price: number;
   currency: string;
   discount?: number | null;
@@ -20,11 +20,11 @@ export type PublicCatalogVariant = {
   config: ResolvedConfig[];
 };
 
-export type PublicCatalogBusinessBook = {
+export type PublicCatalogSellerBook = {
   id: string;
   book_id: string;
-  business_id: string;
-  business_name: string;
+  seller_id: string;
+  seller_name: string;
   book_title: string;
   book_image?: string | null;
   synopsis?: string | null;
@@ -34,11 +34,11 @@ export type PublicCatalogBusinessBook = {
   min_price?: number | null;
 };
 
-export type PublicCatalogBusinessBookDetail = PublicCatalogBusinessBook & {
+export type PublicCatalogSellerBookDetail = PublicCatalogSellerBook & {
   variants: PublicCatalogVariant[];
 };
 
-export type PublicBusinessProfile = {
+export type PublicSellerProfile = {
   id: string;
   name: string;
   description?: string | null;
@@ -55,20 +55,20 @@ export function readOffers(
 }
 
 export function readPublicStoreInventory(
-  businessId: string,
+  sellerId: string,
   params?: ReadParams,
 ) {
   return buildRelativeUrl(
-    `/businesses/${businessId}/storefront/catalog`,
+    `/sellers/${sellerId}/storefront/catalog`,
     buildQueryParams(params),
   );
 }
 
-export function readPublicBusinessProfile(businessId: string) {
-  return buildRelativeUrl(`/businesses/${businessId}/storefront`);
+export function readPublicSellerProfile(sellerId: string) {
+  return buildRelativeUrl(`/sellers/${sellerId}/storefront`);
 }
 
-export function readPublicBusinessBookById(id: string) {
+export function readPublicSellerBookById(id: string) {
   return buildRelativeUrl(`/offers/${id}`);
 }
 
@@ -86,7 +86,7 @@ export type OrderItem = {
   book_title: string;
   book_id: string;
   image?: string | null;
-  business_name: string;
+  seller_name: string;
   author_names: string[];
 };
 
@@ -113,8 +113,8 @@ export type Order = {
   total_amount: number;
   status: string;
   payment_status: OrderPaymentStatus;
-  business_id?: string | null;
-  business_name?: string | null;
+  seller_id?: string | null;
+  seller_name?: string | null;
   fulfillment_address?: OrderFulfillmentAddress | null;
   created_at: string;
 };

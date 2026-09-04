@@ -50,7 +50,7 @@ export function BookAuthorGenreFields({
     queryKey: ["genres", { page: 1, size: 200 }],
     queryFn: () =>
       apiFetch(readGenresListUrl({ page: 1, size: 200 })),
-    enabled: isAdmin || context === "BUSINESS",
+    enabled: isAdmin || context === "SELLER",
   });
   const genres = genresData?.data ?? [];
 

@@ -3,11 +3,11 @@
  * 
  * Token structure requirements:
  * - Required base fields: iss, aud, sub, iat, exp, jti, ctx
- * - Context: CUSTOMER or BUSINESS
- * - BUSINESS tokens require: privileges, business.id, business.is_owner
+ * - Context: CUSTOMER or SELLER
+ * - SELLER tokens require: privileges, seller.id, seller.is_owner
  */
 
-export type TokenContext = "CUSTOMER" | "BUSINESS" | "PLATFORM";
+export type TokenContext = "CUSTOMER" | "SELLER" | "PLATFORM";
 
 export interface BaseTokenFields {
   iss: string; // Issuer
@@ -19,7 +19,7 @@ export interface BaseTokenFields {
   ctx: TokenContext; // Context
 }
 
-export interface BusinessTokenData {
+export interface SellerTokenData {
   id: string;
   role: {
     id: string;
@@ -31,15 +31,15 @@ export interface BusinessTokenData {
 
 export interface CustomerToken extends BaseTokenFields {
   ctx: "CUSTOMER";
-  /** Set at login/context-switch; true if user has a linked business (can switch to BUSINESS). */
-  has_business?: boolean;
-  // Customer tokens must NOT have: business (object), privileges, role
+  /** Set at login/context-switch; true if user has a linked seller (can switch to SELLER). */
+  has_seller?: boolean;
+  // Customer tokens must NOT have: seller (object), privileges, role
 }
 
-export interface BusinessToken extends BaseTokenFields {
-  ctx: "BUSINESS";
+export interface SellerToken extends BaseTokenFields {
+  ctx: "SELLER";
   privileges: string[];
-  business: BusinessTokenData;
+  seller: SellerTokenData;
 }
 
 export interface PlatformToken extends BaseTokenFields {
@@ -47,10 +47,10 @@ export interface PlatformToken extends BaseTokenFields {
   privileges: string[];
   /** Set when seeded/bootstrap user must change password before platform access */
   pwd_chg?: boolean;
-  // Platform tokens must NOT include: business
+  // Platform tokens must NOT include: seller
 }
 
-export type AccessToken = CustomerToken | BusinessToken | PlatformToken;
+export type AccessToken = CustomerToken | SellerToken | PlatformToken;
 
 /**
  * Minimal session shape returned by /api/auth/me (only what the UI needs).
@@ -59,10 +59,10 @@ export type AccessToken = CustomerToken | BusinessToken | PlatformToken;
 export interface Session {
   id: string;
   context: TokenContext;
-  business?: { id: string; is_owner: boolean };
+  seller?: { id: string; is_owner: boolean };
   privileges?: string[];
-  /** When context is CUSTOMER, true if the user has a linked business (can switch). */
-  hasBusiness?: boolean;
+  /** When context is CUSTOMER, true if the user has a linked seller (can switch). */
+  hasSeller?: boolean;
   /** PLATFORM only: must change password before accessing admin resources */
   passwordChangeRequired?: boolean;
 }
@@ -72,10 +72,10 @@ export function sessionFromToken(decoded: AccessToken): Session {
     id: decoded.sub,
     context: decoded.ctx,
   };
-  if (decoded.ctx === "BUSINESS" && "business" in decoded) {
-    session.business = {
-      id: decoded.business.id,
-      is_owner: decoded.business.is_owner,
+  if (decoded.ctx === "SELLER" && "seller" in decoded) {
+    session.seller = {
+      id: decoded.seller.id,
+      is_owner: decoded.seller.is_owner,
     };
     session.privileges = decoded.privileges;
   }
@@ -83,8 +83,8 @@ export function sessionFromToken(decoded: AccessToken): Session {
     session.privileges = decoded.privileges;
     session.passwordChangeRequired = decoded.pwd_chg === true;
   }
-  if (decoded.ctx === "CUSTOMER" && "has_business" in decoded) {
-    session.hasBusiness = decoded.has_business === true;
+  if (decoded.ctx === "CUSTOMER" && "has_seller" in decoded) {
+    session.hasSeller = decoded.has_seller === true;
   }
   return session;
 }
@@ -109,31 +109,31 @@ export function decodeToken(token: string): AccessToken | null {
     }
 
     // Validate context
-    if (payload.ctx !== "CUSTOMER" && payload.ctx !== "BUSINESS" && payload.ctx !== "PLATFORM") {
+    if (payload.ctx !== "CUSTOMER" && payload.ctx !== "SELLER" && payload.ctx !== "PLATFORM") {
       console.error(`Invalid token context: ${payload.ctx}`);
       return null;
     }
 
-    // Validate BUSINESS token requirements
-    if (payload.ctx === "BUSINESS") {
-      if (!payload.business) {
-        console.error("BUSINESS token missing business field");
+    // Validate SELLER token requirements
+    if (payload.ctx === "SELLER") {
+      if (!payload.seller) {
+        console.error("SELLER token missing seller field");
         return null;
       }
       if (!payload.privileges || !Array.isArray(payload.privileges)) {
-        console.error("BUSINESS token missing privileges field");
+        console.error("SELLER token missing privileges field");
         return null;
       }
-      if (!payload.business.id || typeof payload.business.is_owner !== "boolean") {
-        console.error("BUSINESS token missing required business fields");
+      if (!payload.seller.id || typeof payload.seller.is_owner !== "boolean") {
+        console.error("SELLER token missing required seller fields");
         return null;
       }
     }
 
     // Validate PLATFORM token requirements
     if (payload.ctx === "PLATFORM") {
-      if (payload.business) {
-        console.error("PLATFORM token must not have business field");
+      if (payload.seller) {
+        console.error("PLATFORM token must not have seller field");
         return null;
       }
       if (!payload.privileges || !Array.isArray(payload.privileges)) {
@@ -144,7 +144,7 @@ export function decodeToken(token: string): AccessToken | null {
 
     // Validate CUSTOMER token prohibitions
     if (payload.ctx === "CUSTOMER") {
-      if (payload.business || payload.privileges || payload.role) {
+      if (payload.seller || payload.privileges || payload.role) {
         console.error("CUSTOMER token contains forbidden fields");
         return null;
       }
@@ -180,38 +180,38 @@ export function getTokenContext(token: string): TokenContext | null {
 }
 
 /**
- * Check if user has a specific privilege (BUSINESS or PLATFORM context)
+ * Check if user has a specific privilege (SELLER or PLATFORM context)
  */
 export function hasPrivilege(token: string, privilege: string): boolean {
   const decoded = decodeToken(token);
-  if (!decoded || (decoded.ctx !== "BUSINESS" && decoded.ctx !== "PLATFORM")) {
+  if (!decoded || (decoded.ctx !== "SELLER" && decoded.ctx !== "PLATFORM")) {
     return false;
   }
-  if (decoded.ctx === "BUSINESS" || decoded.ctx === "PLATFORM") {
+  if (decoded.ctx === "SELLER" || decoded.ctx === "PLATFORM") {
     return decoded.privileges.includes(privilege);
   }
   return false;
 }
 
 /**
- * Check if user is owner (BUSINESS context only)
+ * Check if user is owner (SELLER context only)
  */
 export function isOwner(token: string): boolean {
   const decoded = decodeToken(token);
-  if (!decoded || decoded.ctx !== "BUSINESS") {
+  if (!decoded || decoded.ctx !== "SELLER") {
     return false;
   }
-  return decoded.business.is_owner;
+  return decoded.seller.is_owner;
 }
 
 /**
- * Get business ID from token (BUSINESS context only)
+ * Get business ID from token (SELLER context only)
  */
-export function getBusinessId(token: string): string | null {
+export function getSellerId(token: string): string | null {
   const decoded = decodeToken(token);
-  if (!decoded || decoded.ctx !== "BUSINESS") {
+  if (!decoded || decoded.ctx !== "SELLER") {
     return null;
   }
-  return decoded.business.id;
+  return decoded.seller.id;
 }
 

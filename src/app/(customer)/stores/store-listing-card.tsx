@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
   formatPrice,
-  type PublicCatalogBusinessBook,
+  type PublicCatalogSellerBook,
 } from "@customer/api";
 import { cn } from "@/lib/utils";
 
 type StoreListingCardProps = {
-  listing: PublicCatalogBusinessBook;
+  listing: PublicCatalogSellerBook;
   animationDelay?: number;
   className?: string;
 };

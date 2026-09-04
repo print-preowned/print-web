@@ -4,16 +4,16 @@ import { notFound } from "next/navigation";
 import { Store } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import {
-  PublicBusinessProfile,
-  readPublicBusinessProfile,
+  PublicSellerProfile,
+  readPublicSellerProfile,
 } from "@customer/api";
 import { StoreInventory } from "./store-inventory";
 
-type StorefrontResponse = { data?: PublicBusinessProfile };
+type StorefrontResponse = { data?: PublicSellerProfile };
 
-async function getStoreProfile(id: string): Promise<PublicBusinessProfile | null> {
+async function getStoreProfile(id: string): Promise<PublicSellerProfile | null> {
   try {
-    const res = await apiFetch<StorefrontResponse>(readPublicBusinessProfile(id));
+    const res = await apiFetch<StorefrontResponse>(readPublicSellerProfile(id));
     return res.data ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;

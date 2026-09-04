@@ -65,7 +65,7 @@ function OrderLineItem({
         ) : null}
         <p className="mt-2 text-sm text-muted-foreground">
           Sold by{" "}
-          <span className="text-foreground">{item.business_name}</span>
+          <span className="text-foreground">{item.seller_name}</span>
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {formatPrice(Number(item.unit_price), currency)} ×{" "}

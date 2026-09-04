@@ -8,7 +8,7 @@ mdc:
 
 entities:
   context:
-    enum: [CUSTOMER, BUSINESS]
+    enum: [CUSTOMER, SELLER]
 
   token:
     required_base_fields: [iss, aud, sub, iat, exp, jti, ctx]
@@ -77,7 +77,7 @@ rules:
       require_flag:
         field: biz.is_owner
         for_actions:
-          - DELETE_BUSINESS
+          - DELETE_SELLER
           - TRANSFER_OWNERSHIP
 
   backend_middleware:

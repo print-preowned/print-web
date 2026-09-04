@@ -100,7 +100,7 @@ function optionalPhoneField() {
     });
 }
 
-export const businessAddressFieldsSchema = z.object({
+export const sellerAddressFieldsSchema = z.object({
   line1: z.string().trim().min(1, "Address line 1 is required").max(128),
   line2: z.string().trim().max(128).optional().or(z.literal("")),
   city: z.string().trim().min(1, "City is required").max(128),
@@ -109,7 +109,7 @@ export const businessAddressFieldsSchema = z.object({
   phone_number: optionalPhoneField(),
 });
 
-export type BusinessAddressFieldsValues = z.infer<typeof businessAddressFieldsSchema>;
+export type SellerAddressFieldsValues = z.infer<typeof sellerAddressFieldsSchema>;
 
 export const userAddressFormSchema = addressFieldsSchema.extend({
   label: z.string().trim().max(32).optional().or(z.literal("")),
@@ -118,9 +118,9 @@ export const userAddressFormSchema = addressFieldsSchema.extend({
 
 export type UserAddressFormValues = z.infer<typeof userAddressFormSchema>;
 
-export const businessLocationFormSchema = businessAddressFieldsSchema.extend({
+export const sellerLocationFormSchema = sellerAddressFieldsSchema.extend({
   label: z.string().trim().min(1, "Location name is required").max(32),
   pickup_enabled: z.boolean(),
 });
 
-export type BusinessLocationFormValues = z.output<typeof businessLocationFormSchema>;
+export type SellerLocationFormValues = z.output<typeof sellerLocationFormSchema>;

@@ -16,14 +16,14 @@ import { ImageDropzone } from "@/components/image-dropzone";
 import { StatusBadge } from "@/components/status-badge";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
-import { BusinessBook, updateBusinessBook } from "@/lib/api/business-book";
-import { businessBookKeys } from "@/lib/api/query-keys";
+import { SellerBook, updateSellerBook } from "@/lib/api/seller-book";
+import { sellerBookKeys } from "@/lib/api/query-keys";
 import {
   allowedSellerListingStatuses,
   listingStatusDescription,
   listingStatusLabel,
   type SellerMutableListingStatus,
-} from "@/lib/business-book-listing-status";
+} from "@/lib/seller-book-listing-status";
 import { toast } from "sonner";
 
 type FormValues = {
@@ -42,11 +42,11 @@ function defaultListingStatus(
   return allowed[0] ?? "DRAFT";
 }
 
-export function BusinessBookForm({
+export function SellerBookForm({
   businessBook,
   onSuccess,
 }: {
-  businessBook: BusinessBook;
+  businessBook: SellerBook;
   onSuccess?: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -69,7 +69,7 @@ export function BusinessBookForm({
 
   const updateMutation = useApiMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Listing updated");
       onSuccess?.();
     },
@@ -86,7 +86,7 @@ export function BusinessBookForm({
         onSubmit={handleSubmit(async (values) => {
           const resolvedImage = await image.resolveValue(values.image);
           updateMutation.mutate(
-            updateBusinessBook(businessBook.id, {
+            updateSellerBook(businessBook.id, {
               synopsis: values.synopsis || undefined,
               image: resolvedImage || undefined,
               ...(isSuspended ? {} : { status: values.status }),

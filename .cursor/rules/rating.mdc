@@ -22,10 +22,10 @@ alwaysApply: true
         context: CUSTOMER
 
       READ_RATING:
-        context: BUSINESS
+        context: SELLER
 
       MODERATE_RATING:
-        context: BUSINESS
+        context: SELLER
 
     invariants:
       - id: MDC-RATING-1

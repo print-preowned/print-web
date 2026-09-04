@@ -7,7 +7,7 @@ mdc_client_context_switching:
 
   concepts:
     context:
-      enum: [CUSTOMER, BUSINESS]
+      enum: [CUSTOMER, SELLER]
 
     authority_source:
       type: access_token
@@ -30,13 +30,13 @@ mdc_client_context_switching:
         - privilege_derivation_on_client
 
   api_contracts:
-    switch_to_business:
-      endpoint: POST /auth/context/business/{businessId}
+    switch_to_seller:
+      endpoint: POST /auth/context/seller/{sellerId}
       input_token:
-        allowed_contexts: [CUSTOMER, BUSINESS]
+        allowed_contexts: [CUSTOMER, SELLER]
       output:
         type: access_token
-        context: BUSINESS
+        context: SELLER
       backend_responsibilities:
         - validate_membership
         - resolve_role

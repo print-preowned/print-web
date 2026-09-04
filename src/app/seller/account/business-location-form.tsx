@@ -19,18 +19,18 @@ import { Label } from "@/components/ui/label";
 import type { HttpMethod } from "@/lib/api";
 import { apiFetch } from "@/lib/api";
 import {
-  createBusinessAddress,
-  readBusinessAddresses,
-  updateBusinessAddress,
-  type BusinessAddress,
-  type BusinessAddressCreatePayload,
+  createSellerAddress,
+  readSellerAddresses,
+  updateSellerAddress,
+  type SellerAddress,
+  type SellerAddressCreatePayload,
 } from "@/lib/api/address";
 import {
-  businessLocationFormSchema,
-  type BusinessLocationFormValues,
+  sellerLocationFormSchema,
+  type SellerLocationFormValues,
 } from "@/lib/address/nigeria";
 
-function emptyFormValues(): BusinessLocationFormValues {
+function emptyFormValues(): SellerLocationFormValues {
   return {
     label: "",
     phone_number: "",
@@ -43,20 +43,20 @@ function emptyFormValues(): BusinessLocationFormValues {
   };
 }
 
-function toFormValues(address: BusinessAddress): BusinessLocationFormValues {
+function toFormValues(address: SellerAddress): SellerLocationFormValues {
   return {
     label: address.label,
     phone_number: address.phone_number ?? "",
     line1: address.line1,
     line2: address.line2 ?? "",
     city: address.city,
-    state: address.state as BusinessLocationFormValues["state"],
+    state: address.state as SellerLocationFormValues["state"],
     postal_code: address.postal_code ?? "",
     pickup_enabled: address.pickup_enabled,
   };
 }
 
-function toPayload(values: BusinessLocationFormValues): BusinessAddressCreatePayload {
+function toPayload(values: SellerLocationFormValues): SellerAddressCreatePayload {
   return {
     label: values.label,
     phone_number: values.phone_number || null,
@@ -70,15 +70,15 @@ function toPayload(values: BusinessLocationFormValues): BusinessAddressCreatePay
   };
 }
 
-export function BusinessLocationForm({
+export function SellerLocationForm({
   editing,
   onCancel,
 }: {
-  editing: BusinessAddress | null;
+  editing: SellerAddress | null;
   onCancel: () => void;
 }) {
   const queryClient = useQueryClient();
-  const listKey = [readBusinessAddresses({ page: 1, size: 20 })];
+  const listKey = [readSellerAddresses({ page: 1, size: 20 })];
 
   const {
     register,
@@ -87,8 +87,8 @@ export function BusinessLocationForm({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<BusinessLocationFormValues>({
-    resolver: zodResolver(businessLocationFormSchema),
+  } = useForm<SellerLocationFormValues>({
+    resolver: zodResolver(sellerLocationFormSchema),
     defaultValues: editing ? toFormValues(editing) : emptyFormValues(),
   });
 
@@ -97,13 +97,13 @@ export function BusinessLocationForm({
   }, [editing, reset]);
 
   const mutation = useMutation({
-    mutationFn: async (values: BusinessLocationFormValues) => {
+    mutationFn: async (values: SellerLocationFormValues) => {
       const payload = toPayload(values);
       if (editing) {
-        const { endpoint, method, body } = updateBusinessAddress(editing.id, payload);
+        const { endpoint, method, body } = updateSellerAddress(editing.id, payload);
         return apiFetch(endpoint, { method: method as HttpMethod, body });
       }
-      const { endpoint, method, body } = createBusinessAddress(payload);
+      const { endpoint, method, body } = createSellerAddress(payload);
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
     onSuccess: () => {
@@ -149,7 +149,7 @@ export function BusinessLocationForm({
             errors={errors}
             stateValue={watch("state")}
             onStateChange={(value) =>
-              setValue("state", value as BusinessLocationFormValues["state"], {
+              setValue("state", value as SellerLocationFormValues["state"], {
                 shouldValidate: true,
               })
             }

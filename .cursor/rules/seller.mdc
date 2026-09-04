@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+sellers:
+  api: /sellers
+  context: SELLER
+  ui:
+    - /seller
+  copy: Storefront
+
+  privileges:
+    READ_SELLER:
+      context: SELLER
+    UPDATE_SELLER:
+      context: SELLER
+    DELETE_SELLER:
+      context: SELLER
+      owner_only: true
+
+  invariants:
+    - id: MDC-FE-SELLER-1
+      assertion: seller_ui_requires_seller_context
+
+    - id: MDC-FE-SELLER-2
+      assertion: customer_store_url_is_stores_id

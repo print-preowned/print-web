@@ -5,8 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Book, readBooks, createBook } from "@/lib/api/book";
-import { createBusinessBook } from "@/lib/api/business-book";
-import { bookKeys, businessBookKeys } from "@/lib/api/query-keys";
+import { createSellerBook } from "@/lib/api/seller-book";
+import { bookKeys, sellerBookKeys } from "@/lib/api/query-keys";
 import { PaginatedResponse } from "@/lib/api/user";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { toast } from "sonner";
@@ -48,7 +48,7 @@ export function AddBookToInventoryForm({
   const hasSearchQuery = debouncedSearch.length >= 1;
 
   const invalidateAndResetAfterAdd = (bookId: string) => {
-    queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+    queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
     toast.success("Added to your inventory");
     setSearch("");
     setDebouncedSearch("");
@@ -62,7 +62,7 @@ export function AddBookToInventoryForm({
 
   const addToInventory = async (bookId: string) => {
     try {
-      await mutateAsync(createBusinessBook({ book_id: bookId }));
+      await mutateAsync(createSellerBook({ book_id: bookId }));
       invalidateAndResetAfterAdd(bookId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to add");
@@ -91,8 +91,8 @@ export function AddBookToInventoryForm({
         genre_ids: genreIds,
       }));
       if (!createRes.id) throw new Error("No book id returned");
-      await mutateAsync(createBusinessBook({ book_id: createRes.id }));
-      queryClient.invalidateQueries({ queryKey: ["books", ...businessBookKeys.all] });
+      await mutateAsync(createSellerBook({ book_id: createRes.id }));
+      queryClient.invalidateQueries({ queryKey: ["books", ...sellerBookKeys.all] });
       toast.success("Book created and added to your inventory");
       setShowCreate(false);
       setCreateTitle("");

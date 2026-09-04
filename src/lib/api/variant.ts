@@ -10,7 +10,7 @@ export type ResolvedConfig = {
 
 export type Variant = {
   id: string;
-  business_book_id: string;
+  seller_book_id: string;
   description?: string | null;
   stock: number;
   price: number;
@@ -43,37 +43,37 @@ export type VariantUpdatePayload = Partial<
   >
 >;
 
-export function readVariants(businessBookId: string, params?: ReadParams) {
+export function readVariants(sellerBookId: string, params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl(`/business-books/${businessBookId}/variants`, query);
+  return generateUrl(`/seller-books/${sellerBookId}/variants`, query);
 }
 
 export function createVariant(
-  businessBookId: string,
+  sellerBookId: string,
   payload: VariantCreatePayload,
 ) {
   return {
-    endpoint: `/business-books/${businessBookId}/variants`,
+    endpoint: `/seller-books/${sellerBookId}/variants`,
     method: "POST" as const,
     body: payload,
   };
 }
 
 export function updateVariant(
-  businessBookId: string,
+  sellerBookId: string,
   variantId: string,
   payload: VariantUpdatePayload,
 ) {
   return {
-    endpoint: `/business-books/${businessBookId}/variants/${variantId}`,
+    endpoint: `/seller-books/${sellerBookId}/variants/${variantId}`,
     method: "PATCH" as const,
     body: payload,
   };
 }
 
-export function deleteVariant(businessBookId: string, variantId: string) {
+export function deleteVariant(sellerBookId: string, variantId: string) {
   return {
-    endpoint: `/business-books/${businessBookId}/variants/${variantId}`,
+    endpoint: `/seller-books/${sellerBookId}/variants/${variantId}`,
     method: "DELETE" as const,
   };
 }

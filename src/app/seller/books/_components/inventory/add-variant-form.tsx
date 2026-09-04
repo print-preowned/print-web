@@ -13,9 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BusinessBook } from "@/lib/api/business-book";
+import { SellerBook } from "@/lib/api/seller-book";
 import {
-  businessBookKeys,
+  sellerBookKeys,
   variantKeys,
   variantOptionKeys,
   variantTypeKeys,
@@ -53,7 +53,7 @@ export function AddVariantForm({
   onSuccess,
   onCancel,
 }: {
-  businessBook: BusinessBook;
+  businessBook: SellerBook;
   onSuccess?: () => void;
   onCancel?: () => void;
 }) {
@@ -145,9 +145,9 @@ export function AddVariantForm({
   const createMutation = useApiMutation({
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: variantKeys.byBusinessBook(businessBook.id),
+        queryKey: variantKeys.bySellerBook(businessBook.id),
       });
-      void queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Variant added");
       onSuccess?.();
     },

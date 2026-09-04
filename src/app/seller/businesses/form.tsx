@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import z from "zod";
-import { Business, createBusiness, updateBusiness } from "@/lib/api/business";
+import { Seller, createSeller, updateSeller } from "@/lib/api/seller";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
@@ -34,7 +34,7 @@ type CreateFormValues = z.infer<typeof schema>;
 type EditFormValues = z.infer<typeof editSchema>;
 
 type BusinessFormProps = {
-  business?: Business;
+  business?: Seller;
   onCancel?: () => void;
   onSuccess?: () => void;
 };
@@ -94,7 +94,7 @@ export function BusinessForm({
     if (isEdit) {
       const data = values as EditFormValues;
       saveMutation.mutate(
-        updateBusiness(business.id, {
+        updateSeller(business.id, {
           name: data.name,
           description: data.description || null,
           logo: data.logo || null,
@@ -106,7 +106,7 @@ export function BusinessForm({
 
     const data = values as CreateFormValues;
     saveMutation.mutate(
-      createBusiness({
+      createSeller({
         name: data.name,
         description: data.description || null,
         logo: data.logo || null,

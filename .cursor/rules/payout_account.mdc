@@ -3,16 +3,16 @@ alwaysApply: true
 ---
 payout_accounts:
   api: /payout-accounts
-  context: BUSINESS
+  context: SELLER
   ui:
     - /seller/account
   copy: Payout account
 
   privileges:
-    READ_BUSINESS:
-      context: BUSINESS
-    UPDATE_BUSINESS:
-      context: BUSINESS
+    READ_SELLER:
+      context: SELLER
+    UPDATE_SELLER:
+      context: SELLER
 
   invariants:
     - id: MDC-FE-PAYOUT-1

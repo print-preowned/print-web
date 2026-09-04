@@ -20,17 +20,17 @@ modules:
         description: Read public book catalog data
 
       READ_BOOK:
-        context: BUSINESS
+        context: SELLER
         description: Read book data within a business
 
       CREATE_BOOK:
-        context: BUSINESS
+        context: SELLER
 
       UPDATE_BOOK:
-        context: BUSINESS
+        context: SELLER
 
       DELETE_BOOK:
-        context: BUSINESS
+        context: SELLER
         owner_only: true
 
     invariants:

@@ -56,17 +56,17 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/login",
   },
 
-  // Seller routes (require BUSINESS context)
+  // Seller routes (require SELLER context)
   "/seller/*": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     redirectTo: "/login",
   },
 
   // Seller users (require specific privilege)
   "/seller/users": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_USER"], // Example privilege
     redirectTo: "/login",
   },
@@ -74,7 +74,7 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Seller books (require READ_BOOK privilege)
   "/seller/books": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_BOOK"],
     redirectTo: "/login",
   },
@@ -82,13 +82,13 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Seller orders (require READ_ORDER privilege)
   "/seller/orders": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_ORDER"],
     redirectTo: "/login",
   },
   "/seller/orders/*": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_ORDER"],
     redirectTo: "/login",
   },
@@ -96,22 +96,22 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Seller authors (require READ_AUTHOR privilege)
   "/seller/authors": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_AUTHOR"],
     redirectTo: "/login",
   },
 
-  // Seller businesses (require BUSINESS context, owner for delete)
+  // Seller businesses (require SELLER context, owner for delete)
   "/seller/businesses": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     redirectTo: "/login",
   },
 
   // Owner-only routes
   "/seller/settings": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requireOwner: true,
     redirectTo: "/login",
   },
@@ -119,14 +119,14 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Seller account (business details; edit requires owner)
   "/seller/account": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     redirectTo: "/login",
   },
 
   // Dashboard (require auth, any context)
   "/seller/dashboard": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     redirectTo: "/login",
   },
 
@@ -221,7 +221,7 @@ export function getRouteConfig(pathname: string): RouteConfig | null {
   } else if (pathname.startsWith("/seller")) {
     return {
       requireAuth: true,
-      requiredContext: "BUSINESS",
+      requiredContext: "SELLER",
       redirectTo: "/login",
     };
   } else {

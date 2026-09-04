@@ -11,28 +11,28 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   formatAddressLine,
-  readBusinessPickupLocation,
-  type BusinessAddress,
+  readSellerPickupLocation,
+  type SellerAddress,
 } from "@/lib/api/address";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { useEffect } from "react";
 
 type PickupLocationResponse = {
-  data: BusinessAddress;
+  data: SellerAddress;
 };
 
 const pickupFetchOptions = { silentStatuses: [404] };
 
 type CheckoutPickupLocationDisplayProps = {
-  businessId: string;
+  sellerId: string;
   onLocationLoaded: (id: string | null) => void;
 };
 
 export function CheckoutPickupLocationDisplay({
-  businessId,
+  sellerId,
   onLocationLoaded,
 }: CheckoutPickupLocationDisplayProps) {
-  const url = readBusinessPickupLocation(businessId);
+  const url = readSellerPickupLocation(sellerId);
   const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
     [url],
     url,
@@ -109,9 +109,9 @@ export function CheckoutPickupLocationDisplay({
   );
 }
 
-export function usePickupAvailable(businessId: string | null | undefined) {
-  const enabled = Boolean(businessId);
-  const url = enabled ? readBusinessPickupLocation(businessId!) : "";
+export function usePickupAvailable(sellerId: string | null | undefined) {
+  const enabled = Boolean(sellerId);
+  const url = enabled ? readSellerPickupLocation(sellerId!) : "";
   const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
     enabled ? [url] : [],
     url,

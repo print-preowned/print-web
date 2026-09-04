@@ -3,14 +3,14 @@ alwaysApply: true
 ---
 legal_entities:
   api: /legal-entities
-  context: BUSINESS
+  context: SELLER
   ui:
     - /seller/account
   copy: Legal profile
 
   privileges:
-    READ_BUSINESS:
-      context: BUSINESS
+    READ_SELLER:
+      context: SELLER
     owner:
       mutations: true
 

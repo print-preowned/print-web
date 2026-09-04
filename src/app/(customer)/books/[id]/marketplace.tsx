@@ -10,9 +10,9 @@ import { apiFetch } from "@/lib/api";
 import { formatVariantConfig } from "@/lib/api/variant";
 import {
   formatPrice,
-  readPublicBusinessBookById,
-  type PublicCatalogBusinessBook,
-  type PublicCatalogBusinessBookDetail,
+  readPublicSellerBookById,
+  type PublicCatalogSellerBook,
+  type PublicCatalogSellerBookDetail,
   type PublicCatalogVariant,
 } from "@customer/api";
 import { addToCart, replaceCartWithItem, type CartLine } from "@customer/cart";
@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   bookId: string;
-  offers: PublicCatalogBusinessBook[];
+  offers: PublicCatalogSellerBook[];
 };
 
-type ListingResponse = { data?: PublicCatalogBusinessBookDetail };
+type ListingResponse = { data?: PublicCatalogSellerBookDetail };
 
 function OfferAddToCart({
   variants,
@@ -39,7 +39,7 @@ function OfferAddToCart({
   const [quantity, setQuantity] = useState(1);
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [pendingItem, setPendingItem] = useState<CartLine | null>(null);
-  const [cartBusinessName, setCartBusinessName] = useState<string | null>(null);
+  const [cartSellerName, setCartBusinessName] = useState<string | null>(null);
 
   const selected = available.find((v) => v.id === selectedId) ?? available[0];
   const maxQuantity = selected?.stock ?? 1;
@@ -76,8 +76,8 @@ function OfferAddToCart({
       unitPrice: variant.price,
       bookTitle: variant.book_title,
       image: variant.book_image ?? variant.image,
-      businessId: variant.business_id,
-      businessName: variant.business_name,
+      sellerId: variant.seller_id,
+      sellerName: variant.seller_name,
       configLabel: formatVariantConfig(variant.config),
       quantity: qty,
     };
@@ -89,7 +89,7 @@ function OfferAddToCart({
     const result = addToCart(item);
     if (!result.ok) {
       setPendingItem(item);
-      setCartBusinessName(result.cartBusinessName);
+      setCartBusinessName(result.cartSellerName);
       setReplaceDialogOpen(true);
       return;
     }
@@ -216,7 +216,7 @@ function OfferAddToCart({
     <ReplaceSellerCartDialog
       open={replaceDialogOpen}
       onOpenChange={onReplaceDialogOpenChange}
-      cartBusinessName={cartBusinessName}
+      cartSellerName={cartSellerName}
       pendingItem={pendingItem}
       onConfirm={onConfirmReplace}
     />
@@ -225,10 +225,10 @@ function OfferAddToCart({
 }
 
 type OfferAccordionItemProps = {
-  offer: PublicCatalogBusinessBook;
+  offer: PublicCatalogSellerBook;
   expanded: boolean;
   onToggle: () => void;
-  listing: PublicCatalogBusinessBookDetail | null | undefined;
+  listing: PublicCatalogSellerBookDetail | null | undefined;
   isLoading: boolean;
 };
 
@@ -274,12 +274,12 @@ function OfferAccordionItem({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             <span className="font-display text-md font-semibold">
-              {offer.business_name}
+              {offer.seller_name}
             </span>
             <Link
-              href={`/stores/${offer.business_id}`}
+              href={`/stores/${offer.seller_id}`}
               className="inline-flex shrink-0 rounded-sm text-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
-              aria-label={`Visit ${offer.business_name} store`}
+              aria-label={`Visit ${offer.seller_name} store`}
               title="Visit store"
               onClick={(e) => e.stopPropagation()}
             >
@@ -362,7 +362,7 @@ export function Marketplace({ bookId, offers }: Props) {
     queryFn: async () => {
       if (!selectedListingId) return null;
       const res = await apiFetch<ListingResponse>(
-        readPublicBusinessBookById(selectedListingId),
+        readPublicSellerBookById(selectedListingId),
       );
       return res.data ?? null;
     },

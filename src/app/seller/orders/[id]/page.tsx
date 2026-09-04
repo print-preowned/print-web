@@ -17,18 +17,18 @@ import { StatusBadge } from "@/components/status-badge";
 import { apiFetch } from "@/lib/api";
 import { formatPrice } from "@/lib/format-price";
 import {
-  BusinessOrderDetail,
+  SellerOrderDetail,
   OrderFulfillmentStatus,
-  readBusinessOrderById,
+  readSellerOrderById,
 } from "@/lib/api/order";
 import { usePrivilege } from "@/lib/auth/context";
 import { canUpdateOrderStatus, getSellerPaymentBlockedMessage, getSellerPaymentStatusBadgeLabel, nextOrderStatuses } from "@/lib/order-status";
-import { useUpdateBusinessOrderStatus } from "@/lib/hooks/use-update-business-order-status";
+import { useUpdateSellerOrderStatus } from "@/lib/hooks/use-update-seller-order-status";
 
 type OrderDetailResponse = {
   status_code: number;
   message: string;
-  data: BusinessOrderDetail;
+  data: SellerOrderDetail;
 };
 
 function formatDate(value: string) {
@@ -43,7 +43,7 @@ function statusLabel(status: string): string {
   return normalized.charAt(0) + normalized.slice(1).toLowerCase();
 }
 
-function lineTotal(item: BusinessOrderDetail["items"][number]): number {
+function lineTotal(item: SellerOrderDetail["items"][number]): number {
   return Number(item.unit_price) * item.quantity;
 }
 
@@ -51,7 +51,7 @@ function OrderLineItem({
   item,
   currency,
 }: {
-  item: BusinessOrderDetail["items"][number];
+  item: SellerOrderDetail["items"][number];
   currency: string;
 }) {
   return (
@@ -95,8 +95,8 @@ export default function OrderDetailPage() {
   const hasUpdateOrder = usePrivilege("UPDATE_ORDER");
 
   const query = useQuery<OrderDetailResponse>({
-    queryKey: ["business-order", orderId],
-    queryFn: () => apiFetch(readBusinessOrderById(orderId)),
+    queryKey: ["seller-order", orderId],
+    queryFn: () => apiFetch(readSellerOrderById(orderId)),
     enabled: hasReadOrder && Boolean(orderId),
   });
 
@@ -112,7 +112,7 @@ export default function OrderDetailPage() {
     ? nextOrderStatuses(currentStatus, fulfillmentType)
     : [];
 
-  const statusMutation = useUpdateBusinessOrderStatus();
+  const statusMutation = useUpdateSellerOrderStatus();
 
   if (!hasReadOrder) {
     return (

@@ -1,7 +1,7 @@
 import { buildRelativeUrl } from "./core";
 import { ReadParams, buildQueryParams } from "./types";
 
-export type BusinessOrderItem = {
+export type SellerOrderItem = {
   id: string;
   order_id: string;
   variant_id: string;
@@ -46,15 +46,15 @@ export type OrderSummary = {
   total_amount: number;
   item_count: number;
   preview_items: OrderSummaryItemPreview[];
-  business_id?: string | null;
-  business_name?: string | null;
+  seller_id?: string | null;
+  seller_name?: string | null;
   fulfillment_address?: OrderFulfillmentAddress | null;
   created_at: string;
   updated_at: string;
 };
 
-export type BusinessOrderDetail = OrderSummary & {
-  items: BusinessOrderItem[];
+export type SellerOrderDetail = OrderSummary & {
+  items: SellerOrderItem[];
 };
 
 export type OrderFulfillmentStatus =
@@ -66,20 +66,20 @@ export type OrderFulfillmentStatus =
   | "PICKED_UP"
   | "CANCELLED";
 
-export function readBusinessOrders(params?: ReadParams) {
-  return buildRelativeUrl("/business-orders", buildQueryParams(params));
+export function readSellerOrders(params?: ReadParams) {
+  return buildRelativeUrl("/seller-orders", buildQueryParams(params));
 }
 
-export function readBusinessOrderById(id: string) {
-  return buildRelativeUrl(`/business-orders/${id}`);
+export function readSellerOrderById(id: string) {
+  return buildRelativeUrl(`/seller-orders/${id}`);
 }
 
-export function updateBusinessOrderStatus(
+export function updateSellerOrderStatus(
   id: string,
   status: OrderFulfillmentStatus,
 ) {
   return {
-    endpoint: `/business-orders/${id}/status`,
+    endpoint: `/seller-orders/${id}/status`,
     method: "PATCH" as const,
     body: { status },
   };

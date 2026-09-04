@@ -70,7 +70,7 @@ type LegalEntityResponse = { data: LegalEntity };
 
 export function LegalEntityForm() {
   const queryClient = useQueryClient();
-  const canRead = usePrivilege("READ_BUSINESS");
+  const canRead = usePrivilege("READ_SELLER");
   const isOwner = useIsOwner();
   const currentKey = readCurrentLegalEntity();
 

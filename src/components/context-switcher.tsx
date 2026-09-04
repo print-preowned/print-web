@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, useBusinessId } from "@/lib/auth/context";
+import { useAuth, useSellerId } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" | "BUSINESS" }) {
+export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" | "SELLER" }) {
   const { context, refreshSession } = useAuth();
-  const businessId = useBusinessId();
+  const sellerId = useSellerId();
   const [isSwitching, setIsSwitching] = useState(false);
   const router = useRouter();
 
@@ -23,15 +23,15 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
 
     setIsSwitching(true);
     try {
-      const body: { target_context: string; business_id?: string } = {
+      const body: { target_context: string; seller_id?: string } = {
         target_context: targetContext,
       };
-      if (targetContext === "BUSINESS") {
-        if (!businessId) {
-          toast.error("No business linked to this account");
+      if (targetContext === "SELLER") {
+        if (!sellerId) {
+          toast.error("No seller linked to this account");
           return;
         }
-        body.business_id = businessId;
+        body.seller_id = sellerId;
       }
 
       const res = await fetch("/api/auth/context-switch", {
@@ -45,7 +45,7 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
       if (res.ok) {
         await refreshSession();
         toast.success(response.message || `Switched to ${targetContext} context`);
-        if (targetContext === "BUSINESS") {
+        if (targetContext === "SELLER") {
           router.push("/seller/dashboard");
         } else {
           router.push("/");

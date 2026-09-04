@@ -14,7 +14,7 @@ This architecture provides a scalable, maintainable approach to route protection
 export const routeConfig: Record<string, RouteConfig> = {
   "/admin/*": {
     requireAuth: true,
-    requiredContext: "BUSINESS",
+    requiredContext: "SELLER",
     requiredPrivileges: ["READ_USER"],
     redirectTo: "/login",
   },
@@ -45,7 +45,7 @@ export const routeConfig: Record<string, RouteConfig> = {
 
 ```tsx
 // Before (not scalable)
-<RouteGuard requireAuth={true} requiredContext="BUSINESS" requiredPrivileges={["READ_USER"]}>
+<RouteGuard requireAuth={true} requiredContext="SELLER" requiredPrivileges={["READ_USER"]}>
   <YourPage />
 </RouteGuard>
 
@@ -80,7 +80,7 @@ export const routeConfig: Record<string, RouteConfig> = {
 ```typescript
 "/admin/new-feature": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
   requiredPrivileges: ["CREATE_FEATURE"],
   redirectTo: "/login",
 },
@@ -115,7 +115,7 @@ That's it! No props needed.
 ```typescript
 "/admin/settings": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
   requireOwner: true,
 },
 ```
@@ -128,7 +128,7 @@ That's it! No props needed.
 ```tsx
 <RouteGuard
   requireAuth={true}
-  requiredContext="BUSINESS"
+  requiredContext="SELLER"
   requiredPrivileges={["READ_USER"]}
   redirectTo="/login"
 >
@@ -141,7 +141,7 @@ That's it! No props needed.
 ```typescript
 "/your-route": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
   requiredPrivileges: ["READ_USER"],
   redirectTo: "/login",
 },
@@ -176,7 +176,7 @@ That's it! No props needed.
 // Protect all admin routes
 "/admin/*": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
 },
 ```
 
@@ -186,7 +186,7 @@ That's it! No props needed.
 // Override for specific route
 "/admin/users": {
   requireAuth: true,
-  requiredContext: "BUSINESS",
+  requiredContext: "SELLER",
   requiredPrivileges: ["READ_USER"], // More specific requirement
 },
 ```

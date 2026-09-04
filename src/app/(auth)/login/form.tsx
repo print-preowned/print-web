@@ -8,7 +8,7 @@ import { FieldValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/context";
-import { readBusinessByUserId } from "@/lib/api/business";
+import { readSellerByUserId } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { Session } from "@/lib/auth/token";
 import { type Login, login, platformLogin } from "@/lib/api/auth";
@@ -30,7 +30,7 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
     if (isLoading || !session || sessionExpired) return;
 
     switch (session.context) {
-      case "BUSINESS": {
+      case "SELLER": {
         router.push("/seller/dashboard");
         break;
       }
@@ -79,19 +79,19 @@ export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
     try {
       const businessResponse = await apiFetch<{
         data: { id: string; name: string } | null;
-      }>(readBusinessByUserId());
+      }>(readSellerByUserId());
       if (businessResponse.data) {
         const switched = await apiFetch("/api/auth/context-switch", {
           method: "POST",
           body: {
-            target_context: "BUSINESS",
-            business_id: businessResponse.data.id,
+            target_context: "SELLER",
+            seller_id: businessResponse.data.id,
           },
           silentStatuses: [400, 401, 403, 422],
         });
         if (switched) {
           await refreshSession();
-          toast.success("Login successful! Switched to Business context.");
+          toast.success("Login successful! Switched to Seller context.");
           router.push("/seller/dashboard");
           return;
         }

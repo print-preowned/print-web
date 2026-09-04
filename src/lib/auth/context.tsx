@@ -4,7 +4,7 @@
  * Context management following PRINT Authorization & Context Model
  *
  * Rules:
- * - Single active context (CUSTOMER or BUSINESS)
+ * - Single active context (CUSTOMER or SELLER)
  * - Token-based hydration (token stored HttpOnly cookie, never exposed to client)
  * - No mixed UI contexts
  * - No authority inference
@@ -98,35 +98,35 @@ export function useAuth() {
 }
 
 /**
- * Hook to check if user has a specific privilege (BUSINESS context only)
+ * Hook to check if user has a specific privilege (SELLER context only)
  */
 export function usePrivilege(privilege: string): boolean {
   const { session } = useAuth();
-  if (!session || session.context !== "BUSINESS" || !session.business) {
+  if (!session || session.context !== "SELLER" || !session.seller) {
     return false;
   }
   return session.privileges?.includes(privilege) ?? false;
 }
 
 /**
- * Hook to check if user is owner (BUSINESS context only)
+ * Hook to check if user is owner (SELLER context only)
  */
 export function useIsOwner(): boolean {
   const { session } = useAuth();
-  if (!session || session.context !== "BUSINESS" || !session.business) {
+  if (!session || session.context !== "SELLER" || !session.seller) {
     return false;
   }
-  return session.business.is_owner;
+  return session.seller.is_owner;
 }
 
 /**
- * Hook to get current business ID (BUSINESS context only)
+ * Hook to get current business ID (SELLER context only)
  */
-export function useBusinessId(): string | null {
+export function useSellerId(): string | null {
   const { session } = useAuth();
-  if (!session || session.context !== "BUSINESS" || !session.business) {
+  if (!session || session.context !== "SELLER" || !session.seller) {
     return null;
   }
-  return session.business.id;
+  return session.seller.id;
 }
 

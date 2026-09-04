@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
 import {
   OrderSummary,
-  readBusinessOrders,
+  readSellerOrders,
 } from "@/lib/api/order";
 import { apiFetch } from "@/lib/api";
 import { usePrivilege } from "@/lib/auth/context";
@@ -29,9 +29,9 @@ export function OrdersTable() {
   const hasReadOrder = usePrivilege("READ_ORDER");
 
   const query = useQuery<PaginatedResponse<OrderSummary>>({
-    queryKey: ["business-orders", page],
+    queryKey: ["seller-orders", page],
     queryFn: () =>
-      apiFetch(readBusinessOrders({ page, size: 10 })),
+      apiFetch(readSellerOrders({ page, size: 10 })),
     enabled: hasReadOrder,
   });
 

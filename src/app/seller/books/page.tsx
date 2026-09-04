@@ -3,12 +3,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryTable } from "./_components/inventory/inventory-table";
 import { GlobalBooksTable } from "./_components/global-books/global-books-table";
-import { useGlobalBooks, useBusinessBooks } from "./_hooks/use-books";
+import { useGlobalBooks, useSellerBooks } from "./_hooks/use-books";
 import { useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { BottomDetailsPanel } from "@/components/bottom-details-panel";
-import { listingStatusLabel } from "@/lib/business-book-listing-status";
-import { BusinessBook } from "@/lib/api/business-book";
+import { listingStatusLabel } from "@/lib/seller-book-listing-status";
+import { SellerBook } from "@/lib/api/seller-book";
 import { Book } from "@/lib/api/book";
 import { formatPrice } from "@/lib/format-price";
 
@@ -18,7 +18,7 @@ function formatCount(value: number) {
 
 export default function BooksPage() {
   const globalBooks = useGlobalBooks();
-  const businessBooks = useBusinessBooks();
+  const businessBooks = useSellerBooks();
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -106,7 +106,7 @@ export default function BooksPage() {
   );
 }
 
-function InventoryDetails({ businessBook }: { businessBook: BusinessBook }) {
+function InventoryDetails({ businessBook }: { businessBook: SellerBook }) {
   const image = businessBook.image ?? businessBook.book_image;
 
   return (

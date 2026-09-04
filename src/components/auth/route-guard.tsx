@@ -8,8 +8,8 @@
  * 
  * Protects routes based on:
  * - Authentication status
- * - Required context (CUSTOMER or BUSINESS)
- * - Required privileges (for BUSINESS context)
+ * - Required context (CUSTOMER or SELLER)
+ * - Required privileges (for SELLER context)
  */
 
 import { useEffect, ReactNode } from "react";
@@ -59,7 +59,7 @@ export function RouteGuard({
       } else if (pathname.startsWith("/admin")) {
         // Any user trying to access admin route without PLATFORM context - redirect to admin login
         router.push("/admin/login");
-      } else if (requiredContext === "BUSINESS") {
+      } else if (requiredContext === "SELLER") {
         // Customer trying to access business route - redirect to client login
         router.push("/login");
       } else {
@@ -69,13 +69,13 @@ export function RouteGuard({
       return;
     }
 
-    // Check privileges (BUSINESS context only)
+    // Check privileges (SELLER context only)
     if (
       requireAuth &&
-      context === "BUSINESS" &&
+      context === "SELLER" &&
       session &&
-      session.context === "BUSINESS" &&
-      session.business
+      session.context === "SELLER" &&
+      session.seller
     ) {
       // Check required privileges
       if (requiredPrivileges.length > 0) {
@@ -89,7 +89,7 @@ export function RouteGuard({
       }
 
       // Check owner requirement
-      if (requireOwner && !session.business.is_owner) {
+      if (requireOwner && !session.seller.is_owner) {
         router.push("/seller/dashboard"); // Or appropriate error page
         return;
       }
@@ -142,9 +142,9 @@ export function RouteGuard({
 
   if (
     requireAuth &&
-    context === "BUSINESS" &&
-    session?.context === "BUSINESS" &&
-    session.business
+    context === "SELLER" &&
+    session?.context === "SELLER" &&
+    session.seller
   ) {
     if (requiredPrivileges.length > 0) {
       const hasAllPrivileges = requiredPrivileges.every((privilege) =>
@@ -155,7 +155,7 @@ export function RouteGuard({
       }
     }
 
-    if (requireOwner && !session.business.is_owner) {
+    if (requireOwner && !session.seller.is_owner) {
       return null;
     }
   }

@@ -61,9 +61,9 @@ export default function CartPage() {
                           {line.configLabel}
                         </p>
                       ) : null}
-                      {line.businessName ? (
+                      {line.sellerName ? (
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {line.businessName}
+                          {line.sellerName}
                         </p>
                       ) : null}
                       <p className="mt-2 text-sm font-medium">

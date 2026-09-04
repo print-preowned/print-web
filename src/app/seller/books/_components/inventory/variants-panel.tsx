@@ -12,8 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BusinessBook } from "@/lib/api/business-book";
-import { businessBookKeys, variantKeys } from "@/lib/api/query-keys";
+import { SellerBook } from "@/lib/api/seller-book";
+import { sellerBookKeys, variantKeys } from "@/lib/api/query-keys";
 import {
   deleteVariant,
   formatVariantConfig,
@@ -28,12 +28,12 @@ import { PlusCircleIcon, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { toast } from "sonner";
 
-export function VariantsPanel({ businessBook }: { businessBook: BusinessBook }) {
+export function VariantsPanel({ businessBook }: { businessBook: SellerBook }) {
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
 
   const variantsQuery = useApiQuery<PaginatedResponse<VariantWithConfig>>(
-    variantKeys.byBusinessBook(businessBook.id),
+    variantKeys.bySellerBook(businessBook.id),
     readVariants(businessBook.id, { page: 1, size: 100 }),
   );
 
@@ -42,9 +42,9 @@ export function VariantsPanel({ businessBook }: { businessBook: BusinessBook }) 
   const deleteMutation = useApiMutation({
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: variantKeys.byBusinessBook(businessBook.id),
+        queryKey: variantKeys.bySellerBook(businessBook.id),
       });
-      void queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Variant removed");
     },
     onError: (e: Error) => toast.error(e.message || "Failed to remove variant"),

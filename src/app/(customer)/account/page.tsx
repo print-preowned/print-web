@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CreateBusinessForm } from "@/components/businesses/create-form";
+import { CreateSellerForm } from "@/components/businesses/create-form";
 import { useAuth } from "@/lib/auth/context";
 
 export default function AccountPage() {
@@ -30,7 +30,7 @@ export default function AccountPage() {
             </p>
           </div>
 
-          {context === "BUSINESS" ? (
+          {context === "SELLER" ? (
             <Card>
               <CardHeader>
                 <CardTitle>Business Account</CardTitle>
@@ -80,7 +80,7 @@ export default function AccountPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <CreateBusinessForm
+                    <CreateSellerForm
                       onCancel={() => setIsCreating(false)}
                       submitLabel="Create Business"
                     />

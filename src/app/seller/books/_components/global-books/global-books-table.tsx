@@ -17,9 +17,9 @@ import {
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { Book } from "@/lib/api/book";
-import { createBusinessBook } from "@/lib/api/business-book";
-import { businessBookKeys } from "@/lib/api/query-keys";
-import { useBusinessId } from "@/lib/auth/context";
+import { createSellerBook } from "@/lib/api/seller-book";
+import { sellerBookKeys } from "@/lib/api/query-keys";
+import { useSellerId } from "@/lib/auth/context";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { toast } from "sonner";
 import { RequestBookEditDialog } from "../requests/request-book-edit-dialog";
@@ -52,7 +52,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     searchApplied,
     setSearchApplied,
   } = props;
-  const businessId = useBusinessId();
+  const sellerId = useSellerId();
   const queryClient = useQueryClient();
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
@@ -60,7 +60,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
 
   const addToInventoryMutation = useApiMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: businessBookKeys.all });
+      queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Added to your inventory");
     },
     onError: (e: Error) =>
@@ -100,7 +100,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
 
   const handleAddToInventory = useCallback(() => {
     selectedBooks.forEach((book) =>
-      addToInventoryMutation.mutate(createBusinessBook({ book_id: book.id })),
+      addToInventoryMutation.mutate(createSellerBook({ book_id: book.id })),
     );
     setSelectedIds(new Set());
   }, [selectedBooks, addToInventoryMutation, setSelectedIds]);
@@ -163,7 +163,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     },
   ];
 
-  if (!businessId) {
+  if (!sellerId) {
     return (
       <p className="text-muted-foreground text-sm">
         Switch to a business context to add books to your inventory.
