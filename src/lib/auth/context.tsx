@@ -120,7 +120,7 @@ export function useIsOwner(): boolean {
 }
 
 /**
- * Hook to get current business ID (SELLER context only)
+ * Hook to get current seller ID (SELLER context only)
  */
 export function useSellerId(): string | null {
   const { session } = useAuth();

@@ -54,18 +54,18 @@ export function readOffers(
   return buildRelativeUrl(`/books/${bookId}/offers`, query);
 }
 
-export function readPublicStoreInventory(
+export function readPublicSellerCatalog(
   sellerId: string,
   params?: ReadParams,
 ) {
   return buildRelativeUrl(
-    `/sellers/${sellerId}/storefront/catalog`,
+    `/sellers/${sellerId}/catalog`,
     buildQueryParams(params),
   );
 }
 
 export function readPublicSellerProfile(sellerId: string) {
-  return buildRelativeUrl(`/sellers/${sellerId}/storefront`);
+  return buildRelativeUrl(`/sellers/${sellerId}/public`);
 }
 
 export function readPublicSellerBookById(id: string) {

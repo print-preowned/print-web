@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { SellerBookEditTabs } from "./business-book-edit-tabs";
+import { SellerBookEditTabs } from "./seller-book-edit-tabs";
 import { AddBookToInventoryForm } from "../global-books/add-to-inventory-form";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -81,7 +81,7 @@ export function InventoryTable({
 
   const openEditDrawer = useCallback(
     (
-      businessBook: SellerBook,
+      sellerBook: SellerBook,
       initialTab: "listing" | "variants" = "listing",
     ) => {
       openDrawer({
@@ -89,7 +89,7 @@ export function InventoryTable({
         description: "Update your listing or manage variants",
         children: (
           <SellerBookEditTabs
-            businessBook={businessBook}
+            sellerBook={sellerBook}
             initialTab={initialTab}
             onSuccess={closeDrawer}
           />
@@ -269,7 +269,7 @@ export function InventoryTable({
   if (!sellerId) {
     return (
       <p className="text-muted-foreground text-sm">
-        Switch to a business context to manage your inventory.
+        Switch to a seller context to manage your inventory.
       </p>
     );
   }

@@ -16,7 +16,7 @@ legal_entities:
 
   invariants:
     - id: MDC-FE-LEGAL-1
-      assertion: legal_profile_requires_business_context
+      assertion: legal_profile_requires_seller_context
 
     - id: MDC-FE-LEGAL-2
       assertion: legal_profile_mutations_require_owner

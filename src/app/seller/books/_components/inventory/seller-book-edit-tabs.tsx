@@ -2,15 +2,15 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SellerBook } from "@/lib/api/seller-book";
-import { SellerBookForm } from "./business-book-form";
+import { SellerBookForm } from "./seller-book-form";
 import { VariantsPanel } from "./variants-panel";
 
 export function SellerBookEditTabs({
-  businessBook,
+  sellerBook,
   initialTab = "listing",
   onSuccess,
 }: {
-  businessBook: SellerBook;
+  sellerBook: SellerBook;
   initialTab?: "listing" | "variants";
   onSuccess?: () => void;
 }) {
@@ -25,10 +25,10 @@ export function SellerBookEditTabs({
         </TabsTrigger>
       </TabsList>
       <TabsContent value="listing" className="mt-4">
-        <SellerBookForm businessBook={businessBook} onSuccess={onSuccess} />
+        <SellerBookForm sellerBook={sellerBook} onSuccess={onSuccess} />
       </TabsContent>
       <TabsContent value="variants" className="mt-4">
-        <VariantsPanel businessBook={businessBook} />
+        <VariantsPanel sellerBook={sellerBook} />
       </TabsContent>
     </Tabs>
   );

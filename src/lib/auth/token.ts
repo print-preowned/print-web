@@ -205,7 +205,7 @@ export function isOwner(token: string): boolean {
 }
 
 /**
- * Get business ID from token (SELLER context only)
+ * Get seller ID from token (SELLER context only)
  */
 export function getSellerId(token: string): string | null {
   const decoded = decodeToken(token);

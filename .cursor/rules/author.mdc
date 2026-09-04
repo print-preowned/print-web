@@ -6,7 +6,7 @@ alwaysApply: true
       name: AUTHOR
       scope: GLOBAL
       ownership: PLATFORM
-      business_scoping: forbidden
+      seller_scoping: forbidden
 
     tables:
       AUTHOR:
@@ -95,26 +95,25 @@ alwaysApply: true
         enforce:
           - author_status_active_only
 
-      # -------- BUSINESS --------
-      GET /business/{sellerId}/authors/search:
+      # -------- SELLER --------
+      GET /authors:
         context: SELLER
         privilege: READ_AUTHOR
         enforce:
-          - seller_id_match
           - author_status_active_only
 
-      POST /business/{sellerId}/authors/requests:
+      POST /author-requests:
         context: SELLER
         privilege: CREATE_AUTHOR_REQUEST
         enforce:
           - seller_id_match
 
-      GET /business/{sellerId}/authors/requests:
+      GET /author-requests:
         context: SELLER
         privilege: READ_AUTHOR_REQUEST
         enforce:
           - seller_id_match
-          - requester_or_business_scope
+          - requester_or_seller_scope
 
       # -------- PLATFORM --------
       GET /admin/authors:
@@ -160,7 +159,7 @@ alwaysApply: true
         assertion: authors_have_no_seller_id
 
       - id: MDC-BE-AUTHOR-2
-        assertion: businesses_cannot_mutate_authors
+        assertion: sellers_cannot_mutate_authors
 
       - id: MDC-BE-AUTHOR-3
         assertion: customer_reads_only_active_authors
@@ -172,7 +171,7 @@ alwaysApply: true
         assertion: all_merges_are_audited
 
     prohibited_patterns:
-      - business_updating_author
+      - seller_updating_author
       - deleting_author_without_merge
       - customer_creating_author
       - silent_author_overwrite

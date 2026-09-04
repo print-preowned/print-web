@@ -28,13 +28,13 @@ import { PlusCircleIcon, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { toast } from "sonner";
 
-export function VariantsPanel({ businessBook }: { businessBook: SellerBook }) {
+export function VariantsPanel({ sellerBook }: { sellerBook: SellerBook }) {
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
 
   const variantsQuery = useApiQuery<PaginatedResponse<VariantWithConfig>>(
-    variantKeys.bySellerBook(businessBook.id),
-    readVariants(businessBook.id, { page: 1, size: 100 }),
+    variantKeys.bySellerBook(sellerBook.id),
+    readVariants(sellerBook.id, { page: 1, size: 100 }),
   );
 
   const variants = variantsQuery.data?.data ?? [];
@@ -42,7 +42,7 @@ export function VariantsPanel({ businessBook }: { businessBook: SellerBook }) {
   const deleteMutation = useApiMutation({
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: variantKeys.bySellerBook(businessBook.id),
+        queryKey: variantKeys.bySellerBook(sellerBook.id),
       });
       void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Variant removed");
@@ -70,7 +70,7 @@ export function VariantsPanel({ businessBook }: { businessBook: SellerBook }) {
 
       {showAddForm && (
         <AddVariantForm
-          businessBook={businessBook}
+          sellerBook={sellerBook}
           onSuccess={() => setShowAddForm(false)}
           onCancel={() => setShowAddForm(false)}
         />
@@ -126,7 +126,7 @@ export function VariantsPanel({ businessBook }: { businessBook: SellerBook }) {
                         )
                       ) {
                         deleteMutation.mutate(
-                          deleteVariant(businessBook.id, v.id),
+                          deleteVariant(sellerBook.id, v.id),
                         );
                       }
                     }}

@@ -6,8 +6,31 @@ sellers:
   context: SELLER
   ui:
     - /seller
-    - /seller/businesses
-  copy: Storefront
+    - /seller/accounts
+  copy:
+    customer: Storefront / Store Name
+    seller_workspace: Accounts
+
+  naming:
+    seller_prefix:
+      scope: seller_workspace_and_public_shop
+      require: files, components, styles, and endpoints lead with Seller
+      forbid_in_file_names: [store, business]
+    admin_prefix:
+      scope: platform_only
+      forbid: admin in seller component or folder names
+    public_name:
+      audience: customer_ui_text
+      use: [Storefront, Store Name]
+    code_name:
+      use: seller
+      applies_to: [database, urls, folders, api]
+      examples:
+        - /seller/accounts
+        - /seller/{id}
+        - SellerInventory
+        - seller_id
+    customer_shop_url: /seller/{id}
 
   privileges:
     READ_SELLER:
@@ -23,10 +46,13 @@ sellers:
       assertion: seller_ui_requires_seller_context
 
     - id: MDC-FE-SELLER-2
-      assertion: customer_store_url_is_stores_id
+      assertion: customer_shop_url_is_seller_id
 
     - id: MDC-FE-SELLER-3
       assertion: one_membership_auto_switches
 
     - id: MDC-FE-SELLER-4
       assertion: multiple_memberships_require_seller_picker
+
+    - id: MDC-FE-SELLER-5
+      assertion: seller_code_names_never_use_store_or_business

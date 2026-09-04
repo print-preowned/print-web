@@ -33,8 +33,8 @@ const editSchema = schema.extend({
 type CreateFormValues = z.infer<typeof schema>;
 type EditFormValues = z.infer<typeof editSchema>;
 
-type BusinessFormProps = {
-  business?: Seller;
+type SellerFormProps = {
+  seller?: Seller;
   onCancel?: () => void;
   onSuccess?: () => void;
 };
@@ -43,14 +43,14 @@ function defaultStatus(status: string): "ACTIVE" | "INACTIVE" {
   return status === "ACTIVE" || status === "INACTIVE" ? status : "ACTIVE";
 }
 
-export function BusinessForm({
-  business,
+export function SellerForm({
+  seller,
   onCancel,
   onSuccess,
-}: BusinessFormProps) {
+}: SellerFormProps) {
   const router = useRouter();
   const { refreshSession } = useAuth();
-  const isEdit = !!business;
+  const isEdit = !!seller;
 
   const {
     register,
@@ -62,10 +62,10 @@ export function BusinessForm({
     resolver: zodResolver(isEdit ? editSchema : schema),
     defaultValues: isEdit
       ? {
-          name: business.name,
-          description: business.description ?? "",
-          logo: business.logo ?? "",
-          status: defaultStatus(business.status),
+          name: seller.name,
+          description: seller.description ?? "",
+          logo: seller.logo ?? "",
+          status: defaultStatus(seller.status),
         }
       : {
           name: "",
@@ -94,7 +94,7 @@ export function BusinessForm({
     if (isEdit) {
       const data = values as EditFormValues;
       saveMutation.mutate(
-        updateSeller(business.id, {
+        updateSeller(seller.id, {
           name: data.name,
           description: data.description || null,
           logo: data.logo || null,

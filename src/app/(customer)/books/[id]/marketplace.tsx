@@ -39,7 +39,7 @@ function OfferAddToCart({
   const [quantity, setQuantity] = useState(1);
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [pendingItem, setPendingItem] = useState<CartLine | null>(null);
-  const [cartSellerName, setCartBusinessName] = useState<string | null>(null);
+  const [cartSellerName, setCartSellerName] = useState<string | null>(null);
 
   const selected = available.find((v) => v.id === selectedId) ?? available[0];
   const maxQuantity = selected?.stock ?? 1;
@@ -89,7 +89,7 @@ function OfferAddToCart({
     const result = addToCart(item);
     if (!result.ok) {
       setPendingItem(item);
-      setCartBusinessName(result.cartSellerName);
+      setCartSellerName(result.cartSellerName);
       setReplaceDialogOpen(true);
       return;
     }
@@ -100,7 +100,7 @@ function OfferAddToCart({
     setReplaceDialogOpen(open);
     if (!open) {
       setPendingItem(null);
-      setCartBusinessName(null);
+      setCartSellerName(null);
     }
   }
 
@@ -277,10 +277,10 @@ function OfferAccordionItem({
               {offer.seller_name}
             </span>
             <Link
-              href={`/stores/${offer.seller_id}`}
+              href={`/seller/${offer.seller_id}`}
               className="inline-flex shrink-0 rounded-sm text-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
-              aria-label={`Visit ${offer.seller_name} store`}
-              title="Visit store"
+              aria-label={`Visit ${offer.seller_name} storefront`}
+              title="Visit storefront"
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-4 w-4" aria-hidden />

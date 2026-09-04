@@ -43,26 +43,26 @@ function defaultListingStatus(
 }
 
 export function SellerBookForm({
-  businessBook,
+  sellerBook,
   onSuccess,
 }: {
-  businessBook: SellerBook;
+  sellerBook: SellerBook;
   onSuccess?: () => void;
 }) {
   const queryClient = useQueryClient();
-  const isSuspended = businessBook.status === "SUSPENDED";
-  const statusOptions = allowedSellerListingStatuses(businessBook.status);
+  const isSuspended = sellerBook.status === "SUSPENDED";
+  const statusOptions = allowedSellerListingStatuses(sellerBook.status);
   const { register, handleSubmit, setValue, watch } = useForm<FormValues>({
     defaultValues: {
-      synopsis: businessBook.synopsis ?? "",
-      image: businessBook.image ?? "",
-      status: defaultListingStatus(businessBook.status, statusOptions),
+      synopsis: sellerBook.synopsis ?? "",
+      image: sellerBook.image ?? "",
+      status: defaultListingStatus(sellerBook.status, statusOptions),
     },
   });
   const status = watch("status");
 
   const image = useImageUpload({
-    initialPreview: businessBook.image ?? null,
+    initialPreview: sellerBook.image ?? null,
     onValueChange: (value) => setValue("image", value),
     fallback: "",
   });
@@ -79,14 +79,14 @@ export function SellerBookForm({
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
       <p className="text-muted-foreground text-xs">
-        Book: <strong>{businessBook.book_title ?? businessBook.book_id}</strong>
+        Book: <strong>{sellerBook.book_title ?? sellerBook.book_id}</strong>
       </p>
       <form
         className="flex flex-col gap-4"
         onSubmit={handleSubmit(async (values) => {
           const resolvedImage = await image.resolveValue(values.image);
           updateMutation.mutate(
-            updateSellerBook(businessBook.id, {
+            updateSellerBook(sellerBook.id, {
               synopsis: values.synopsis || undefined,
               image: resolvedImage || undefined,
               ...(isSuspended ? {} : { status: values.status }),
@@ -99,11 +99,11 @@ export function SellerBookForm({
           {isSuspended ? (
             <div className="flex flex-col gap-1">
               <StatusBadge
-                status={businessBook.status}
-                label={listingStatusLabel(businessBook.status)}
+                status={sellerBook.status}
+                label={listingStatusLabel(sellerBook.status)}
               />
               <p className="text-muted-foreground text-xs">
-                {listingStatusDescription(businessBook.status)}
+                {listingStatusDescription(sellerBook.status)}
               </p>
             </div>
           ) : (

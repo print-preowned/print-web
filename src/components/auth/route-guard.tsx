@@ -60,10 +60,10 @@ export function RouteGuard({
         // Any user trying to access admin route without PLATFORM context - redirect to admin login
         router.push("/admin/login");
       } else if (requiredContext === "SELLER") {
-        // Customer trying to access business route - redirect to client login
+        // Customer trying to access seller route - redirect to client login
         router.push("/login");
       } else {
-        // Business user trying to access customer route - redirect to client login
+        // Seller trying to access customer route - redirect to client login
         router.push("/login");
       }
       return;

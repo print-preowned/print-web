@@ -32,7 +32,7 @@ import {
 } from "@/lib/api/address";
 import { usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
-import { SellerLocationForm } from "./business-location-form";
+import { SellerLocationForm } from "./seller-location-form";
 
 type PaginatedSellerAddresses = {
   data: SellerAddress[];
@@ -142,7 +142,7 @@ function LocationCard({
   );
 }
 
-export function BusinessLocationsList() {
+export function SellerLocationsList() {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const canRead = usePrivilege("READ_SELLER");
@@ -235,7 +235,7 @@ export function BusinessLocationsList() {
   const handleDeleteLocation = async (location: SellerAddress) => {
     const confirmed = await confirm({
       title: "Delete location?",
-      description: "This location will be removed from your business.",
+      description: "This location will be removed from your storefront.",
       confirmLabel: "Delete",
       destructive: true,
     });
@@ -250,7 +250,7 @@ export function BusinessLocationsList() {
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Store locations</h2>
           <p className="text-sm text-muted-foreground">
-            Physical addresses for your business. Designate one location for customer pickup at checkout.
+            Physical addresses for your storefront. Designate one location for customer pickup at checkout.
           </p>
         </div>
         {canManage && !formOpen && (
@@ -273,7 +273,7 @@ export function BusinessLocationsList() {
                 <CardDescription>
                   {canManage
                     ? "Add a location and optionally enable pickup for customer orders."
-                    : "No locations have been added for this business yet."}
+                    : "No locations have been added for this storefront yet."}
                 </CardDescription>
               </CardHeader>
               {canManage && (

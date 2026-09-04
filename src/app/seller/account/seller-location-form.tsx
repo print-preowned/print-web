@@ -123,7 +123,7 @@ export function SellerLocationForm({
         <CardDescription>
           {editing
             ? "Update this store or warehouse address."
-            : "Add a physical location for your business."}
+            : "Add a physical location for your storefront."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -168,7 +168,7 @@ export function SellerLocationForm({
                 Offer pickup at this location
               </span>
               <span className="block text-sm text-muted-foreground">
-                Only one location per business can accept pickup orders.
+                Only one location per storefront can accept pickup orders.
               </span>
             </span>
           </label>

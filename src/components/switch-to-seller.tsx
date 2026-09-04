@@ -25,7 +25,7 @@ async function loadMemberships(): Promise<Seller[]> {
   return response.data ?? [];
 }
 
-function StorefrontMark({ name, logo }: { name: string; logo?: string | null }) {
+function SellerMark({ name, logo }: { name: string; logo?: string | null }) {
   if (logo) {
     return (
       <img src={logo} alt="" className="h-full w-full object-cover" />
@@ -119,7 +119,7 @@ export function SwitchToSeller({ children }: { children: (startSwitch: () => voi
                       )}
                     >
                       <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden bg-muted">
-                        <StorefrontMark name={seller.name} logo={seller.logo} />
+                        <SellerMark name={seller.name} logo={seller.logo} />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="font-display block text-lg font-semibold leading-snug">

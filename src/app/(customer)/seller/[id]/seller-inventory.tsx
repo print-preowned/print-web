@@ -3,21 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  readPublicStoreInventory,
+  readPublicSellerCatalog,
   type PublicCatalogSellerBook,
 } from "@customer/api";
 import usePagination from "@/lib/pagination/usePagination";
 import { Button } from "@/components/ui/button";
 import { CatalogSearchForm } from "../../books/catalog-search-form";
-import { StoreListingCard } from "../store-listing-card";
+import { SellerListingCard } from "./seller-listing-card";
 
 function pageFromSearchParams(searchParams: URLSearchParams): number {
   const parsed = Number.parseInt(searchParams.get("page") ?? "1", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
-function storeInventoryPath(
-  storeId: string,
+function sellerInventoryPath(
+  sellerId: string,
   q?: string,
   page = 1,
 ): string {
@@ -26,14 +26,14 @@ function storeInventoryPath(
   if (trimmed) params.set("q", trimmed);
   if (page > 1) params.set("page", String(page));
   const qs = params.toString();
-  return qs ? `/stores/${storeId}?${qs}` : `/stores/${storeId}`;
+  return qs ? `/seller/${sellerId}?${qs}` : `/seller/${sellerId}`;
 }
 
-type StoreInventoryProps = {
-  storeId: string;
+type SellerInventoryProps = {
+  sellerId: string;
 };
 
-export function StoreInventory({ storeId }: StoreInventoryProps) {
+export function SellerInventory({ sellerId }: SellerInventoryProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const qFromUrl = searchParams.get("q") ?? "";
@@ -62,9 +62,9 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
     setPagination,
     totalPages,
   } = usePagination<PublicCatalogSellerBook>({
-    queryKey: ["store-inventory", storeId],
+    queryKey: ["seller-inventory", sellerId],
     getUrl: ({ page, size, search: q }) =>
-      readPublicStoreInventory(storeId, {
+      readPublicSellerCatalog(sellerId, {
         page,
         size,
         filter: q ? { search: q as string } : undefined,
@@ -85,16 +85,16 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
   useEffect(() => {
     if (debouncedSearch === qFromUrl) return;
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    router.replace(storeInventoryPath(storeId, debouncedSearch), {
+    router.replace(sellerInventoryPath(sellerId, debouncedSearch), {
       scroll: false,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see books catalog pattern
-  }, [debouncedSearch, router, setPagination, storeId]);
+  }, [debouncedSearch, router, setPagination, sellerId]);
 
   function goToPage(pageIndex: number) {
     setPagination((prev) => ({ ...prev, pageIndex }));
     router.replace(
-      storeInventoryPath(storeId, debouncedSearch, pageIndex + 1),
+      sellerInventoryPath(sellerId, debouncedSearch, pageIndex + 1),
       { scroll: false },
     );
   }
@@ -117,7 +117,7 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
             value={search}
             onChange={setSearch}
             onSubmitQuery={onSubmitQuery}
-            placeholder="Search this store by title…"
+            placeholder="Search this storefront by title…"
           />
         </div>
       ) : null}
@@ -131,8 +131,8 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
           <div className="py-20 text-center">
             <p className="text-muted-foreground">
               {debouncedSearch
-                ? "No matching titles in this store. Try a different search."
-                : "This store has no books listed yet."}
+                ? "No matching titles in this storefront. Try a different search."
+                : "This storefront has no books listed yet."}
             </p>
           </div>
         ) : (
@@ -140,7 +140,7 @@ export function StoreInventory({ storeId }: StoreInventoryProps) {
             <ul className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
               {listings.map((listing, i) => (
                 <li key={listing.id}>
-                  <StoreListingCard listing={listing} animationDelay={i * 50} />
+                  <SellerListingCard listing={listing} animationDelay={i * 50} />
                 </li>
               ))}
             </ul>

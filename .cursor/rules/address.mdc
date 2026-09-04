@@ -16,7 +16,7 @@ addresses:
       - id: MDC-FE-ADDRESS-2
         assertion: delivery_phone_is_distinct_from_account_phone
 
-  business_locations:
+  seller_locations:
     api: /seller-addresses
     context: SELLER
     ui:
@@ -31,13 +31,13 @@ addresses:
 
     invariants:
       - id: MDC-FE-ADDRESS-3
-        assertion: store_locations_require_business_context
+        assertion: store_locations_require_seller_context
 
       - id: MDC-FE-ADDRESS-4
-        assertion: location_mutations_require_update_business
+        assertion: location_mutations_require_update_seller
 
       - id: MDC-FE-ADDRESS-6
-        assertion: at_most_one_pickup_location_per_business
+        assertion: at_most_one_pickup_location_per_seller
 
   checkout:
     ui:

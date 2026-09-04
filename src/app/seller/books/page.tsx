@@ -18,11 +18,11 @@ function formatCount(value: number) {
 
 export default function BooksPage() {
   const globalBooks = useGlobalBooks();
-  const businessBooks = useSellerBooks();
+  const sellerBooks = useSellerBooks();
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const selectedInventory = businessBooks.businessBooks.filter((b) =>
+  const selectedInventory = sellerBooks.sellerBooks.filter((b) =>
     selectedIds.has(b.id),
   );
   const selectedGlobal = globalBooks.books.filter((b) => selectedIds.has(b.id));
@@ -67,11 +67,11 @@ export default function BooksPage() {
             <InventoryTable
               selectedIds={selectedIds}
               onSelectId={setSelectedIds}
-              books={businessBooks.businessBooks}
-              isLoading={businessBooks.isLoading}
-              pagination={businessBooks.pagination}
-              setPagination={businessBooks.setPagination}
-              totalPages={businessBooks.totalPages}
+              books={sellerBooks.sellerBooks}
+              isLoading={sellerBooks.isLoading}
+              pagination={sellerBooks.pagination}
+              setPagination={sellerBooks.setPagination}
+              totalPages={sellerBooks.totalPages}
             />
           </TabsContent>
           <TabsContent value="global" className="mt-4">
@@ -97,7 +97,7 @@ export default function BooksPage() {
         onHeightChange={setDetailsPanelHeightPx}
       >
         {activeTab === "inventory" && singleInventory ? (
-          <InventoryDetails businessBook={singleInventory} />
+          <InventoryDetails sellerBook={singleInventory} />
         ) : singleGlobal ? (
           <GlobalBookDetails book={singleGlobal} />
         ) : null}
@@ -106,8 +106,8 @@ export default function BooksPage() {
   );
 }
 
-function InventoryDetails({ businessBook }: { businessBook: SellerBook }) {
-  const image = businessBook.image ?? businessBook.book_image;
+function InventoryDetails({ sellerBook }: { sellerBook: SellerBook }) {
+  const image = sellerBook.image ?? sellerBook.book_image;
 
   return (
     <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
@@ -122,28 +122,28 @@ function InventoryDetails({ businessBook }: { businessBook: SellerBook }) {
         <div>
           <span className="text-muted-foreground">Title</span>
           <p className="font-medium">
-            {businessBook.book_title ?? businessBook.book_id}
+            {sellerBook.book_title ?? sellerBook.book_id}
           </p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <div>
             <span className="text-muted-foreground">Variants</span>
             <p className="tabular-nums">
-              {formatCount(businessBook.variant_count ?? 0)}
+              {formatCount(sellerBook.variant_count ?? 0)}
             </p>
           </div>
           <div>
             <span className="text-muted-foreground">From</span>
             <p className="tabular-nums">
-              {businessBook.min_price != null
-                ? formatPrice(businessBook.min_price)
+              {sellerBook.min_price != null
+                ? formatPrice(sellerBook.min_price)
                 : "—"}
             </p>
           </div>
           <div>
             <span className="text-muted-foreground">Stock</span>
             <p className="tabular-nums">
-              {formatCount(businessBook.total_stock ?? 0)}
+              {formatCount(sellerBook.total_stock ?? 0)}
             </p>
           </div>
         </div>
@@ -151,15 +151,15 @@ function InventoryDetails({ businessBook }: { businessBook: SellerBook }) {
           <span className="text-muted-foreground">Status</span>
           <p>
             <StatusBadge
-              status={businessBook.status}
-              label={listingStatusLabel(businessBook.status)}
+              status={sellerBook.status}
+              label={listingStatusLabel(sellerBook.status)}
             />
           </p>
         </div>
-        {businessBook.synopsis ? (
+        {sellerBook.synopsis ? (
           <div>
             <span className="text-muted-foreground">Synopsis</span>
-            <p className="line-clamp-4">{businessBook.synopsis}</p>
+            <p className="line-clamp-4">{sellerBook.synopsis}</p>
           </div>
         ) : null}
       </div>

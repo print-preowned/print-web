@@ -16,10 +16,10 @@ payout_accounts:
 
   invariants:
     - id: MDC-FE-PAYOUT-1
-      assertion: payout_settings_require_business_context
+      assertion: payout_settings_require_seller_context
 
     - id: MDC-FE-PAYOUT-2
-      assertion: payout_mutations_require_update_business
+      assertion: payout_mutations_require_update_seller
 
     - id: MDC-FE-PAYOUT-3
       assertion: psa_tokens_not_shown_to_customers

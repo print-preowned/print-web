@@ -9,7 +9,7 @@ import { Info } from "lucide-react";
 
 /**
  * Explains how sellers can request global book updates (merge, name change).
- * Per MDC: businesses cannot mutate canonical books; platform handles merges/corrections.
+ * Per MDC: sellers cannot mutate canonical books; platform handles merges/corrections.
  */
 export function RequestBookUpdateNote() {
   return (

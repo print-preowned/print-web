@@ -21,7 +21,7 @@ type OrderDetailResponse = {
   data: SellerOrderDetail;
 };
 
-type UpdateBusinessOrderStatusInput = {
+type UpdateSellerOrderStatusInput = {
   orderId: string;
   status: OrderFulfillmentStatus;
 };
@@ -35,7 +35,7 @@ export function useUpdateSellerOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ orderId, status }: UpdateBusinessOrderStatusInput) => {
+    mutationFn: async ({ orderId, status }: UpdateSellerOrderStatusInput) => {
       const req = updateSellerOrderStatus(orderId, status);
       return apiFetch(req.endpoint, {
         method: req.method,
@@ -47,7 +47,7 @@ export function useUpdateSellerOrderStatus() {
       await queryClient.cancelQueries({ queryKey: ["seller-orders"] });
 
       const previousDetail = queryClient.getQueryData<OrderDetailResponse>([
-        "business-order",
+        "seller-order",
         orderId,
       ]);
       const previousLists = queryClient.getQueriesData<

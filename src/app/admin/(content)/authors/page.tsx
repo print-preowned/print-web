@@ -33,7 +33,7 @@ type AuthorCSVRow = {
   status?: string;
 };
 
-// Dummy author records for business display
+// Dummy author records for admin display
 const dummyAuthors: Author[] = [
   {
     id: "dummy-1",

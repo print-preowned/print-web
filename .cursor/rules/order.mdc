@@ -9,7 +9,7 @@ alwaysApply: true
           - READ_OWN_ORDER
           - OPEN_DISPUTE
           - READ_OWN_DISPUTES
-      BUSINESS:
+      SELLER:
         allowed:
           - READ_ORDER
           - UPDATE_ORDER_STATUS

@@ -6,8 +6,8 @@ import { apiFetch } from "@/lib/api";
 import { Seller, readSellerById, updateSeller } from "@/lib/api/seller";
 import type { HttpMethod } from "@/lib/api";
 import { toast } from "sonner";
-import { BusinessDetailsForm } from "./business-details-form";
-import { BusinessLocationsList } from "./business-locations-list";
+import { SellerDetailsForm } from "./seller-details-form";
+import { SellerLocationsList } from "./seller-locations-list";
 import { LegalEntityForm } from "./legal-entity-form";
 import { PayoutAccountPanel } from "./payout-account-panel";
 
@@ -18,10 +18,10 @@ export default function SellerAccountPage() {
   const isOwner = useIsOwner();
   const queryClient = useQueryClient();
 
-  const businessKey = ["seller", sellerId] as const;
+  const sellerKey = ["seller", sellerId] as const;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: businessKey,
+    queryKey: sellerKey,
     queryFn: () => apiFetch(readSellerById(sellerId!)) as Promise<SellerResponse>,
     enabled: !!sellerId,
   });
@@ -32,20 +32,20 @@ export default function SellerAccountPage() {
       return apiFetch(endpoint, { method: method as HttpMethod, body });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: businessKey });
-      toast.success("Business details updated");
+      queryClient.invalidateQueries({ queryKey: sellerKey });
+      toast.success("Storefront details updated");
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to update business");
+      toast.error(err.message ?? "Failed to update storefront");
     },
   });
 
-  const business = data?.data;
+  const seller = data?.data;
 
   if (!sellerId) {
     return (
       <div className="space-y-4">
-        <p className="text-muted-foreground">No business context. Switch to a business to manage its details.</p>
+        <p className="text-muted-foreground">No seller context. Switch to a storefront to manage its details.</p>
       </div>
     );
   }
@@ -58,10 +58,10 @@ export default function SellerAccountPage() {
     );
   }
 
-  if (error || !business) {
+  if (error || !seller) {
     return (
       <div className="space-y-4">
-        <p className="text-destructive">Failed to load business details.</p>
+        <p className="text-destructive">Failed to load storefront details.</p>
       </div>
     );
   }
@@ -69,38 +69,38 @@ export default function SellerAccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-muted-foreground">Manage your business details.</p>
+        <p className="text-muted-foreground">Manage your storefront details.</p>
       </div>
 
       {isOwner ? (
-        <BusinessDetailsForm
-          business={business}
+        <SellerDetailsForm
+          seller={seller}
           onSubmit={(values) => updateMutation.mutate(values)}
           isPending={updateMutation.isPending}
         />
       ) : (
         <div className="rounded-lg border bg-muted/30 p-4 text-muted-foreground">
-          Only the business owner can edit these details. You can view them below.
+          Only the storefront owner can edit these details. You can view them below.
           <dl className="mt-3 grid gap-1 text-sm">
             <div>
               <dt className="font-medium text-foreground">Name</dt>
-              <dd>{business.name}</dd>
+              <dd>{seller.name}</dd>
             </div>
-            {business.description && (
+            {seller.description && (
               <div>
                 <dt className="font-medium text-foreground">Description</dt>
-                <dd>{business.description}</dd>
+                <dd>{seller.description}</dd>
               </div>
             )}
             <div>
               <dt className="font-medium text-foreground">Status</dt>
-              <dd>{business.status}</dd>
+              <dd>{seller.status}</dd>
             </div>
           </dl>
         </div>
       )}
 
-      <BusinessLocationsList />
+      <SellerLocationsList />
 
       <LegalEntityForm />
 

@@ -5,7 +5,7 @@ const PREFIX_TITLES: [string, string][] = [
   ["/admin/users/invite", "Invite user"],
   ["/admin/invite/accept", "Accept invite"],
   ["/admin/invite/reject", "Decline invite"],
-  ["/seller/businesses", "Storefronts"],
+  ["/seller/accounts", "Accounts"],
   ["/seller/privileges", "Privileges"],
   ["/seller/dashboard", "Dashboard"],
   ["/seller/books", "Books"],

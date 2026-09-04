@@ -7,13 +7,13 @@ import {
   PublicSellerProfile,
   readPublicSellerProfile,
 } from "@customer/api";
-import { StoreInventory } from "./store-inventory";
+import { SellerInventory } from "./seller-inventory";
 
-type StorefrontResponse = { data?: PublicSellerProfile };
+type SellerProfileResponse = { data?: PublicSellerProfile };
 
-async function getStoreProfile(id: string): Promise<PublicSellerProfile | null> {
+async function getSellerProfile(id: string): Promise<PublicSellerProfile | null> {
   try {
-    const res = await apiFetch<StorefrontResponse>(readPublicSellerProfile(id));
+    const res = await apiFetch<SellerProfileResponse>(readPublicSellerProfile(id));
     return res.data ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
@@ -21,14 +21,14 @@ async function getStoreProfile(id: string): Promise<PublicSellerProfile | null> 
   }
 }
 
-export default async function StorePage({
+export default async function SellerPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const store = await getStoreProfile(id);
-  if (!store) notFound();
+  const seller = await getSellerProfile(id);
+  if (!seller) notFound();
 
   return (
     <div className="storefront-paper min-h-[70vh]">
@@ -43,9 +43,9 @@ export default async function StorePage({
 
         <header className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden bg-muted sm:h-24 sm:w-24">
-            {store.logo ? (
+            {seller.logo ? (
               <img
-                src={store.logo}
+                src={seller.logo}
                 alt=""
                 className="h-full w-full object-cover"
               />
@@ -56,11 +56,11 @@ export default async function StorePage({
 
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-              {store.name}
+              {seller.name}
             </h1>
-            {store.description ? (
+            {seller.description ? (
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                {store.description}
+                {seller.description}
               </p>
             ) : (
               <p className="mt-3 text-muted-foreground">
@@ -72,7 +72,7 @@ export default async function StorePage({
 
         <section className="mt-12">
           <h2 className="font-display text-2xl font-bold tracking-tight">
-            {store.name}&apos;s books
+            {seller.name}&apos;s books
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Browse titles available from this seller
@@ -85,7 +85,7 @@ export default async function StorePage({
               </div>
             }
           >
-            <StoreInventory storeId={id} />
+            <SellerInventory sellerId={id} />
           </Suspense>
         </section>
       </div>

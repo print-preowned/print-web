@@ -23,32 +23,32 @@ const schema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
-export type BusinessDetailsFormValues = z.infer<typeof schema>;
+export type SellerDetailsFormValues = z.infer<typeof schema>;
 
-type BusinessDetailsFormProps = {
-  business: Seller;
-  onSubmit: (values: BusinessDetailsFormValues) => void;
+type SellerDetailsFormProps = {
+  seller: Seller;
+  onSubmit: (values: SellerDetailsFormValues) => void;
   isPending?: boolean;
 };
 
-export function BusinessDetailsForm({
-  business,
+export function SellerDetailsForm({
+  seller,
   onSubmit,
   isPending = false,
-}: BusinessDetailsFormProps) {
+}: SellerDetailsFormProps) {
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
-  } = useForm<BusinessDetailsFormValues>({
+  } = useForm<SellerDetailsFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: business.name,
-      description: business.description ?? "",
-      logo: business.logo ?? "",
-      status: (business.status === "ACTIVE" || business.status === "INACTIVE" ? business.status : "ACTIVE") as "ACTIVE" | "INACTIVE",
+      name: seller.name,
+      description: seller.description ?? "",
+      logo: seller.logo ?? "",
+      status: (seller.status === "ACTIVE" || seller.status === "INACTIVE" ? seller.status : "ACTIVE") as "ACTIVE" | "INACTIVE",
     },
   });
 
@@ -57,11 +57,11 @@ export function BusinessDetailsForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl space-y-6 rounded-lg border bg-card p-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Business name</Label>
+        <Label htmlFor="name">Storefront name</Label>
         <Input
           id="name"
           {...register("name")}
-          placeholder="Business name"
+          placeholder="Storefront name"
           className={errors.name ? "border-destructive" : ""}
         />
         {errors.name && (
@@ -74,7 +74,7 @@ export function BusinessDetailsForm({
         <Textarea
           id="description"
           {...register("description")}
-          placeholder="Short description of your business"
+          placeholder="Short description of your storefront"
           rows={4}
           className={errors.description ? "border-destructive" : ""}
         />

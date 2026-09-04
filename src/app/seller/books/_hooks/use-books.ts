@@ -65,7 +65,7 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
 }
 
 export interface UseSellerBooksReturn {
-  businessBooks: SellerBook[];
+  sellerBooks: SellerBook[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -78,7 +78,7 @@ export function useSellerBooks(): UseSellerBooksReturn {
   const sellerId = useSellerId();
 
   const {
-    data: businessBooks,
+    data: sellerBooks,
     isLoading,
     pagination,
     setPagination,
@@ -95,7 +95,7 @@ export function useSellerBooks(): UseSellerBooksReturn {
   });
 
   return {
-    businessBooks,
+    sellerBooks,
     isLoading,
     pagination,
     setPagination,

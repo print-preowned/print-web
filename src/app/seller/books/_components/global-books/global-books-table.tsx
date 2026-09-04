@@ -166,7 +166,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   if (!sellerId) {
     return (
       <p className="text-muted-foreground text-sm">
-        Switch to a business context to add books to your inventory.
+        Switch to a seller context to add books to your inventory.
       </p>
     );
   }

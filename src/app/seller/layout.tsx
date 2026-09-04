@@ -39,8 +39,8 @@ const sidebarData = {
       icon: IconUsers,
     },
     {
-      title: "Storefronts",
-      url: "/seller/businesses",
+      title: "Accounts",
+      url: "/seller/accounts",
       icon: IconBuildingStore,
     },
   ],

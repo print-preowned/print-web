@@ -9,7 +9,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "@/components/status-badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
-import { BusinessForm } from "./form";
+import { SellerForm } from "./seller-form";
 import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { useAuth, useSellerId } from "@/lib/auth/context";
@@ -17,7 +17,7 @@ import { useSwitchContext } from "@/components/context-switcher";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function BusinessesTable() {
+export function SellerAccountsTable() {
   const router = useRouter();
   const { session, refreshSession } = useAuth();
   const currentSellerId = useSellerId();
@@ -121,8 +121,8 @@ export function BusinessesTable() {
                       title: "Edit storefront",
                       description: "Update storefront details",
                       children: (
-                        <BusinessForm
-                          business={row.original}
+                        <SellerForm
+                          seller={row.original}
                           onCancel={closeDrawer}
                           onSuccess={handleFormSuccess}
                         />
@@ -177,10 +177,10 @@ export function BusinessesTable() {
           <Button
             onClick={() =>
               openDrawer({
-                title: "New storefront",
-                description: "Create another storefront on your legal profile",
+                title: "New account",
+                description: "Create another seller account on your legal profile",
                 children: (
-                  <BusinessForm
+                  <SellerForm
                     onCancel={closeDrawer}
                     onSuccess={handleFormSuccess}
                   />
@@ -189,7 +189,7 @@ export function BusinessesTable() {
             }
           >
             <PlusCircleIcon className="size-4" />
-            Add storefront
+            Add account
           </Button>
         </div>
       </DataTable>

@@ -49,11 +49,11 @@ function createRow(): VariantRow {
 }
 
 export function AddVariantForm({
-  businessBook,
+  sellerBook,
   onSuccess,
   onCancel,
 }: {
-  businessBook: SellerBook;
+  sellerBook: SellerBook;
   onSuccess?: () => void;
   onCancel?: () => void;
 }) {
@@ -145,7 +145,7 @@ export function AddVariantForm({
   const createMutation = useApiMutation({
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: variantKeys.bySellerBook(businessBook.id),
+        queryKey: variantKeys.bySellerBook(sellerBook.id),
       });
       void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
       toast.success("Variant added");
@@ -178,7 +178,7 @@ export function AddVariantForm({
     if (discount != null && (Number.isNaN(discount) || discount < 0)) {
       throw new Error("Enter a valid discount or leave blank");
     }
-    return createVariant(businessBook.id, {
+    return createVariant(sellerBook.id, {
       variant_option_ids: optionIds,
       stock,
       price,
@@ -214,7 +214,7 @@ export function AddVariantForm({
     >
       <p className="text-muted-foreground text-xs font-medium">
         New variant for{" "}
-        <strong>{businessBook.book_title ?? businessBook.book_id}</strong>
+        <strong>{sellerBook.book_title ?? sellerBook.book_id}</strong>
       </p>
 
       <div className="grid gap-3">

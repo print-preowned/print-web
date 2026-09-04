@@ -6,7 +6,7 @@ alwaysApply: true
       CUSTOMER:
         allowed:
           - READ_PUBLIC_VARIANTS
-      BUSINESS:
+      SELLER:
         allowed:
           - READ_VARIANT
           - CREATE_VARIANT
@@ -35,7 +35,7 @@ alwaysApply: true
 
     invariants:
       - id: MDC-VARIANT-1
-        assertion: variants_are_business_scoped
+        assertion: variants_are_seller_scoped
 
       - id: MDC-VARIANT-2
-        assertion: variant_mutation_requires_business_context
+        assertion: variant_mutation_requires_seller_context

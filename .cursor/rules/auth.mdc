@@ -23,7 +23,7 @@ rules:
     - id: MDC-IDENTITY-2
       type: prohibition
       forbid:
-        - separate_business_login
+        - separate_seller_login
         - separate_customer_login
 
   context:
@@ -47,17 +47,17 @@ rules:
       - id: MDC-TOKEN-C-1
         type: prohibition
         forbid_fields:
-          - biz
+          - seller
           - privileges
           - role
 
-    business:
+    seller:
       - id: MDC-TOKEN-B-1
         type: requirement
         require_fields:
           - privileges
-          - business.id
-          - business.is_owner
+          - seller.id
+          - seller.is_owner
 
       - id: MDC-TOKEN-B-2
         type: invariant
@@ -70,12 +70,12 @@ rules:
 
     - id: MDC-OWNER-2
       type: invariant
-      assertion: single_owner_per_business
+      assertion: single_owner_per_seller
 
     - id: MDC-OWNER-3
       type: requirement
       require_flag:
-        field: biz.is_owner
+        field: seller.is_owner
         for_actions:
           - DELETE_SELLER
           - TRANSFER_OWNERSHIP

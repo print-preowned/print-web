@@ -9,6 +9,9 @@
 
 import { TokenContext } from "./token";
 
+const PUBLIC_SELLER_SHOP =
+  /^\/seller\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/.*)?$/i;
+
 export interface RouteConfig {
   /** If true, route requires a valid token; if false/omitted, route is public */
   requireAuth?: boolean;
@@ -38,7 +41,7 @@ export const routeConfig: Record<string, RouteConfig> = {
   // Customer routes (public access - e-commerce site)
   "/books": { requiredContext: "CUSTOMER" },
   "/books/*": { requiredContext: "CUSTOMER" },
-  "/stores/*": { requiredContext: "CUSTOMER" },
+  // Public seller shop (/seller/{uuid}) is matched in getRouteConfig.
   "/cart": {},
   "/checkout": {
     requireAuth: true,
@@ -101,8 +104,8 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/login",
   },
 
-  // Seller businesses (require SELLER context, owner for delete)
-  "/seller/businesses": {
+  // Seller accounts list
+  "/seller/accounts": {
     requireAuth: true,
     requiredContext: "SELLER",
     redirectTo: "/login",
@@ -116,7 +119,7 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/login",
   },
 
-  // Seller account (business details; edit requires owner)
+  // Seller account (current seller details; edit requires owner)
   "/seller/account": {
     requireAuth: true,
     requiredContext: "SELLER",
@@ -198,6 +201,11 @@ export function getRouteConfig(pathname: string): RouteConfig | null {
   // Exact match first
   if (routeConfig[pathname]) {
     return routeConfig[pathname];
+  }
+
+  // Public shop: /seller/{uuid} must not inherit /seller/* SELLER auth
+  if (PUBLIC_SELLER_SHOP.test(pathname)) {
+    return { requiredContext: "CUSTOMER" };
   }
 
   // Wildcard matching

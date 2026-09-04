@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CreateSellerForm } from "@/components/businesses/create-form";
+import { CreateSellerForm } from "@/components/sellers/seller-create-form";
 
 export default function AccountPage() {
   const [isCreating, setIsCreating] = useState(false);

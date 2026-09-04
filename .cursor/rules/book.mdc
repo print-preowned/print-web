@@ -7,7 +7,7 @@ modules:
       CUSTOMER:
         allowed:
           - READ_PUBLIC_BOOK
-      BUSINESS:
+      SELLER:
         allowed:
           - READ_BOOK
           - CREATE_BOOK
@@ -21,7 +21,7 @@ modules:
 
       READ_BOOK:
         context: SELLER
-        description: Read book data within a business
+        description: Read book data within a storefront
 
       CREATE_BOOK:
         context: SELLER
@@ -35,7 +35,7 @@ modules:
 
     invariants:
       - id: MDC-BOOK-1
-        assertion: book_visibility_is_public_or_business_scoped
+        assertion: book_visibility_is_public_or_seller_scoped
 
       - id: MDC-BOOK-2
         assertion: deleting_book_requires_owner

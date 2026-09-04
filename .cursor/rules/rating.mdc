@@ -7,7 +7,7 @@ alwaysApply: true
         allowed:
           - CREATE_RATING
           - READ_PUBLIC_RATING
-      BUSINESS:
+      SELLER:
         allowed:
           - READ_RATING
           - MODERATE_RATING

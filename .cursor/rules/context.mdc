@@ -46,7 +46,7 @@ mdc_client_context_switching:
     switch_to_customer:
       endpoint: POST /auth/context/customer
       input_token:
-        allowed_contexts: [BUSINESS]
+        allowed_contexts: [SELLER]
       output:
         type: access_token
         context: CUSTOMER
@@ -72,7 +72,7 @@ mdc_client_context_switching:
         required:
           - api_cache
           - derived_state
-          - business_scoped_state
+          - seller_scoped_state
 
       - id: CS-STEP-5
         action: resume_network_requests
@@ -90,7 +90,7 @@ mdc_client_context_switching:
       type: prohibition
       forbid:
         - reusing_cached_privileges
-        - persisting_business_state_across_contexts
+        - persisting_seller_state_across_contexts
 
   routing_rules:
     - id: MDC-CS-ROUTE-1
@@ -132,15 +132,15 @@ mdc_client_context_switching:
 
   prohibited_patterns:
     - reuse_token_across_contexts
-    - allow_multiple_business_contexts
+    - allow_multiple_seller_contexts
     - silent_context_fallback
     - privilege_mutation_on_client
-    - business_ui_with_customer_token
+    - seller_ui_with_customer_token
 
   tests:
     must_pass:
-      - customer_to_business_token_replacement
-      - business_a_to_business_b_token_replacement
+      - customer_to_seller_token_replacement
+      - seller_a_to_seller_b_token_replacement
       - cache_invalidated_on_switch
       - ui_rehydrated_from_token
       - route_guard_re_evaluated

@@ -82,8 +82,8 @@ export function addToCart(input: CartLine): AddToCartResult {
 
   if (lines.length > 0) {
     const cartSellerId = lines[0]?.sellerId ?? null;
-    const incomingBusinessId = input.sellerId ?? null;
-    if (cartSellerId !== incomingBusinessId) {
+    const incomingSellerId = input.sellerId ?? null;
+    if (cartSellerId !== incomingSellerId) {
       return {
         ok: false,
         reason: "mixed_seller",

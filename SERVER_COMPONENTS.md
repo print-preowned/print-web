@@ -204,7 +204,7 @@ components read public catalog data through `apiFetch`, and the marker would
 break the build:
 
 - `src/app/(customer)/page.tsx`
-- `src/app/(customer)/stores/[id]/page.tsx`
+- `src/app/(customer)/seller/[id]/page.tsx`
 - `src/app/(customer)/books/[id]/page.tsx`
 
 The gap this leaves: a server component that calls `apiFetch` against an

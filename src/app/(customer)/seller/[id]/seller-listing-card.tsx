@@ -5,17 +5,17 @@ import {
 } from "@customer/api";
 import { cn } from "@/lib/utils";
 
-type StoreListingCardProps = {
+type SellerListingCardProps = {
   listing: PublicCatalogSellerBook;
   animationDelay?: number;
   className?: string;
 };
 
-export function StoreListingCard({
+export function SellerListingCard({
   listing,
   animationDelay,
   className,
-}: StoreListingCardProps) {
+}: SellerListingCardProps) {
   const author = listing.author_names[0];
   const href = `/books/${listing.book_id}?listing=${listing.id}#buy`;
 
