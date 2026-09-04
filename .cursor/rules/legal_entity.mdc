@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+legal_entities:
+  api: /legal-entities
+  context: BUSINESS
+  ui:
+    - /seller/account
+  copy: Legal profile
+
+  privileges:
+    READ_BUSINESS:
+      context: BUSINESS
+    owner:
+      mutations: true
+
+  invariants:
+    - id: MDC-FE-LEGAL-1
+      assertion: legal_profile_requires_business_context
+
+    - id: MDC-FE-LEGAL-2
+      assertion: legal_profile_mutations_require_owner
+
+    - id: MDC-FE-LEGAL-3
+      assertion: government_ids_not_shown_on_customer_pages
+
+    - id: MDC-FE-LEGAL-4
+      assertion: individual_or_company_inferred_from_bvn_or_cac

@@ -20,20 +20,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { HttpMethod } from "@/lib/api";
 import { apiFetch } from "@/lib/api";
 import {
-  createBusinessPayoutAccount,
+  createPayoutAccount,
   maskAccountNumber,
   readBanks,
-  readCurrentBusinessPayoutAccount,
+  readCurrentPayoutAccount,
   resolveBankAccount,
   type Bank,
-  type BusinessPayoutAccount,
+  type PayoutAccount,
 } from "@/lib/api/payout-account";
 import { usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { getStatusDisplay } from "@/lib/status-display";
 
 type BankListResponse = { data: Bank[] };
-type CurrentPayoutResponse = { data: BusinessPayoutAccount };
+type CurrentPayoutResponse = { data: PayoutAccount };
 type ResolveResponse = {
   data: { bank_code: string; account_number: string; account_name: string };
 };
@@ -43,7 +43,7 @@ export function PayoutAccountPanel() {
   const canRead = usePrivilege("READ_BUSINESS");
   const canManage = usePrivilege("UPDATE_BUSINESS");
 
-  const currentKey = readCurrentBusinessPayoutAccount();
+  const currentKey = readCurrentPayoutAccount();
   const banksKey = readBanks();
 
   const [bankCode, setBankCode] = useState("");
@@ -69,7 +69,7 @@ export function PayoutAccountPanel() {
   const banks = banksData?.data ?? [];
   const currentAccount = currentData?.data ?? null;
   const currentAccountStatus = currentAccount
-    ? getStatusDisplay(currentAccount.account_status)
+    ? getStatusDisplay(currentAccount.status)
     : null;
 
   const bankOptions = useMemo(
@@ -121,7 +121,7 @@ export function PayoutAccountPanel() {
       if (!resolvedName) {
         throw new Error("Verify the account before saving");
       }
-      const { endpoint, method, body } = createBusinessPayoutAccount({
+      const { endpoint, method, body } = createPayoutAccount({
         bank_code: bankCode,
         account_number: digits,
         account_name: resolvedName,
@@ -130,7 +130,7 @@ export function PayoutAccountPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [currentKey] });
-      queryClient.invalidateQueries({ queryKey: [readCurrentBusinessPayoutAccount()] });
+      queryClient.invalidateQueries({ queryKey: [readCurrentPayoutAccount()] });
       setAccountNumber("");
       setBankCode("");
       setResolvedName(null);
@@ -175,7 +175,7 @@ export function PayoutAccountPanel() {
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-medium">{currentAccount.account_name}</p>
               <Badge variant={currentAccountStatus?.variant ?? "outline"}>
-                {currentAccountStatus?.label ?? currentAccount.account_status}
+                {currentAccountStatus?.label ?? currentAccount.status}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ export function PayoutAccountPanel() {
               {" · "}
               {maskAccountNumber(currentAccount.account_number)}
             </p>
-            {currentAccount.account_status !== "ACTIVE" ? (
+            {currentAccount.status !== "ACTIVE" ? (
               <p className="text-sm text-amber-700 dark:text-amber-400">
                 Payouts are not enabled until this account is active.
               </p>

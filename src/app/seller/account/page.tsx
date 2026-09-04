@@ -8,6 +8,7 @@ import type { HttpMethod } from "@/lib/api";
 import { toast } from "sonner";
 import { BusinessDetailsForm } from "./business-details-form";
 import { BusinessLocationsList } from "./business-locations-list";
+import { LegalEntityForm } from "./legal-entity-form";
 import { PayoutAccountPanel } from "./payout-account-panel";
 
 type BusinessResponse = { data: Business; message?: string; status_code?: number };
@@ -100,6 +101,8 @@ export default function SellerAccountPage() {
       )}
 
       <BusinessLocationsList />
+
+      <LegalEntityForm />
 
       <PayoutAccountPanel />
     </div>

@@ -3,6 +3,7 @@ import { generateUrl } from ".";
 export type Business = {
   id: string;
   user_id: string;
+  legal_entity_id?: string;
   name: string;
   description?: string | null;
   logo?: string | null;

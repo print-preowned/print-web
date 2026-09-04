@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+payout_accounts:
+  api: /payout-accounts
+  context: BUSINESS
+  ui:
+    - /seller/account
+  copy: Payout account
+
+  privileges:
+    READ_BUSINESS:
+      context: BUSINESS
+    UPDATE_BUSINESS:
+      context: BUSINESS
+
+  invariants:
+    - id: MDC-FE-PAYOUT-1
+      assertion: payout_settings_require_business_context
+
+    - id: MDC-FE-PAYOUT-2
+      assertion: payout_mutations_require_update_business
+
+    - id: MDC-FE-PAYOUT-3
+      assertion: psa_tokens_not_shown_to_customers
