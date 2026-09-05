@@ -209,7 +209,7 @@ export async function openOrderDispute(
   orderId: string,
   payload: OrderDisputeCreatePayload,
 ) {
-  return apiFetch<BaseResponse<OrderDispute>>(
+  return apiFetch<BaseResponse<OrderDispute[]>>(
     `/orders/${orderId}/disputes`,
     {
       method: "POST",

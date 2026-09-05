@@ -241,7 +241,7 @@ export default async function OrderConfirmationPage({
               <OrderOpenDisputeButton
                 orderId={order.id}
                 canOpenDispute={Boolean(
-                  order.seller_orders?.[0]?.can_open_dispute,
+                  order.seller_orders?.some((child) => child.can_open_dispute),
                 )}
               />
               <OrderCancelButton
