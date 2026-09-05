@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
 import {
-  OrderSummary,
+  SellerOrderSummary,
   readSellerOrders,
 } from "@/lib/api/order";
 import { apiFetch } from "@/lib/api";
@@ -28,7 +28,7 @@ export function OrdersTable() {
   const [page, setPage] = useState(1);
   const hasReadOrder = usePrivilege("READ_ORDER");
 
-  const query = useQuery<PaginatedResponse<OrderSummary>>({
+  const query = useQuery<PaginatedResponse<SellerOrderSummary>>({
     queryKey: ["seller-orders", page],
     queryFn: () =>
       apiFetch(readSellerOrders({ page, size: 10 })),
@@ -38,7 +38,7 @@ export function OrdersTable() {
   const data = query.data?.data ?? [];
   const totalPages = query.data?.pagination?.total_pages ?? 1;
 
-  const columns: ColumnDef<OrderSummary>[] = [
+  const columns: ColumnDef<SellerOrderSummary>[] = [
     {
       accessorKey: "reference",
       header: "Reference",

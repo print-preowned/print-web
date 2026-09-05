@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import {
   SellerOrderDetail,
+  SellerOrderSummary,
   OrderFulfillmentStatus,
-  OrderSummary,
   updateSellerOrderStatus,
 } from "@/lib/api/order";
 import { PaginatedResponse } from "@/lib/model";
@@ -28,7 +28,7 @@ type UpdateSellerOrderStatusInput = {
 
 type MutationContext = {
   previousDetail?: OrderDetailResponse;
-  previousLists: Array<[QueryKey, PaginatedResponse<OrderSummary> | undefined]>;
+  previousLists: Array<[QueryKey, PaginatedResponse<SellerOrderSummary> | undefined]>;
 };
 
 export function useUpdateSellerOrderStatus() {
@@ -51,7 +51,7 @@ export function useUpdateSellerOrderStatus() {
         orderId,
       ]);
       const previousLists = queryClient.getQueriesData<
-        PaginatedResponse<OrderSummary>
+        PaginatedResponse<SellerOrderSummary>
       >({ queryKey: ["seller-orders"] });
 
       if (previousDetail?.data) {
@@ -64,7 +64,7 @@ export function useUpdateSellerOrderStatus() {
         );
       }
 
-      queryClient.setQueriesData<PaginatedResponse<OrderSummary>>(
+      queryClient.setQueriesData<PaginatedResponse<SellerOrderSummary>>(
         { queryKey: ["seller-orders"] },
         (current) => {
           if (!current?.data) return current;

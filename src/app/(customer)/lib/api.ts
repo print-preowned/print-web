@@ -75,6 +75,7 @@ export function readPublicSellerBookById(id: string) {
 export type OrderItem = {
   id: string;
   order_id: string;
+  seller_order_id: string;
   variant_id: string;
   quantity: number;
   unit_price: number;
@@ -105,6 +106,19 @@ export type OrderFulfillmentAddress = {
 
 export type OrderPaymentStatus = "NONE" | "PENDING" | "PAID" | "REFUNDED";
 
+export type SellerOrder = {
+  id: string;
+  order_id: string;
+  seller_id: string;
+  seller_name: string;
+  total_amount: number;
+  status: string;
+  fulfillment_address?: OrderFulfillmentAddress | null;
+  can_open_dispute?: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Order = {
   id: string;
   user_id: string;
@@ -113,15 +127,12 @@ export type Order = {
   total_amount: number;
   status: string;
   payment_status: OrderPaymentStatus;
-  seller_id?: string | null;
-  seller_name?: string | null;
-  fulfillment_address?: OrderFulfillmentAddress | null;
+  seller_orders?: SellerOrder[];
   created_at: string;
 };
 
 export type OrderDetail = Order & {
   items: OrderItem[];
-  can_open_dispute?: boolean;
 };
 
 export type DisputeStatus = "OPEN" | "RESOLVED_REFUND" | "RESOLVED_RELEASE";
@@ -129,6 +140,7 @@ export type DisputeStatus = "OPEN" | "RESOLVED_REFUND" | "RESOLVED_RELEASE";
 export type OrderDispute = {
   id: string;
   order_id: string;
+  seller_order_id: string;
   reason: string;
   dispute_status: DisputeStatus;
   resolved_at?: string | null;

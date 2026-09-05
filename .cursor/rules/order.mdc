@@ -37,13 +37,19 @@ alwaysApply: true
 
       READ_ORDER:
         context: SELLER
+        resource: seller_order
+        path_id: seller_order.id
 
       UPDATE_ORDER_STATUS:
         context: SELLER
+        resource: seller_order
+        path_id: seller_order.id
 
       REFUND_ORDER:
         context: SELLER
         owner_only: true
+        resource: seller_order
+        path_id: seller_order.id
 
       LIST_OPEN_DISPUTES:
         context: PLATFORM
@@ -68,3 +74,6 @@ alwaysApply: true
 
       - id: MDC-ORDER-5
         assertion: platform_only_resolves_disputes
+
+      - id: MDC-ORDER-6
+        assertion: seller_workspace_uses_seller_order_id

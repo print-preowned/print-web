@@ -202,8 +202,10 @@ export default async function OrderConfirmationPage({
             />
           </Suspense>
 
-          {order.fulfillment_address ? (
-            <FulfillmentAddressPanel address={order.fulfillment_address} />
+          {order.seller_orders?.[0]?.fulfillment_address ? (
+            <FulfillmentAddressPanel
+              address={order.seller_orders[0].fulfillment_address}
+            />
           ) : null}
 
           <OrderDisputesPanel disputes={disputes} />
@@ -238,7 +240,9 @@ export default async function OrderConfirmationPage({
             <div className="flex flex-wrap gap-3">
               <OrderOpenDisputeButton
                 orderId={order.id}
-                canOpenDispute={Boolean(order.can_open_dispute)}
+                canOpenDispute={Boolean(
+                  order.seller_orders?.[0]?.can_open_dispute,
+                )}
               />
               <OrderCancelButton
                 orderId={order.id}

@@ -4,6 +4,7 @@ import { ReadParams, buildQueryParams } from "./types";
 export type SellerOrderItem = {
   id: string;
   order_id: string;
+  seller_order_id: string;
   variant_id: string;
   quantity: number;
   unit_price: number;
@@ -46,14 +47,36 @@ export type OrderSummary = {
   total_amount: number;
   item_count: number;
   preview_items: OrderSummaryItemPreview[];
-  seller_id?: string | null;
-  seller_name?: string | null;
-  fulfillment_address?: OrderFulfillmentAddress | null;
+  seller_orders?: Array<{
+    id: string;
+    order_id: string;
+    seller_id: string;
+    seller_name: string;
+    status: string;
+    fulfillment_address?: OrderFulfillmentAddress | null;
+    can_open_dispute?: boolean;
+  }>;
   created_at: string;
   updated_at: string;
 };
 
-export type SellerOrderDetail = OrderSummary & {
+export type SellerOrderSummary = {
+  id: string;
+  order_id: string;
+  reference: string;
+  currency: string;
+  status: string;
+  payment_status: string;
+  total_amount: number;
+  item_count: number;
+  preview_items: OrderSummaryItemPreview[];
+  seller_id: string;
+  seller_name: string;
+  fulfillment_address?: OrderFulfillmentAddress | null;
+  created_at: string;
+};
+
+export type SellerOrderDetail = SellerOrderSummary & {
   items: SellerOrderItem[];
 };
 

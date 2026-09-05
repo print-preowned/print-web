@@ -56,7 +56,7 @@ addresses:
     display:
       - customer order detail
       - seller order detail
-    source: order.fulfillment_address
+    source: seller_order.fulfillment_address
     pickup_statuses:
       - READY_FOR_PICKUP
       - PICKED_UP
