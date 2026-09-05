@@ -31,6 +31,7 @@ alwaysApply: true
         requires:
           - paid_order
           - escrow_dispute_window
+          - seller_order_id when multiple seller_orders
 
       READ_OWN_DISPUTES:
         context: CUSTOMER

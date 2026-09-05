@@ -36,6 +36,10 @@ const CUSTOMER_ORDER_STATUS_COPY: Record<string, CustomerOrderStatusCopy> = {
     headline: "Cancelled",
     message: "This order was cancelled.",
   },
+  PARTIALLY_FULFILLED: {
+    headline: "Partially fulfilled",
+    message: "Sellers on this order are at different stages.",
+  },
 };
 
 type CustomerPaymentStatusCopy = {
@@ -51,6 +55,10 @@ const CUSTOMER_PAYMENT_STATUS_COPY: Record<string, CustomerPaymentStatusCopy> = 
   REFUNDED: {
     label: "Refunded",
     message: "Your payment was refunded for this order.",
+  },
+  PARTIALLY_REFUNDED: {
+    label: "Partially refunded",
+    message: "Part of this order was refunded. Remaining sellers are still paid.",
   },
 };
 

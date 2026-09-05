@@ -104,7 +104,12 @@ export type OrderFulfillmentAddress = {
   country_code: string;
 };
 
-export type OrderPaymentStatus = "NONE" | "PENDING" | "PAID" | "REFUNDED";
+export type OrderPaymentStatus =
+  | "NONE"
+  | "PENDING"
+  | "PAID"
+  | "REFUNDED"
+  | "PARTIALLY_REFUNDED";
 
 export type SellerOrder = {
   id: string;
@@ -150,6 +155,7 @@ export type OrderDispute = {
 
 export type OrderDisputeCreatePayload = {
   reason: string;
+  seller_order_id?: string;
 };
 
 export type OrderCreatePayload = {

@@ -48,6 +48,10 @@ addresses:
       - pickup_location_id when PICKUP
     pickup_read:
       - GET /sellers/{sellerId}/pickup-location
+    notes: >
+      One fulfillment for the whole order. Store pickup is single-seller only.
+      Multi-seller carts must be delivery. Pickup columns stay so a future
+      shared hub can reuse them.
     invariants:
       - id: MDC-FE-ADDRESS-5
         assertion: checkout_requires_fulfillment_selection_for_active_mode
