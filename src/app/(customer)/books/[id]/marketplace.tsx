@@ -15,8 +15,7 @@ import {
   type PublicCatalogSellerBookDetail,
   type PublicCatalogVariant,
 } from "@customer/api";
-import { addToCart, replaceCartWithItem, type CartLine } from "@customer/cart";
-import { ReplaceSellerCartDialog } from "@customer/replace-seller-cart-dialog";
+import { addToCart, type CartLine } from "@customer/cart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -37,9 +36,6 @@ function OfferAddToCart({
   const available = variants.filter((v) => v.stock > 0);
   const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
-  const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
-  const [pendingItem, setPendingItem] = useState<CartLine | null>(null);
-  const [cartSellerName, setCartSellerName] = useState<string | null>(null);
 
   const selected = available.find((v) => v.id === selectedId) ?? available[0];
   const maxQuantity = selected?.stock ?? 1;
@@ -85,38 +81,11 @@ function OfferAddToCart({
 
   function onAdd() {
     if (!selected || quantityExceedsStock) return;
-    const item = buildCartItem(selected, quantity);
-    const result = addToCart(item);
-    if (!result.ok) {
-      setPendingItem(item);
-      setCartSellerName(result.cartSellerName);
-      setReplaceDialogOpen(true);
-      return;
-    }
+    addToCart(buildCartItem(selected, quantity));
     toast.success("Added to cart");
-  }
-
-  function onReplaceDialogOpenChange(open: boolean) {
-    setReplaceDialogOpen(open);
-    if (!open) {
-      setPendingItem(null);
-      setCartSellerName(null);
-    }
-  }
-
-  function onConfirmReplace() {
-    if (!pendingItem) return;
-    if (pendingItem.quantity > maxQuantity) {
-      toast.error(`Only ${maxQuantity} available from this seller.`);
-      return;
-    }
-    replaceCartWithItem(pendingItem);
-    toast.success("Added to cart");
-    onReplaceDialogOpenChange(false);
   }
 
   return (
-    <>
     <div className="space-y-4">
       {available.length > 1 ? (
         <fieldset>
@@ -213,14 +182,6 @@ function OfferAddToCart({
         </Button>
       </div>
     </div>
-    <ReplaceSellerCartDialog
-      open={replaceDialogOpen}
-      onOpenChange={onReplaceDialogOpenChange}
-      cartSellerName={cartSellerName}
-      pendingItem={pendingItem}
-      onConfirm={onConfirmReplace}
-    />
-    </>
   );
 }
 

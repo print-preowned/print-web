@@ -62,8 +62,8 @@ export default function CartPage() {
                         </p>
                       ) : null}
                       {line.sellerName ? (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {line.sellerName}
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Sold by {line.sellerName}
                         </p>
                       ) : null}
                       <p className="mt-2 text-sm font-medium">

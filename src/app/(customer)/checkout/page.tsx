@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { paymentErrorMessage } from "@/lib/payment-errors";
 import { createOrder, formatPrice, initiateOrderPayment } from "@customer/api";
-import { clearCart, useCart } from "@customer/cart";
+import { clearCart, uniqueSellerIds, useCart } from "@customer/cart";
 import {
   applyPaymentCheckoutStart,
   buildStandardCheckoutPayload,
@@ -36,9 +36,17 @@ export default function CheckoutPage() {
   const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
   const [pickupLocationId, setPickupLocationId] = useState<string | null>(null);
 
-  const sellerId = lines[0]?.sellerId ?? null;
+  const sellerIds = uniqueSellerIds(lines);
+  const singleSellerId = sellerIds.length === 1 ? sellerIds[0] : null;
   const { available: pickupAvailable, isLoading: pickupLoading } =
-    usePickupAvailable(sellerId);
+    usePickupAvailable(singleSellerId);
+
+  useEffect(() => {
+    if (!singleSellerId && fulfillmentType === "PICKUP") {
+      setFulfillmentType("DELIVERY");
+      setPickupLocationId(null);
+    }
+  }, [fulfillmentType, singleSellerId]);
 
   const handlePickupLocationLoaded = useCallback((id: string | null) => {
     setPickupLocationId(id);
@@ -48,8 +56,8 @@ export default function CheckoutPage() {
     if (fulfillmentType === "DELIVERY") {
       return Boolean(shippingAddressId);
     }
-    return Boolean(pickupLocationId);
-  }, [fulfillmentType, pickupLocationId, shippingAddressId]);
+    return Boolean(singleSellerId && pickupLocationId);
+  }, [fulfillmentType, pickupLocationId, shippingAddressId, singleSellerId]);
 
   return (
     <div className="storefront-grain min-h-[70vh]">
@@ -89,7 +97,7 @@ export default function CheckoutPage() {
                     />
                     <span className="text-sm font-medium">Delivery</span>
                   </label>
-                  {pickupAvailable ? (
+                  {singleSellerId && pickupAvailable ? (
                     <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2.5 has-[:checked]:border-primary has-[:checked]:bg-muted/40">
                       <input
                         type="radio"
@@ -100,9 +108,13 @@ export default function CheckoutPage() {
                       />
                       <span className="text-sm font-medium">Pickup</span>
                     </label>
-                  ) : pickupLoading ? (
+                  ) : singleSellerId && pickupLoading ? (
                     <p className="self-center text-sm text-muted-foreground">
                       Checking pickup options…
+                    </p>
+                  ) : sellerIds.length > 1 ? (
+                    <p className="self-center text-sm text-muted-foreground">
+                      Pickup is available only for carts from one store.
                     </p>
                   ) : null}
                 </div>
@@ -113,9 +125,9 @@ export default function CheckoutPage() {
                   selectedId={shippingAddressId}
                   onSelectedIdChange={setShippingAddressId}
                 />
-              ) : sellerId ? (
+              ) : singleSellerId ? (
                 <CheckoutPickupLocationDisplay
-                  sellerId={sellerId}
+                  sellerId={singleSellerId}
                   onLocationLoaded={handlePickupLocationLoaded}
                 />
               ) : (
@@ -138,6 +150,11 @@ export default function CheckoutPage() {
                           ? ` · ${line.configLabel}`
                           : ""}
                       </p>
+                      {line.sellerName ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Sold by {line.sellerName}
+                        </p>
+                      ) : null}
                     </div>
                     <p className="shrink-0 text-sm font-medium">
                       {formatPrice(line.unitPrice * line.quantity)}

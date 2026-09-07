@@ -86,9 +86,10 @@ export type OrderItem = {
   updated_at: string;
   book_title: string;
   book_id: string;
-  image?: string | null;
+  image: string | null;
   seller_name: string;
   author_names: string[];
+  can_open_dispute?: boolean;
 };
 
 export type OrderFulfillmentAddress = {
@@ -118,8 +119,6 @@ export type SellerOrder = {
   seller_name: string;
   total_amount: number;
   status: string;
-  fulfillment_address?: OrderFulfillmentAddress | null;
-  can_open_dispute?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -132,6 +131,7 @@ export type Order = {
   total_amount: number;
   status: string;
   payment_status: OrderPaymentStatus;
+  fulfillment_address?: OrderFulfillmentAddress | null;
   seller_orders?: SellerOrder[];
   created_at: string;
 };
@@ -155,7 +155,7 @@ export type OrderDispute = {
 
 export type OrderDisputeCreatePayload = {
   reason: string;
-  seller_order_id?: string;
+  item_ids: string[];
 };
 
 export type OrderCreatePayload = {

@@ -53,8 +53,6 @@ export type OrderSummary = {
     seller_id: string;
     seller_name: string;
     status: string;
-    fulfillment_address?: OrderFulfillmentAddress | null;
-    can_open_dispute?: boolean;
   }>;
   created_at: string;
   updated_at: string;

@@ -29,6 +29,10 @@ function lineTotal(item: OrderItem): number {
   return Number(item.unit_price) * item.quantity;
 }
 
+function disputableItems(order: OrderDetail): OrderItem[] {
+  return order.items.filter((item) => item.can_open_dispute);
+}
+
 function OrderLineItem({
   item,
   currency,
@@ -63,10 +67,11 @@ function OrderLineItem({
             {item.author_names.join(", ")}
           </p>
         ) : null}
-        <p className="mt-2 text-sm text-muted-foreground">
-          Sold by{" "}
-          <span className="text-foreground">{item.seller_name}</span>
-        </p>
+        {item.seller_name ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sold by {item.seller_name}
+          </p>
+        ) : null}
         <p className="mt-1 text-sm text-muted-foreground">
           {formatPrice(Number(item.unit_price), currency)} ×{" "}
           {item.quantity}
@@ -202,22 +207,17 @@ export default async function OrderConfirmationPage({
             />
           </Suspense>
 
-          {order.seller_orders?.[0]?.fulfillment_address ? (
-            <FulfillmentAddressPanel
-              address={order.seller_orders[0].fulfillment_address}
-            />
+          {order.fulfillment_address ? (
+            <FulfillmentAddressPanel address={order.fulfillment_address} />
           ) : null}
 
-          <OrderDisputesPanel disputes={disputes} />
+          <OrderDisputesPanel
+            disputes={disputes}
+            sellerOrders={order.seller_orders}
+          />
 
           {order.items.length > 0 ? (
             <section className="overflow-hidden border border-border/70 bg-card shadow-sm">
-              <div className="border-b border-border/60 px-4 py-3 sm:px-5">
-                <h2 className="font-display text-lg font-semibold">
-                  {order.items.length}{" "}
-                  {order.items.length === 1 ? "item" : "items"} in this order
-                </h2>
-              </div>
               <ul className="px-4 sm:px-5">
                 {order.items.map((item) => (
                   <OrderLineItem
@@ -240,9 +240,12 @@ export default async function OrderConfirmationPage({
             <div className="flex flex-wrap gap-3">
               <OrderOpenDisputeButton
                 orderId={order.id}
-                canOpenDispute={Boolean(
-                  order.seller_orders?.some((child) => child.can_open_dispute),
-                )}
+                items={disputableItems(order).map((item) => ({
+                  id: item.id,
+                  bookTitle: item.book_title,
+                  bookCover: item.image,
+                  authorNames: item.author_names,
+                }))}
               />
               <OrderCancelButton
                 orderId={order.id}

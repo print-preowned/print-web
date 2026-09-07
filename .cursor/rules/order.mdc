@@ -25,13 +25,16 @@ alwaysApply: true
 
       READ_OWN_ORDER:
         context: CUSTOMER
+        notes: >
+          can_open_dispute is computed on each item from fulfillment
+          status and the escrow dispute window
 
       OPEN_DISPUTE:
         context: CUSTOMER
         requires:
           - paid_order
           - escrow_dispute_window
-          - seller_order_id to target one child; omit to fan out to every openable hold
+          - item_ids; server fans out to each seller those items belong to
 
       READ_OWN_DISPUTES:
         context: CUSTOMER
