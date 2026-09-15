@@ -4,6 +4,8 @@ export type PublicationLookup = {
   id: string;
   work_id: string;
   isbn13: string | null;
+  title: string | null;
+  image: string | null;
   language: string | null;
   binding: string;
   volume_number: number | null;
@@ -33,13 +35,6 @@ export type SellerInventoryCreatePayload = {
   currency?: string;
   description?: string;
   image?: string;
-};
-
-export type SellerInventoryCreateResponse = {
-  id: string;
-  publication_id: string;
-  seller_book_id: string;
-  variant_id: string;
 };
 
 export function readPublicationByIsbn(isbn: string) {

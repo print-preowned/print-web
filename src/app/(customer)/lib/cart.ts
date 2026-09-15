@@ -6,7 +6,7 @@ export type CartLine = {
   sellerInventoryId: string;
   quantity: number;
   unitPrice: number;
-  bookTitle: string;
+  title: string;
   image?: string | null;
   sellerId?: string | null;
   sellerName?: string | null;
@@ -87,7 +87,7 @@ export function addToCart(input: CartLine): void {
     sellerInventoryId: input.sellerInventoryId ?? null,
     quantity,
     unitPrice: input.unitPrice,
-    bookTitle: input.bookTitle,
+    title: input.title,
     image: input.image ?? null,
     sellerId: input.sellerId ?? null,
     sellerName: input.sellerName ?? null,

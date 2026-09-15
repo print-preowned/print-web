@@ -56,12 +56,9 @@ function OrderLineItem({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <Link
-          href={`/books/${item.book_id}`}
-          className="font-medium leading-snug text-primary underline-offset-4 hover:underline"
-        >
+        <p className="font-medium leading-snug">
           {item.book_title}
-        </Link>
+        </p>
         {item.author_names.length > 0 ? (
           <p className="mt-1 text-sm text-muted-foreground">
             {item.author_names.join(", ")}

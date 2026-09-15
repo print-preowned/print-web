@@ -143,7 +143,7 @@ export default function CheckoutPage() {
                     className="flex justify-between gap-4 py-4"
                   >
                     <div>
-                      <p className="font-medium">{line.bookTitle}</p>
+                      <p className="font-medium">{line.title}</p>
                       <p className="text-sm text-muted-foreground">
                         Qty {line.quantity}
                         {line.configLabel && line.configLabel !== "—"
@@ -183,8 +183,7 @@ export default function CheckoutPage() {
                           ? { shipping_address_id: shippingAddressId! }
                           : { pickup_location_id: pickupLocationId! }),
                         items: lines.map((line) => ({
-                          variant_id: line.sellerInventoryId,
-                          seller_inventory_id: line.sellerInventoryId ?? null,
+                          seller_inventory_id: line.sellerInventoryId,
                           quantity: line.quantity,
                           unit_price: line.unitPrice,
                         })),

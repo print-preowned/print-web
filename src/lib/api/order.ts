@@ -5,8 +5,7 @@ export type SellerOrderItem = {
   id: string;
   order_id: string;
   seller_order_id: string;
-  variant_id: string;
-  seller_inventory_id?: string | null;
+  seller_inventory_id: string;
   quantity: number;
   unit_price: number;
   currency: string;

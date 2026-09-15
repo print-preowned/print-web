@@ -12,13 +12,9 @@ import {
   formatPrice,
   PublicListing,
   PublicWorkOfferSummary,
-  readPublicSellerBookById,
   readSellerOffers,
   VariantKey,
   VariantsConfig,
-  type PublicCatalogSellerBook,
-  type PublicCatalogSellerBookDetail,
-  type PublicCatalogVariant,
   type PublicSellerOffer,
 } from "@customer/api";
 import { addToCart, type CartLine } from "@customer/cart";
@@ -94,7 +90,7 @@ function OfferAddToCart({
     return {
       sellerInventoryId: variant.id ?? null,
       unitPrice: variant.price,
-      bookTitle: variant.publication.title,
+      title: variant.publication.title,
       image: variant.image,
       sellerId: variant.seller_id,
       sellerName: variant.seller_name,

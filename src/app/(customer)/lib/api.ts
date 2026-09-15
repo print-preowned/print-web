@@ -38,6 +38,7 @@ export type PublicListing = {
     volume_number: number | null
     edition: string | null
     title: string
+    image: string | null
   };
   seller_id: string;
   seller_name: string;
@@ -127,7 +128,7 @@ export type OrderItem = {
   id: string;
   order_id: string;
   seller_order_id: string;
-  seller_inventory_id: string | null;
+  seller_inventory_id: string;
   quantity: number;
   unit_price: number;
   currency: string;
@@ -136,7 +137,6 @@ export type OrderItem = {
   created_at: string;
   updated_at: string;
   book_title: string;
-  book_id: string;
   image: string | null;
   seller_name: string;
   author_names: string[];
@@ -219,7 +219,7 @@ export type OrderCreatePayload = {
 };
 
 export type OrderItemCreatePayload = {
-  seller_inventory_id: string | null;
+  seller_inventory_id: string;
   quantity: number;
   unit_price: number;
   discount_applied?: number | null;
