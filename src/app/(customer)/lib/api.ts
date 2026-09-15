@@ -6,6 +6,7 @@ import type { ResolvedConfig } from "@/lib/api/variant";
 
 export type PublicCatalogVariant = {
   id: string;
+  seller_inventory_id?: string | null;
   seller_book_id: string;
   book_id: string;
   book_title: string;
@@ -18,6 +19,34 @@ export type PublicCatalogVariant = {
   stock: number;
   image?: string | null;
   config: ResolvedConfig[];
+};
+
+export type VariantKey = "language" | "binding" | "signed" | "condition" | "volume_number" | "edition";
+export type VariantsConfig = {
+  [K in VariantKey]?: {
+    [key: string]: string[];
+  };
+};
+
+export type PublicListing = {
+  id: string;
+  work_id: string;
+  publication_id: string;
+  publication: {
+    language: string | null
+    binding: string
+    volume_number: number | null
+    edition: string | null
+    title: string
+  };
+  seller_id: string;
+  seller_name: string;
+  price: number;
+  currency: string;
+  discount?: number | null;
+  stock: number;
+  image?: string | null;
+  description: string | null;
 };
 
 export type PublicCatalogSellerBook = {
@@ -34,8 +63,26 @@ export type PublicCatalogSellerBook = {
   min_price?: number | null;
 };
 
+export type PublicWorkOfferSummary = {
+  work_id: string;
+  seller_id: string;
+  seller_name: string;
+  // book_title: string;
+  // book_image?: string | null;
+  // synopsis?: string | null;
+  // image?: string | null;
+  // author_names: string[];
+  variant_count: number;
+  min_price?: number | null;
+};
+
 export type PublicCatalogSellerBookDetail = PublicCatalogSellerBook & {
   variants: PublicCatalogVariant[];
+};
+
+export type PublicSellerOffer = PublicWorkOfferSummary & {
+  listings: PublicListing[];
+  variants: VariantsConfig;
 };
 
 export type PublicSellerProfile = {
@@ -46,12 +93,12 @@ export type PublicSellerProfile = {
 };
 
 export function readOffers(
-  bookId: string,
+  workId: string,
   params?: ReadParams & { exclude_id?: string },
 ) {
   const query = buildQueryParams(params);
   if (params?.exclude_id) query.exclude_id = params.exclude_id;
-  return buildRelativeUrl(`/books/${bookId}/offers`, query);
+  return buildRelativeUrl(`/works/${workId}/offers`);
 }
 
 export function readPublicSellerCatalog(
@@ -72,11 +119,15 @@ export function readPublicSellerBookById(id: string) {
   return buildRelativeUrl(`/offers/${id}`);
 }
 
+export function readSellerOffers(work_id: string, seller_id: string) {
+  return buildRelativeUrl(`/works/${work_id}/sellers/${seller_id}/offers`);
+}
+
 export type OrderItem = {
   id: string;
   order_id: string;
   seller_order_id: string;
-  variant_id: string;
+  seller_inventory_id: string | null;
   quantity: number;
   unit_price: number;
   currency: string;
@@ -168,7 +219,7 @@ export type OrderCreatePayload = {
 };
 
 export type OrderItemCreatePayload = {
-  variant_id: string;
+  seller_inventory_id: string | null;
   quantity: number;
   unit_price: number;
   discount_applied?: number | null;

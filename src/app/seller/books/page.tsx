@@ -11,7 +11,7 @@ import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { SellerBook } from "@/lib/api/seller-book";
 import { Book } from "@/lib/api/book";
 import { formatPrice } from "@/lib/format-price";
-import { SellerInventoryOnboardForm } from "./_components/inventory/inventory-onboard-form";
+import { InventoryOnboardForm } from "./_components/inventory/inventory-onboard-form";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -47,7 +47,7 @@ export default function BooksPage() {
             : undefined
         }
       >
-        <SellerInventoryOnboardForm />
+        <InventoryOnboardForm />
         <Tabs
           value={activeTab}
           onValueChange={(tab) => {

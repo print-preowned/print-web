@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export type CartLine = {
-  variantId: string;
+  sellerInventoryId: string;
   quantity: number;
   unitPrice: number;
   bookTitle: string;
@@ -12,6 +12,7 @@ export type CartLine = {
   sellerName?: string | null;
   configLabel?: string | null;
 };
+
 
 const CART_STORAGE_KEY = "print.cart.v1";
 const CART_EVENT = "print:cart-updated";
@@ -35,7 +36,7 @@ export function readCart(): CartLine[] {
     return parsed.filter(
       (line) =>
         line &&
-        typeof line.variantId === "string" &&
+        typeof line.sellerInventoryId === "string" &&
         typeof line.quantity === "number" &&
         line.quantity > 0,
     );
@@ -75,7 +76,7 @@ export function cartSellerId(lines: CartLine[] = readCart()): string | null {
 export function addToCart(input: CartLine): void {
   const lines = readCart();
   const quantity = Math.max(1, input.quantity);
-  const existing = lines.find((line) => line.variantId === input.variantId);
+  const existing = lines.find((line) => line.sellerInventoryId === input.sellerInventoryId);
   if (existing) {
     existing.quantity += quantity;
     writeCart(lines);
@@ -83,7 +84,7 @@ export function addToCart(input: CartLine): void {
   }
 
   lines.push({
-    variantId: input.variantId,
+    sellerInventoryId: input.sellerInventoryId ?? null,
     quantity,
     unitPrice: input.unitPrice,
     bookTitle: input.bookTitle,
@@ -95,19 +96,19 @@ export function addToCart(input: CartLine): void {
   writeCart(lines);
 }
 
-export function setCartLineQuantity(variantId: string, quantity: number) {
+export function setCartLineQuantity(sellerInventoryId: string, quantity: number) {
   const lines = readCart();
   const next =
     quantity <= 0
-      ? lines.filter((line) => line.variantId !== variantId)
+      ? lines.filter((line) => line.sellerInventoryId !== sellerInventoryId)
       : lines.map((line) =>
-          line.variantId === variantId ? { ...line, quantity } : line,
+          line.sellerInventoryId === sellerInventoryId ? { ...line, quantity } : line,
         );
   writeCart(next);
 }
 
-export function removeFromCart(variantId: string) {
-  writeCart(readCart().filter((line) => line.variantId !== variantId));
+export function removeFromCart(sellerInventoryId: string) {
+  writeCart(readCart().filter((line) => line.sellerInventoryId !== sellerInventoryId));
 }
 
 export function clearCart() {

@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Book, readBookById } from "@/lib/api/book";
 import {
+  BaseResponse,
   PublicCatalogSellerBook,
+  PublicWorkOfferSummary,
   readOffers,
 } from "@customer/api";
 import { PaginatedResponse } from "@/lib/api/user";
@@ -23,11 +25,12 @@ async function getBook(id: string): Promise<Book | null> {
   }
 }
 
-async function getOffers(bookId: string): Promise<PublicCatalogSellerBook[]> {
+async function getOffers(workId: string): Promise<PublicWorkOfferSummary[]> {
   try {
-    const res = await apiFetch<PaginatedResponse<PublicCatalogSellerBook>>(
-      readOffers(bookId, { page: 1, size: 50 }),
+    const res = await apiFetch<BaseResponse<PublicWorkOfferSummary[]>>(
+      readOffers(workId),
     );
+    console.log(`Fetching offers for workId: ${res.data}`);
     return res.data ?? [];
   } catch {
     return [];
@@ -101,7 +104,7 @@ export default async function BookDetailPage({
         </div>
 
         <Suspense fallback={null}>
-          <Marketplace bookId={id} offers={offers} />
+          <Marketplace workId={id} offers={offers} />
         </Suspense>
       </div>
     </div>

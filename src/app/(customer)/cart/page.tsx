@@ -40,7 +40,7 @@ export default function CartPage() {
               <ul className="divide-y divide-border/70 border-y border-border/70">
                 {lines.map((line) => (
                   <li
-                    key={line.variantId}
+                    key={line.sellerInventoryId}
                     className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center"
                   >
                     <div className="h-28 w-20 shrink-0 overflow-hidden bg-muted">
@@ -71,17 +71,17 @@ export default function CartPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <label className="sr-only" htmlFor={`qty-${line.variantId}`}>
+                      <label className="sr-only" htmlFor={`qty-${line.sellerInventoryId}`}>
                         Quantity
                       </label>
                       <input
-                        id={`qty-${line.variantId}`}
+                        id={`qty-${line.sellerInventoryId}`}
                         type="number"
                         min={1}
                         value={line.quantity}
                         onChange={(e) =>
                           setCartLineQuantity(
-                            line.variantId,
+                            line.sellerInventoryId,
                             Math.max(1, Number(e.target.value) || 1),
                           )
                         }
@@ -91,7 +91,7 @@ export default function CartPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromCart(line.variantId)}
+                        onClick={() => removeFromCart(line.sellerInventoryId)}
                       >
                         Remove
                       </Button>

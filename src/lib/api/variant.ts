@@ -78,7 +78,7 @@ export function deleteVariant(sellerBookId: string, variantId: string) {
   };
 }
 
-export function formatVariantConfig(config: ResolvedConfig[]): string {
+export function formatVariantConfig(config: { [key: string]: string; }): string {
   if (!config.length) return "—";
-  return config.map((c) => c.variant_option_value).join(" · ");
+  return Object.keys(config).map((c) => config[c]).join(" · ");
 }

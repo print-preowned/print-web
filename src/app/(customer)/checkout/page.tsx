@@ -139,7 +139,7 @@ export default function CheckoutPage() {
               <ul className="divide-y divide-border/70 border-y border-border/70">
                 {lines.map((line) => (
                   <li
-                    key={line.variantId}
+                    key={line.sellerInventoryId}
                     className="flex justify-between gap-4 py-4"
                   >
                     <div>
@@ -183,7 +183,8 @@ export default function CheckoutPage() {
                           ? { shipping_address_id: shippingAddressId! }
                           : { pickup_location_id: pickupLocationId! }),
                         items: lines.map((line) => ({
-                          variant_id: line.variantId,
+                          variant_id: line.sellerInventoryId,
+                          seller_inventory_id: line.sellerInventoryId ?? null,
                           quantity: line.quantity,
                           unit_price: line.unitPrice,
                         })),

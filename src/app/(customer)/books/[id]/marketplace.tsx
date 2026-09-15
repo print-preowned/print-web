@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink, Store } from "lucide-react";
@@ -10,40 +10,72 @@ import { apiFetch } from "@/lib/api";
 import { formatVariantConfig } from "@/lib/api/variant";
 import {
   formatPrice,
+  PublicListing,
+  PublicWorkOfferSummary,
   readPublicSellerBookById,
+  readSellerOffers,
+  VariantKey,
+  VariantsConfig,
   type PublicCatalogSellerBook,
   type PublicCatalogSellerBookDetail,
   type PublicCatalogVariant,
+  type PublicSellerOffer,
 } from "@customer/api";
 import { addToCart, type CartLine } from "@customer/cart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  bookId: string;
-  offers: PublicCatalogSellerBook[];
+  workId: string;
+  offers: PublicWorkOfferSummary[];
 };
 
-type ListingResponse = { data?: PublicCatalogSellerBookDetail };
+type ListingResponse = { data?: PublicSellerOffer };
 
 function OfferAddToCart({
   variants,
   onSelectedChange,
+  listings,
 }: {
-  variants: PublicCatalogVariant[];
-  onSelectedChange?: (variant: PublicCatalogVariant | null) => void;
+  variants: VariantsConfig;
+  onSelectedChange?: (variant: PublicListing | null) => void;
+  listings: PublicListing[]
 }) {
-  const available = variants.filter((v) => v.stock > 0);
-  const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
+  const [selectedVariants, setSelectedVariants] = useState<{[key: string]: string}>({});
   const [quantity, setQuantity] = useState(1);
 
-  const selected = available.find((v) => v.id === selectedId) ?? available[0];
+  const selected = useMemo(() => {
+    if (Object.keys(selectedVariants).length === Object.keys(variants).length) {
+      const possibleIds = variants[Object.keys(selectedVariants)[0] as VariantKey]?.[Object.values(selectedVariants)[0]] || [];
+      if (possibleIds?.length == 0) return null;
+
+      let selectedId = null;
+      for (const id of possibleIds) {
+        let idOverlap = 0;
+        let index = 0
+        while (index < Object.keys(selectedVariants).length && variants[Object.keys(selectedVariants)[index] as VariantKey]?.[Object.values(selectedVariants)[index]]?.includes(id)) {
+          idOverlap++;
+          index++;
+        }
+        if (idOverlap === Object.keys(selectedVariants).length) {
+          selectedId = id;
+          break;
+        }
+      }      
+      return listings.find((l) => l.id === selectedId);
+    }
+  }, [selectedVariants, variants]);
+
   const maxQuantity = selected?.stock ?? 1;
 
-  useEffect(() => {
-    const firstAvailable = variants.find((variant) => variant.stock > 0);
-    setSelectedId(firstAvailable?.id ?? "");
-  }, [variants]);
+  const handleSelectVariant = useCallback((key: string, value: string) => {
+    let selected = selectedVariants;
+    if (selected?.[key] === value) {
+      delete selected[key];
+    }
+    selected = { ...selected, [key]: value };
+    setSelectedVariants(selected);
+  }, []);
 
   useEffect(() => {
     onSelectedChange?.(selected ?? null);
@@ -51,30 +83,22 @@ function OfferAddToCart({
 
   useEffect(() => {
     setQuantity(1);
-  }, [selectedId]);
+  }, [selectedVariants]);
 
   const quantityExceedsStock = quantity > maxQuantity;
 
-  if (available.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No purchase options from this seller right now.
-      </p>
-    );
-  }
-
   function buildCartItem(
-    variant: PublicCatalogVariant,
+    variant: PublicListing,
     qty: number,
   ): CartLine {
     return {
-      variantId: variant.id,
+      sellerInventoryId: variant.id ?? null,
       unitPrice: variant.price,
-      bookTitle: variant.book_title,
-      image: variant.book_image ?? variant.image,
+      bookTitle: variant.publication.title,
+      image: variant.image,
       sellerId: variant.seller_id,
       sellerName: variant.seller_name,
-      configLabel: formatVariantConfig(variant.config),
+      configLabel: formatVariantConfig(selectedVariants),
       quantity: qty,
     };
   }
@@ -87,52 +111,50 @@ function OfferAddToCart({
 
   return (
     <div className="space-y-4">
-      {available.length > 1 ? (
-        <fieldset>
-          <legend className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            Choose format
-          </legend>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {available.map((variant) => {
-              const label = formatVariantConfig(variant.config);
-              const checked = selected?.id === variant.id;
-              return (
-                <li key={variant.id}>
-                  <label
-                    className={cn(
-                      "flex cursor-pointer items-start gap-3 border px-3 py-3 transition-colors",
-                      checked
-                        ? "border-primary bg-muted/50"
-                        : "border-border hover:border-primary/40",
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      name="variant"
-                      value={variant.id}
-                      checked={checked}
-                      onChange={() => setSelectedId(variant.id)}
-                      className="mt-0.5"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">
-                        {label === "—" ? "Standard listing" : label}
+      {Object.keys(variants).map((key) => {
+        const values = variants[key as VariantKey];
+        const label = key.toUpperCase();
+        return (
+          <fieldset key={key}>
+            <legend className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              {label}
+            </legend>
+
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {Object.keys(values!).map((value) => {
+                const label = value.toUpperCase();
+                const checked = selectedVariants?.[key] === value;
+                return (
+                  <li key={value}>
+                    <label
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 border px-3 py-3 transition-colors",
+                        checked
+                          ? "border-primary bg-muted/50"
+                          : "border-border hover:border-primary/40",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="variant"
+                        value={value}
+                        checked={checked}
+                        onChange={() => handleSelectVariant(key, value)}
+                        className="mt-0.5"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium">
+                          {label === "—" ? "Standard listing" : label}
+                        </span>
                       </span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {formatPrice(variant.price)}
-                      </span>
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </fieldset>
-      ) : (
-        <p className="text-sm">
-          <span className="font-semibold">{formatPrice(selected?.price ?? 0)}</span>
-        </p>
-      )}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </fieldset>
+        )})
+      }
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -175,7 +197,7 @@ function OfferAddToCart({
         <Button
           type="button"
           onClick={onAdd}
-          disabled={quantityExceedsStock}
+          disabled={quantityExceedsStock || !selected}
           className="w-full sm:w-auto"
         >
           Add to cart
@@ -186,10 +208,10 @@ function OfferAddToCart({
 }
 
 type OfferAccordionItemProps = {
-  offer: PublicCatalogSellerBook;
+  offer: PublicWorkOfferSummary;
   expanded: boolean;
   onToggle: () => void;
-  listing: PublicCatalogSellerBookDetail | null | undefined;
+  listing: PublicSellerOffer | null | undefined;
   isLoading: boolean;
 };
 
@@ -200,7 +222,7 @@ function OfferAccordionItem({
   listing,
   isLoading,
 }: OfferAccordionItemProps) {
-  const panelId = `offer-panel-${offer.id}`;
+  const panelId = `offer-panel-${offer.seller_id}`;
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
 
   useEffect(() => {
@@ -210,7 +232,7 @@ function OfferAccordionItem({
   }, [expanded]);
 
   const handleSelectedChange = useCallback(
-    (variant: PublicCatalogVariant | null) => {
+    (variant: PublicListing | null) => {
       setSelectedPrice(variant?.price ?? null);
     },
     [],
@@ -222,7 +244,7 @@ function OfferAccordionItem({
     <li className="overflow-hidden border border-border bg-card">
       <button
         type="button"
-        id={`offer-trigger-${offer.id}`}
+        id={`offer-trigger-${offer.seller_id}`}
         aria-expanded={expanded}
         aria-controls={panelId}
         onClick={onToggle}
@@ -247,11 +269,11 @@ function OfferAccordionItem({
               <ExternalLink className="h-4 w-4" aria-hidden />
             </Link>
           </span>
-          {offer.synopsis ? (
+          {/* {offer.synopsis ? (
             <span className="mt-1 block line-clamp-2 text-sm text-muted-foreground">
               {offer.synopsis}
             </span>
-          ) : null}
+          ) : null} */}
           <span className="mt-1 block text-sm text-muted-foreground">
             {offer.variant_count}{" "}
             {offer.variant_count === 1 ? "option" : "options"}
@@ -276,7 +298,7 @@ function OfferAccordionItem({
         <div
           id={panelId}
           role="region"
-          aria-labelledby={`offer-trigger-${offer.id}`}
+          aria-labelledby={`offer-trigger-${offer.seller_id}`}
           className="border-t border-border px-4 pb-5 pt-4 sm:px-5"
         >
           {isLoading ? (
@@ -285,6 +307,7 @@ function OfferAccordionItem({
             <OfferAddToCart
               variants={listing.variants}
               onSelectedChange={handleSelectedChange}
+              listings ={listing.listings}
             />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -297,25 +320,25 @@ function OfferAccordionItem({
   );
 }
 
-export function Marketplace({ bookId, offers }: Props) {
+export function Marketplace({ workId, offers }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedListingId = searchParams.get("listing");
 
   const setListing = useCallback(
-    (listingId: string | null) => {
+    (sellerId: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (listingId) {
-        params.set("listing", listingId);
+      if (sellerId) {
+        params.set("listing", sellerId);
       } else {
         params.delete("listing");
       }
       const qs = params.toString();
-      router.replace(qs ? `/books/${bookId}?${qs}#buy` : `/books/${bookId}#buy`, {
+      router.replace(qs ? `/books/${workId}?${qs}#buy` : `/books/${workId}#buy`, {
         scroll: false,
       });
     },
-    [bookId, router, searchParams],
+    [workId, router, searchParams],
   );
 
   const { data: listing, isLoading } = useQuery({
@@ -323,7 +346,7 @@ export function Marketplace({ bookId, offers }: Props) {
     queryFn: async () => {
       if (!selectedListingId) return null;
       const res = await apiFetch<ListingResponse>(
-        readPublicSellerBookById(selectedListingId),
+        readSellerOffers(workId, selectedListingId),
       );
       return res.data ?? null;
     },
@@ -332,7 +355,7 @@ export function Marketplace({ bookId, offers }: Props) {
 
   useEffect(() => {
     if (offers.length === 1 && !selectedListingId) {
-      setListing(offers[0]!.id);
+      setListing(offers[0]!.seller_id);
     }
   }, [offers, selectedListingId, setListing]);
 
@@ -384,14 +407,14 @@ export function Marketplace({ bookId, offers }: Props) {
       <ul className="mt-8 space-y-3">
         {offers.map((offer) => (
           <OfferAccordionItem
-            key={offer.id}
+            key={offer.seller_id}
             offer={offer}
-            expanded={selectedListingId === offer.id}
+            expanded={selectedListingId === offer.seller_id}
             onToggle={() =>
-              setListing(selectedListingId === offer.id ? null : offer.id)
+              setListing(selectedListingId === offer.seller_id ? null : offer.seller_id)
             }
-            listing={selectedListingId === offer.id ? listing : null}
-            isLoading={selectedListingId === offer.id && isLoading}
+            listing={selectedListingId === offer.seller_id ? listing : null}
+            isLoading={selectedListingId === offer.seller_id && isLoading}
           />
         ))}
       </ul>

@@ -6,6 +6,7 @@ export type SellerOrderItem = {
   order_id: string;
   seller_order_id: string;
   variant_id: string;
+  seller_inventory_id?: string | null;
   quantity: number;
   unit_price: number;
   currency: string;
