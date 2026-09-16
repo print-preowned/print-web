@@ -1,5 +1,9 @@
 /** TanStack Query key factories — keep keys semantic, not URL strings. */
 
+export const sellerInventoryKeys = {
+  all: ["seller-inventory"] as const,
+};
+
 export const sellerBookKeys = {
   all: ["seller-books"] as const,
   lookupByBookId: (bookId: string) =>

@@ -20,7 +20,7 @@ import {
   type InventoryCreatePayload,
   type InventoryCreateResponse,
 } from "@/app/seller/lib/api/inventory";
-import { sellerBookKeys } from "@/lib/api/query-keys";
+import { sellerInventoryKeys } from "@/lib/api/query-keys";
 
 const inputClassName = "bg-background";
 type BindingValue = "OTHER" | "PAPERBACK" | "HARDCOVER";
@@ -162,7 +162,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
 
     try {
       await mutateAsync(createInventory(payload));
-      await queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
+      await queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
       toast.success("Inventory added");
       reset();
       onSuccess?.();
@@ -221,7 +221,6 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => void lookupPublication()} disabled={lookupState === "loading"}>
               {lookupState === "loading" ? <LoaderCircle className="animate-spin" /> : <Search />}
-              Find publication
             </Button>
             <Button
               type="button"

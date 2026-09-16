@@ -3,15 +3,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryTable } from "./_components/inventory/inventory-table";
 import { GlobalBooksTable } from "./_components/global-books/global-books-table";
-import { useGlobalBooks, useSellerBooks } from "./_hooks/use-books";
+import { useGlobalBooks, useSellerInventory } from "./_hooks/use-books";
 import { useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
-import { SellerBook } from "@/lib/api/seller-book";
 import { Book } from "@/lib/api/book";
 import { formatPrice } from "@/lib/format-price";
-import { InventoryOnboardForm } from "./_components/inventory/inventory-onboard-form";
+import { type SellerInventoryListItem } from "@/app/seller/lib/api/inventory";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -19,12 +18,12 @@ function formatCount(value: number) {
 
 export default function BooksPage() {
   const globalBooks = useGlobalBooks();
-  const sellerBooks = useSellerBooks();
+  const sellerInventory = useSellerInventory();
   const [activeTab, setActiveTab] = useState("inventory");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const selectedInventory = sellerBooks.sellerBooks.filter((b) =>
-    selectedIds.has(b.id),
+  const selectedInventory = sellerInventory.inventory.filter((row) =>
+    selectedIds.has(row.id),
   );
   const selectedGlobal = globalBooks.books.filter((b) => selectedIds.has(b.id));
   const singleInventory =
@@ -47,7 +46,6 @@ export default function BooksPage() {
             : undefined
         }
       >
-        <InventoryOnboardForm />
         <Tabs
           value={activeTab}
           onValueChange={(tab) => {
@@ -62,18 +60,17 @@ export default function BooksPage() {
           </TabsList>
           <TabsContent value="inventory" className="mt-4 space-y-4">
             <p className="text-muted-foreground text-sm">
-              Books you&apos;re selling — listings, variants, price, and stock.
-              To add more titles, use the <strong>Global books</strong> tab to
-              search or create books and add them to your inventory.
+              Offers you&apos;re selling — publication, condition, price, and stock.
+              Add another offer for the same ISBN when condition or signed copies differ.
             </p>
             <InventoryTable
               selectedIds={selectedIds}
               onSelectId={setSelectedIds}
-              books={sellerBooks.sellerBooks}
-              isLoading={sellerBooks.isLoading}
-              pagination={sellerBooks.pagination}
-              setPagination={sellerBooks.setPagination}
-              totalPages={sellerBooks.totalPages}
+              inventory={sellerInventory.inventory}
+              isLoading={sellerInventory.isLoading}
+              pagination={sellerInventory.pagination}
+              setPagination={sellerInventory.setPagination}
+              totalPages={sellerInventory.totalPages}
             />
           </TabsContent>
           <TabsContent value="global" className="mt-4">
@@ -99,7 +96,7 @@ export default function BooksPage() {
         onHeightChange={setDetailsPanelHeightPx}
       >
         {activeTab === "inventory" && singleInventory ? (
-          <InventoryDetails sellerBook={singleInventory} />
+          <InventoryDetails offer={singleInventory} />
         ) : singleGlobal ? (
           <GlobalBookDetails book={singleGlobal} />
         ) : null}
@@ -108,14 +105,12 @@ export default function BooksPage() {
   );
 }
 
-function InventoryDetails({ sellerBook }: { sellerBook: SellerBook }) {
-  const image = sellerBook.image ?? sellerBook.book_image;
-
+function InventoryDetails({ offer }: { offer: SellerInventoryListItem }) {
   return (
     <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
-      {image ? (
+      {offer.image ? (
         <img
-          src={image}
+          src={offer.image}
           alt=""
           className="h-32 w-24 rounded border object-cover"
         />
@@ -123,45 +118,38 @@ function InventoryDetails({ sellerBook }: { sellerBook: SellerBook }) {
       <div className="flex min-w-0 flex-col gap-2 text-sm">
         <div>
           <span className="text-muted-foreground">Title</span>
-          <p className="font-medium">
-            {sellerBook.book_title ?? sellerBook.book_id}
-          </p>
+          <p className="font-medium">{offer.title}</p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <div>
-            <span className="text-muted-foreground">Variants</span>
-            <p className="tabular-nums">
-              {formatCount(sellerBook.variant_count ?? 0)}
+            <span className="text-muted-foreground">Condition</span>
+            <p>
+              {offer.condition ?? "—"}
+              {offer.signed ? " · Signed" : ""}
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground">From</span>
-            <p className="tabular-nums">
-              {sellerBook.min_price != null
-                ? formatPrice(sellerBook.min_price)
-                : "—"}
-            </p>
+            <span className="text-muted-foreground">Price</span>
+            <p className="tabular-nums">{formatPrice(offer.price)}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Stock</span>
-            <p className="tabular-nums">
-              {formatCount(sellerBook.total_stock ?? 0)}
-            </p>
+            <p className="tabular-nums">{formatCount(offer.stock)}</p>
           </div>
         </div>
         <div>
           <span className="text-muted-foreground">Status</span>
           <p>
             <StatusBadge
-              status={sellerBook.status}
-              label={listingStatusLabel(sellerBook.status)}
+              status={offer.status}
+              label={listingStatusLabel(offer.status)}
             />
           </p>
         </div>
-        {sellerBook.synopsis ? (
+        {offer.description ? (
           <div>
-            <span className="text-muted-foreground">Synopsis</span>
-            <p className="line-clamp-4">{sellerBook.synopsis}</p>
+            <span className="text-muted-foreground">Notes</span>
+            <p className="line-clamp-4">{offer.description}</p>
           </div>
         ) : null}
       </div>

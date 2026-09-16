@@ -4,8 +4,6 @@ import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { SellerBookEditTabs } from "./seller-book-edit-tabs";
-import { AddBookToInventoryForm } from "../global-books/add-to-inventory-form";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   DropdownMenu,
@@ -17,20 +15,19 @@ import { StatusBadge } from "@/components/status-badge";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
-import {
-  SellerBook,
-  deleteSellerBook,
-  readSellerBooks,
-} from "@/lib/api/seller-book";
-import { sellerBookKeys } from "@/lib/api/query-keys";
-import { apiFetch } from "@/lib/api";
-import { PaginatedResponse } from "@/lib/api/user";
+import { sellerInventoryKeys } from "@/lib/api/query-keys";
 import { formatPrice } from "@/lib/format-price";
 import { useSellerId } from "@/lib/auth/context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
+import {
+  deleteSellerInventory,
+  type SellerInventoryListItem,
+} from "@/app/seller/lib/api/inventory";
+import { InventoryOfferForm } from "./inventory-offer-form";
+import { InventoryOnboardForm } from "./inventory-onboard-form";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -39,7 +36,7 @@ function formatCount(value: number) {
 export interface InventoryTableProps {
   selectedIds: Set<string>;
   onSelectId: (ids: Set<string>) => void;
-  books: SellerBook[];
+  inventory: SellerInventoryListItem[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -51,7 +48,7 @@ export interface InventoryTableProps {
 export function InventoryTable({
   selectedIds,
   onSelectId: setSelectedIds,
-  books: inventory,
+  inventory,
   isLoading,
   pagination,
   setPagination,
@@ -64,7 +61,7 @@ export function InventoryTable({
   const deleteMutation = useApiMutation<unknown>({
     onSuccess: () => {
       toast.success("Removed from inventory");
-      void queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
+      void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
     },
     onError: (e: Error) => toast.error(e.message || "Failed to remove"),
   });
@@ -80,54 +77,21 @@ export function InventoryTable({
   );
 
   const openEditDrawer = useCallback(
-    (
-      sellerBook: SellerBook,
-      initialTab: "listing" | "variants" = "listing",
-    ) => {
+    (offer: SellerInventoryListItem) => {
       openDrawer({
-        title: "Edit listing",
-        description: "Update your listing or manage variants",
-        children: (
-          <SellerBookEditTabs
-            sellerBook={sellerBook}
-            initialTab={initialTab}
-            onSuccess={closeDrawer}
-          />
-        ),
+        title: "Edit offer",
+        description: "Update price, stock, and condition for this listing",
+        children: <InventoryOfferForm offer={offer} onSuccess={closeDrawer} />,
       });
     },
     [openDrawer, closeDrawer],
   );
 
-  const handleAddedToInventory = useCallback(
-    async (bookId: string) => {
-      closeDrawer();
-      await queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
-      const res = await queryClient.fetchQuery({
-        queryKey: sellerBookKeys.lookupByBookId(bookId),
-        queryFn: () =>
-          apiFetch<PaginatedResponse<SellerBook>>(
-            readSellerBooks({ page: 1, size: 100 }),
-          ),
-      });
-      const listing = res.data.find((b) => b.book_id === bookId) ?? null;
-      if (listing) {
-        toast.message("Set up your first variant", {
-          description:
-            "Add condition, format, price, and stock to start selling.",
-        });
-        openEditDrawer(listing, "variants");
-      }
-    },
-    [closeDrawer, queryClient, openEditDrawer],
-  );
-
   const toggleAllOnPage = useCallback(
-    (books: SellerBook[]) => {
+    (rows: SellerInventoryListItem[]) => {
       const next = new Set(selectedIds);
-      const pageIds = new Set(books.map((b) => b.id));
-      const allSelected =
-        books.length > 0 && books.every((b) => next.has(b.id));
+      const pageIds = new Set(rows.map((row) => row.id));
+      const allSelected = rows.length > 0 && rows.every((row) => next.has(row.id));
       if (allSelected) pageIds.forEach((id) => next.delete(id));
       else pageIds.forEach((id) => next.add(id));
       setSelectedIds(next);
@@ -135,21 +99,19 @@ export function InventoryTable({
     [selectedIds, setSelectedIds],
   );
 
-  const columns: ColumnDef<SellerBook>[] = [
+  const columns: ColumnDef<SellerInventoryListItem>[] = [
     {
       id: "select",
       header: ({ table }) => {
-        const booksOnPage = table.getRowModel().rows.map((r) => r.original);
+        const rowsOnPage = table.getRowModel().rows.map((r) => r.original);
         const allSelected =
-          booksOnPage.length > 0 &&
-          booksOnPage.every((b) => selectedIds.has(b.id));
-        const someSelected = booksOnPage.some((b) => selectedIds.has(b.id));
+          rowsOnPage.length > 0 &&
+          rowsOnPage.every((row) => selectedIds.has(row.id));
+        const someSelected = rowsOnPage.some((row) => selectedIds.has(row.id));
         return (
           <Checkbox
-            checked={
-              allSelected ? true : someSelected ? "indeterminate" : false
-            }
-            onCheckedChange={() => toggleAllOnPage(booksOnPage)}
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={() => toggleAllOnPage(rowsOnPage)}
             aria-label="Select all on page"
           />
         );
@@ -165,51 +127,34 @@ export function InventoryTable({
       enableHiding: false,
     },
     {
-      accessorKey: "book_title",
+      accessorKey: "title",
       header: "Book",
       cell: ({ row }) => (
-        <BookTableTitleCell
-          title={row.original.book_title ?? row.original.book_id}
-          image={row.original.image ?? row.original.book_image}
-        />
+        <BookTableTitleCell title={row.original.title} image={row.original.image} />
       ),
     },
     {
-      accessorKey: "variant_count",
-      header: "Variants",
+      accessorKey: "condition",
+      header: "Condition",
       cell: ({ row }) => (
-        <span className="text-xs tabular-nums">
-          {formatCount(row.original.variant_count ?? 0)}
+        <span className="text-xs">
+          {row.original.condition ?? "—"}
+          {row.original.signed ? " · Signed" : ""}
         </span>
       ),
     },
     {
-      accessorKey: "min_price",
-      header: "From",
+      accessorKey: "price",
+      header: "Price",
       cell: ({ row }) => (
-        <span className="text-xs tabular-nums">
-          {row.original.min_price != null
-            ? formatPrice(row.original.min_price)
-            : "—"}
-        </span>
+        <span className="text-xs tabular-nums">{formatPrice(row.original.price)}</span>
       ),
     },
     {
-      accessorKey: "total_stock",
+      accessorKey: "stock",
       header: "Stock",
       cell: ({ row }) => (
-        <span className="text-xs tabular-nums">
-          {formatCount(row.original.total_stock ?? 0)}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "synopsis",
-      header: "Synopsis",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground max-w-xs truncate block text-xs">
-          {row.original.synopsis ?? "—"}
-        </span>
+        <span className="text-xs tabular-nums">{formatCount(row.original.stock)}</span>
       ),
     },
     {
@@ -239,26 +184,17 @@ export function InventoryTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => openEditDrawer(row.original)}>
-              Edit listing
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => openEditDrawer(row.original, "variants")}
-            >
-              Manage variants
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
               onClick={() => {
-                if (
-                  confirm(
-                    "Remove this book from your inventory? Your listing will be removed.",
-                  )
-                ) {
-                  deleteMutation.mutate(deleteSellerBook(row.original.id));
+                if (confirm("Remove this offer from your inventory?")) {
+                  deleteMutation.mutate(deleteSellerInventory(row.original.id));
                 }
               }}
             >
-              Remove from inventory
+              Remove
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -290,9 +226,9 @@ export function InventoryTable({
             onClick={() =>
               openDrawer({
                 title: "Add to inventory",
-                description: "Search books or create a provisional one",
+                description: "Search by ISBN first. If it is not in the catalog, create a provisional work.",
                 children: (
-                  <AddBookToInventoryForm onAdded={handleAddedToInventory} />
+                  <InventoryOnboardForm onSuccess={closeDrawer} />
                 ),
               })
             }

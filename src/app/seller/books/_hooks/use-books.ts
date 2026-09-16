@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { Book, readBooks } from "@/lib/api/book";
-import {
-  SellerBook,
-  readSellerBooks,
-} from "@/lib/api/seller-book";
-import { bookKeys, sellerBookKeys } from "@/lib/api/query-keys";
+import { bookKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { useSellerId } from "@/lib/auth/context";
 import usePagination from "@/lib/pagination/usePagination";
+import {
+  readSellerInventory,
+  type SellerInventoryListItem,
+} from "@/app/seller/lib/api/inventory";
 
 function searchOrUndefined(s: string): string | undefined {
   const t = s.trim();
@@ -64,8 +64,8 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
   };
 }
 
-export interface UseSellerBooksReturn {
-  sellerBooks: SellerBook[];
+export interface UseSellerInventoryReturn {
+  inventory: SellerInventoryListItem[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -74,20 +74,20 @@ export interface UseSellerBooksReturn {
   totalPages: number;
 }
 
-export function useSellerBooks(): UseSellerBooksReturn {
+export function useSellerInventory(): UseSellerInventoryReturn {
   const sellerId = useSellerId();
 
   const {
-    data: sellerBooks,
+    data: inventory,
     isLoading,
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<SellerBook>({
-    queryKey: [...sellerBookKeys.all, sellerId ?? ""],
+  } = usePagination<SellerInventoryListItem>({
+    queryKey: [...sellerInventoryKeys.all, sellerId ?? ""],
     getUrl: ({ page, size }) => {
       if (!sellerId) return "";
-      return readSellerBooks({ page, size });
+      return readSellerInventory({ page, size });
     },
     initialPageSize: 10,
     params: {},
@@ -95,7 +95,7 @@ export function useSellerBooks(): UseSellerBooksReturn {
   });
 
   return {
-    sellerBooks,
+    inventory,
     isLoading,
     pagination,
     setPagination,
