@@ -28,7 +28,7 @@ export type VariantsConfig = {
   };
 };
 
-export type PublicListing = {
+export type PublicOffer = {
   id: string;
   work_id: string;
   publication_id: string;
@@ -64,16 +64,23 @@ export type PublicCatalogSellerBook = {
   min_price?: number | null;
 };
 
+export type PublicSellerWork = {
+  work_id: string;
+  title: string;
+  image?: string | null;
+  description?: string | null;
+  author_names: string[];
+  min_price?: number | null;
+  total_stock: number;
+  offer_count: number;
+  is_available: boolean;
+};
+
 export type PublicWorkOfferSummary = {
   work_id: string;
   seller_id: string;
   seller_name: string;
-  // book_title: string;
-  // book_image?: string | null;
-  // synopsis?: string | null;
-  // image?: string | null;
-  // author_names: string[];
-  variant_count: number;
+  offer_count: number;
   min_price?: number | null;
 };
 
@@ -82,7 +89,7 @@ export type PublicCatalogSellerBookDetail = PublicCatalogSellerBook & {
 };
 
 export type PublicSellerOffer = PublicWorkOfferSummary & {
-  listings: PublicListing[];
+  offers: PublicOffer[];
   variants: VariantsConfig;
 };
 
@@ -102,12 +109,12 @@ export function readOffers(
   return buildRelativeUrl(`/works/${workId}/offers`);
 }
 
-export function readPublicSellerCatalog(
+export function readPublicSellerWorks(
   sellerId: string,
   params?: ReadParams,
 ) {
   return buildRelativeUrl(
-    `/sellers/${sellerId}/catalog`,
+    `/sellers/${sellerId}/works`,
     buildQueryParams(params),
   );
 }

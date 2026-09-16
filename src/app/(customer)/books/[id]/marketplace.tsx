@@ -10,7 +10,7 @@ import { apiFetch } from "@/lib/api";
 import { formatVariantConfig } from "@/lib/api/variant";
 import {
   formatPrice,
-  PublicListing,
+  PublicOffer,
   PublicWorkOfferSummary,
   readSellerOffers,
   VariantKey,
@@ -26,16 +26,16 @@ type Props = {
   offers: PublicWorkOfferSummary[];
 };
 
-type ListingResponse = { data?: PublicSellerOffer };
+type SellerOfferResponse = { data?: PublicSellerOffer };
 
 function OfferAddToCart({
   variants,
   onSelectedChange,
-  listings,
+  offers,
 }: {
   variants: VariantsConfig;
-  onSelectedChange?: (variant: PublicListing | null) => void;
-  listings: PublicListing[]
+  onSelectedChange?: (offer: PublicOffer | null) => void;
+  offers: PublicOffer[]
 }) {
   const [selectedVariants, setSelectedVariants] = useState<{[key: string]: string}>({});
   const [quantity, setQuantity] = useState(1);
@@ -58,9 +58,9 @@ function OfferAddToCart({
           break;
         }
       }      
-      return listings.find((l) => l.id === selectedId);
+      return offers.find((offer) => offer.id === selectedId);
     }
-  }, [selectedVariants, variants]);
+  }, [selectedVariants, variants, offers]);
 
   const maxQuantity = selected?.stock ?? 1;
 
@@ -84,16 +84,16 @@ function OfferAddToCart({
   const quantityExceedsStock = quantity > maxQuantity;
 
   function buildCartItem(
-    variant: PublicListing,
+    offer: PublicOffer,
     qty: number,
   ): CartLine {
     return {
-      sellerInventoryId: variant.id ?? null,
-      unitPrice: variant.price,
-      title: variant.publication.title,
-      image: variant.image,
-      sellerId: variant.seller_id,
-      sellerName: variant.seller_name,
+      sellerInventoryId: offer.id ?? null,
+      unitPrice: offer.price,
+      title: offer.publication.title,
+      image: offer.image,
+      sellerId: offer.seller_id,
+      sellerName: offer.seller_name,
       configLabel: formatVariantConfig(selectedVariants),
       quantity: qty,
     };
@@ -140,7 +140,7 @@ function OfferAddToCart({
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium">
-                          {label === "—" ? "Standard listing" : label}
+                          {label === "—" ? "Standard" : label}
                         </span>
                       </span>
                     </label>
@@ -207,7 +207,7 @@ type OfferAccordionItemProps = {
   offer: PublicWorkOfferSummary;
   expanded: boolean;
   onToggle: () => void;
-  listing: PublicSellerOffer | null | undefined;
+  sellerOffer: PublicSellerOffer | null | undefined;
   isLoading: boolean;
 };
 
@@ -215,7 +215,7 @@ function OfferAccordionItem({
   offer,
   expanded,
   onToggle,
-  listing,
+  sellerOffer,
   isLoading,
 }: OfferAccordionItemProps) {
   const panelId = `offer-panel-${offer.seller_id}`;
@@ -228,8 +228,8 @@ function OfferAccordionItem({
   }, [expanded]);
 
   const handleSelectedChange = useCallback(
-    (variant: PublicListing | null) => {
-      setSelectedPrice(variant?.price ?? null);
+    (selectedOffer: PublicOffer | null) => {
+      setSelectedPrice(selectedOffer?.price ?? null);
     },
     [],
   );
@@ -271,8 +271,8 @@ function OfferAccordionItem({
             </span>
           ) : null} */}
           <span className="mt-1 block text-sm text-muted-foreground">
-            {offer.variant_count}{" "}
-            {offer.variant_count === 1 ? "option" : "options"}
+            {offer.offer_count}{" "}
+            {offer.offer_count === 1 ? "offer" : "offers"}
           </span>
         </span>
 
@@ -298,12 +298,12 @@ function OfferAccordionItem({
           className="border-t border-border px-4 pb-5 pt-4 sm:px-5"
         >
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading options…</p>
-          ) : listing ? (
+            <p className="text-sm text-muted-foreground">Loading offers…</p>
+          ) : sellerOffer ? (
             <OfferAddToCart
-              variants={listing.variants}
+              variants={sellerOffer.variants}
               onSelectedChange={handleSelectedChange}
-              listings ={listing.listings}
+              offers={sellerOffer.offers}
             />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -319,15 +319,17 @@ function OfferAccordionItem({
 export function Marketplace({ workId, offers }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedListingId = searchParams.get("listing");
+  const selectedSellerId =
+    searchParams.get("seller") ?? searchParams.get("listing");
 
-  const setListing = useCallback(
+  const setSelectedSeller = useCallback(
     (sellerId: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
+      params.delete("listing");
       if (sellerId) {
-        params.set("listing", sellerId);
+        params.set("seller", sellerId);
       } else {
-        params.delete("listing");
+        params.delete("seller");
       }
       const qs = params.toString();
       router.replace(qs ? `/books/${workId}?${qs}#buy` : `/books/${workId}#buy`, {
@@ -337,23 +339,23 @@ export function Marketplace({ workId, offers }: Props) {
     [workId, router, searchParams],
   );
 
-  const { data: listing, isLoading } = useQuery({
-    queryKey: ["customer-offer", selectedListingId],
+  const { data: sellerOffer, isLoading } = useQuery({
+    queryKey: ["customer-offer", selectedSellerId],
     queryFn: async () => {
-      if (!selectedListingId) return null;
-      const res = await apiFetch<ListingResponse>(
-        readSellerOffers(workId, selectedListingId),
+      if (!selectedSellerId) return null;
+      const res = await apiFetch<SellerOfferResponse>(
+        readSellerOffers(workId, selectedSellerId),
       );
       return res.data ?? null;
     },
-    enabled: Boolean(selectedListingId),
+    enabled: Boolean(selectedSellerId),
   });
 
   useEffect(() => {
-    if (offers.length === 1 && !selectedListingId) {
-      setListing(offers[0]!.seller_id);
+    if (offers.length === 1 && !selectedSellerId) {
+      setSelectedSeller(offers[0]!.seller_id);
     }
-  }, [offers, selectedListingId, setListing]);
+  }, [offers, selectedSellerId, setSelectedSeller]);
 
   const lowestPrice = offers.reduce<number | null>((min, offer) => {
     if (offer.min_price == null) return min;
@@ -367,7 +369,7 @@ export function Marketplace({ workId, offers }: Props) {
           Where to buy
         </h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          No sellers are listing this title yet. Check back soon or browse similar
+          No sellers are offering this title yet. Check back soon or browse similar
           books in the catalog.
         </p>
       </section>
@@ -405,12 +407,14 @@ export function Marketplace({ workId, offers }: Props) {
           <OfferAccordionItem
             key={offer.seller_id}
             offer={offer}
-            expanded={selectedListingId === offer.seller_id}
+            expanded={selectedSellerId === offer.seller_id}
             onToggle={() =>
-              setListing(selectedListingId === offer.seller_id ? null : offer.seller_id)
+              setSelectedSeller(
+                selectedSellerId === offer.seller_id ? null : offer.seller_id,
+              )
             }
-            listing={selectedListingId === offer.seller_id ? listing : null}
-            isLoading={selectedListingId === offer.seller_id && isLoading}
+            sellerOffer={selectedSellerId === offer.seller_id ? sellerOffer : null}
+            isLoading={selectedSellerId === offer.seller_id && isLoading}
           />
         ))}
       </ul>

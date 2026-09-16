@@ -31,6 +31,13 @@ sellers:
         - SellerInventory
         - seller_id
     customer_shop_url: /seller/{id}
+    public_reads:
+      - GET /sellers/{id}/public
+      - GET /sellers/{id}/works
+    works:
+      notes: >
+        Grid is works this seller offers, not one card per offer.
+        Card opens the work with this seller’s offers selected.
 
   privileges:
     READ_SELLER:

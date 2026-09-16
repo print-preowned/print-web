@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  readPublicSellerCatalog,
-  type PublicCatalogSellerBook,
+  readPublicSellerWorks,
+  type PublicSellerWork,
 } from "@customer/api";
 import usePagination from "@/lib/pagination/usePagination";
 import { Button } from "@/components/ui/button";
 import { CatalogSearchForm } from "../../books/catalog-search-form";
-import { SellerListingCard } from "./seller-listing-card";
+import { SellerWorkCard } from "./seller-work-card";
 
 function pageFromSearchParams(searchParams: URLSearchParams): number {
   const parsed = Number.parseInt(searchParams.get("page") ?? "1", 10);
@@ -55,16 +55,16 @@ export function SellerInventory({ sellerId }: SellerInventoryProps) {
   }, [search, debouncedSearch]);
 
   const {
-    data: listings,
+    data: works,
     response,
     isLoading,
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<PublicCatalogSellerBook>({
+  } = usePagination<PublicSellerWork>({
     queryKey: ["seller-inventory", sellerId],
     getUrl: ({ page, size, search: q }) =>
-      readPublicSellerCatalog(sellerId, {
+      readPublicSellerWorks(sellerId, {
         page,
         size,
         filter: q ? { search: q as string } : undefined,
@@ -123,24 +123,28 @@ export function SellerInventory({ sellerId }: SellerInventoryProps) {
       ) : null}
 
       <div className={showSearch ? "mt-10" : "mt-6"}>
-        {isLoading && listings.length === 0 ? (
+        {isLoading && works.length === 0 ? (
           <div className="py-20 text-center">
-            <p className="text-muted-foreground">Loading inventory…</p>
+            <p className="text-muted-foreground">Loading titles…</p>
           </div>
-        ) : listings.length === 0 ? (
+        ) : works.length === 0 ? (
           <div className="py-20 text-center">
             <p className="text-muted-foreground">
               {debouncedSearch
                 ? "No matching titles in this storefront. Try a different search."
-                : "This storefront has no books listed yet."}
+                : "This storefront has no titles yet."}
             </p>
           </div>
         ) : (
           <>
             <ul className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-              {listings.map((listing, i) => (
-                <li key={listing.id}>
-                  <SellerListingCard listing={listing} animationDelay={i * 50} />
+              {works.map((work, i) => (
+                <li key={work.work_id}>
+                  <SellerWorkCard
+                    work={work}
+                    sellerId={sellerId}
+                    animationDelay={i * 50}
+                  />
                 </li>
               ))}
             </ul>

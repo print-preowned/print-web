@@ -5,11 +5,9 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { Book, readBookById } from "@/lib/api/book";
 import {
   BaseResponse,
-  PublicCatalogSellerBook,
   PublicWorkOfferSummary,
   readOffers,
 } from "@customer/api";
-import { PaginatedResponse } from "@/lib/api/user";
 import { BookGenreTag } from "../book-genre-tag";
 import { Marketplace } from "./marketplace";
 
@@ -30,7 +28,6 @@ async function getOffers(workId: string): Promise<PublicWorkOfferSummary[]> {
     const res = await apiFetch<BaseResponse<PublicWorkOfferSummary[]>>(
       readOffers(workId),
     );
-    console.log(`Fetching offers for workId: ${res.data}`);
     return res.data ?? [];
   } catch {
     return [];

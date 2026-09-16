@@ -46,7 +46,7 @@ export type SellerInventoryListItem = {
   id: string;
   seller_id: string;
   publication_id: string;
-  work_id: string | null;
+  work_id: string;
   title: string;
   image: string | null;
   price: number;
