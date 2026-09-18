@@ -2,7 +2,7 @@ import { apiFetch, generateUrl } from ".";
 
 export type BookAuthor = {
   id: string;
-  book_id: string;
+  work_id: string;
   author_id: string;
   status: string;
   created_at: string;
@@ -10,25 +10,25 @@ export type BookAuthor = {
 };
 
 export function createBookAuthor(
-  bookId: string,
+  workId: string,
   payload: { author_id: string },
 ) {
   return {
-    endpoint: `/works/${bookId}/authors`,
+    endpoint: `/works/${workId}/authors`,
     method: "POST" as const,
     body: payload,
   };
 }
 
-export function deleteBookAuthor(bookId: string, authorId: string) {
+export function deleteBookAuthor(workId: string, authorId: string) {
   return {
-    endpoint: `/works/${bookId}/authors/${authorId}`,
+    endpoint: `/works/${workId}/authors/${authorId}`,
     method: "DELETE" as const,
   };
 }
 
-export function readBookAuthors(bookId: string) {
-  return `/works/${bookId}/authors`;
+export function readBookAuthors(workId: string) {
+  return `/works/${workId}/authors`;
 }
 
 export async function fetchBookAuthorByAuthor(authorId: string) {

@@ -56,7 +56,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       return;
     }
     if (!linksInitializedRef.current) {
-      setSelectedBookIds(existingLinks.map((l) => l.book_id));
+      setSelectedBookIds(existingLinks.map((l) => l.work_id));
       linksInitializedRef.current = true;
     }
   }, [author?.id, linksData, existingLinks]);
@@ -151,9 +151,9 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         method: request.method,
         body: request.body,
       });
-      const existingBookIds = new Set(existingLinks.map((l) => l.book_id));
+      const existingBookIds = new Set(existingLinks.map((l) => l.work_id));
       const toAdd = selectedBookIds.filter((id) => !existingBookIds.has(id));
-      const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.book_id));
+      const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.work_id));
       for (const bookId of toAdd) {
         const linkReq = createBookAuthor(bookId, { author_id: author!.id });
         await apiFetch(linkReq.endpoint, {
@@ -162,7 +162,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         });
       }
       for (const link of toRemove) {
-        const delReq = deleteBookAuthor(link.book_id, link.author_id);
+        const delReq = deleteBookAuthor(link.work_id, link.author_id);
         await apiFetch(delReq.endpoint, { method: delReq.method });
       }
     },

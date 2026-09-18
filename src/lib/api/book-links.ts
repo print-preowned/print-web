@@ -3,15 +3,15 @@ import { createBookAuthor, deleteBookAuthor } from "./book-author";
 import { createBookGenre, deleteBookGenre } from "./book-genre";
 
 export async function linkBookAuthorsAndGenres(
-  bookId: string,
+  workId: string,
   authorIds: string[],
   genreIds: string[],
 ) {
-  await syncBookAuthorGenreLinks(bookId, authorIds, genreIds, [], []);
+  await syncBookAuthorGenreLinks(workId, authorIds, genreIds, [], []);
 }
 
 export async function syncBookAuthorGenreLinks(
-  bookId: string,
+  workId: string,
   authorIds: string[],
   genreIds: string[],
   existingAuthorIds: string[],
@@ -31,19 +31,19 @@ export async function syncBookAuthorGenreLinks(
 
   await Promise.all([
     ...toAddAuthors.map(async (authorId) => {
-      const req = createBookAuthor(bookId, { author_id: authorId });
+      const req = createBookAuthor(workId, { author_id: authorId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveAuthors.map(async (authorId) => {
-      const req = deleteBookAuthor(bookId, authorId);
+      const req = deleteBookAuthor(workId, authorId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
     ...toAddGenres.map(async (genreId) => {
-      const req = createBookGenre(bookId, { genre_id: genreId });
+      const req = createBookGenre(workId, { genre_id: genreId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveGenres.map(async (genreId) => {
-      const req = deleteBookGenre(bookId, genreId);
+      const req = deleteBookGenre(workId, genreId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
   ]).catch((e) => {

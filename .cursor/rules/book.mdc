@@ -12,14 +12,14 @@ modules:
       SELLER:
         allowed:
           - READ_BOOK
-        notes: Seller catalog search uses GET /works; offers use SELLER_INVENTORY
+        notes: Seller catalog search uses GET /works; publication lookup uses GET /publications; offers use SELLER_INVENTORY
       PLATFORM:
         allowed:
           - CREATE_BOOK
           - UPDATE_BOOK
           - DELETE_BOOK
         urls: /admin/books
-        api: /works
+        api: [/works, /publications]
 
     privileges:
       READ_PUBLIC_BOOK:
@@ -27,16 +27,21 @@ modules:
         description: Read public work catalog data
       READ_BOOK:
         context: SELLER
-        description: Search global works when onboarding inventory
+        description: Search global works and publications when onboarding inventory
       CREATE_BOOK:
         context: PLATFORM
+        notes: Covers work and publication mutations
       UPDATE_BOOK:
         context: PLATFORM
+        notes: Covers work and publication mutations
       DELETE_BOOK:
         context: PLATFORM
+        notes: Covers work and publication mutations
 
     invariants:
       - id: MDC-BOOK-1
         assertion: customer_books_urls_read_works_api
       - id: MDC-BOOK-2
-        assertion: platform_catalog_mutations_use_works
+        assertion: platform_catalog_mutations_use_works_and_publications
+      - id: MDC-BOOK-3
+        assertion: book_privileges_cover_works_and_publications
