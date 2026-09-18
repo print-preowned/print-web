@@ -7,6 +7,7 @@ sellers:
   ui:
     - /seller
     - /seller/accounts
+    - /seller/inventory
   copy:
     customer: Storefront / Store Name
     seller_workspace: Accounts

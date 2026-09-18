@@ -141,19 +141,19 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
       })}
     >
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Publication</legend>
+        <legend className="text-sm font-medium">Format</legend>
         {publicationsQuery.isLoading ? (
-          <p className="text-muted-foreground text-sm">Loading publications…</p>
+          <p className="text-muted-foreground text-sm">Loading formats…</p>
         ) : publicationsQuery.isError ? (
           <p className="text-destructive text-sm">
-            {publicationsQuery.error.message || "Could not load publications"}
+            {publicationsQuery.error.message || "Could not load formats"}
           </p>
         ) : publications.length > 0 ? (
           <>
             <p className="text-muted-foreground text-xs">
               {publications.length === 1
-                ? "This title has one publication. Confirm it is the copy you are selling, or add a new publication."
-                : "Select the publication you are selling, or add a new one if none match."}
+                ? "This title has one format. Confirm it is the copy you are selling, or add a different format."
+                : "Select the format you are selling, or add a new one if none match."}
             </p>
             <ul className="grid gap-2">
               {publications.map((publication) => {
@@ -205,7 +205,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
                     {...form.register("publication_id")}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">New publication</span>
+                    <span className="block text-sm font-medium">Another format</span>
                     <span className="text-muted-foreground mt-1 block text-xs">
                       This title is already in the catalog, but not this binding or ISBN.
                     </span>
@@ -216,7 +216,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
           </>
         ) : (
           <p className="text-muted-foreground text-sm">
-            No publications are listed for this title yet. Set binding and optional ISBN
+            No formats are listed for this title yet. Set binding and optional ISBN
             below to add one.
           </p>
         )}
@@ -231,7 +231,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
                 {...form.register("title")}
               />
               <p className="text-muted-foreground text-xs">
-                Leave as the catalog title unless this publication uses a different one.
+                Leave as the catalog title unless this copy uses a different one.
               </p>
             </div>
             <div className="space-y-2">

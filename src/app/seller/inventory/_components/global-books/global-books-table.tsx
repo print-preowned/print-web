@@ -14,14 +14,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
-import { Book } from "@/lib/api/book";
+import { type CatalogWork } from "@/app/seller/lib/api/inventory";
 import { RequestBookEditDialog } from "../requests/request-book-edit-dialog";
 import { ChevronDown, FileEdit } from "lucide-react";
 
 export interface GlobalBooksTableProps {
   selectedIds: Set<string>;
   onSelectId: (ids: Set<string>) => void;
-  books: Book[];
+  books: CatalogWork[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -45,7 +45,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     setSearchApplied,
   } = props;
   const [search, setSearch] = useState("");
-  const [requestEditBook, setRequestEditBook] = useState<Book | null>(null);
+  const [requestEditWork, setRequestEditWork] = useState<CatalogWork | null>(null);
 
   const toggleRow = useCallback(
     (id: string) => {
@@ -58,7 +58,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   );
 
   const toggleAllOnPage = useCallback(
-    (books: Book[]) => {
+    (books: CatalogWork[]) => {
       const next = new Set(selectedIds);
       const pageIds = new Set(books.map((b) => b.id));
       const allSelected =
@@ -74,10 +74,10 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   const singleSelected = selectedBooks.length === 1 ? selectedBooks[0] : null;
 
   const handleRequestEdit = useCallback(() => {
-    if (singleSelected) setRequestEditBook(singleSelected);
+    if (singleSelected) setRequestEditWork(singleSelected);
   }, [singleSelected]);
 
-  const columns: ColumnDef<Book>[] = [
+  const columns: ColumnDef<CatalogWork>[] = [
     {
       id: "select",
       header: ({ table }) => {
@@ -131,7 +131,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => (row.original.status ? <StatusBadge status={row.original.status} /> : "—"),
     },
   ];
 
@@ -139,7 +139,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
-        Search the global catalog to request edits (for example merge duplicates
+        Search the catalog to request edits (for example merge duplicates
         or correct details). Add offers from My inventory.
       </p>
       <div className="flex flex-wrap items-center gap-2">
@@ -204,9 +204,9 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
       />
       
       <RequestBookEditDialog
-        book={requestEditBook}
-        open={!!requestEditBook}
-        onOpenChange={(open) => !open && setRequestEditBook(null)}
+        book={requestEditWork}
+        open={!!requestEditWork}
+        onOpenChange={(open) => !open && setRequestEditWork(null)}
       />
     </div>
   );

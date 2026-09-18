@@ -31,7 +31,7 @@ alwaysApply: true
         owner_only: true
 
     notes: >
-      API paths use /variants. "Inventory" is seller UI copy for the collection view, not a route segment.
+      API paths use /variants. Seller workspace copy uses Inventory, not bibliographic work/publication terms.
 
     invariants:
       - id: MDC-VARIANT-1

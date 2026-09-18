@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Info, Copy } from "lucide-react";
-import type { Book } from "@/lib/api/book";
+import type { CatalogWork } from "@/app/seller/lib/api/inventory";
 import { toast } from "sonner";
 
 export function RequestBookEditDialog({
@@ -22,7 +22,7 @@ export function RequestBookEditDialog({
   open,
   onOpenChange,
 }: {
-  book: Book | null;
+  book: CatalogWork | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -37,7 +37,7 @@ export function RequestBookEditDialog({
         <DialogHeader>
           <DialogTitle>Request book update</DialogTitle>
           <DialogDescription>
-            Request a merge, name change, or other correction for a global book.
+            Request a merge, name change, or other correction for a book.
             Contact the platform admin with the details below.
           </DialogDescription>
         </DialogHeader>

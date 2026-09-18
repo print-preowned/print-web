@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Book, readBooks } from "@/lib/api/book";
-import { bookKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
+import { workKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { useSellerId } from "@/lib/auth/context";
 import usePagination from "@/lib/pagination/usePagination";
 import {
   readSellerInventory,
+  readWorks,
+  type CatalogWork,
   type SellerInventoryListItem,
 } from "@/app/seller/lib/api/inventory";
 
@@ -16,7 +17,7 @@ function searchOrUndefined(s: string): string | undefined {
 }
 
 export interface UseGlobalBooksReturn {
-  books: Book[];
+  books: CatalogWork[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -41,13 +42,13 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<Book>({
-    queryKey: [...bookKeys.globalList],
+  } = usePagination<CatalogWork>({
+    queryKey: [...workKeys.catalog, "seller"],
     getUrl: ({ page, size, search: q }) =>
-      readBooks({
+      readWorks({
         page,
         size,
-        filter: q ? { search: q as string } : undefined,
+        search: typeof q === "string" && q ? q : undefined,
       }),
     initialPageSize: 10,
     params,

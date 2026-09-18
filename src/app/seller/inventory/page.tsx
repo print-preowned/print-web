@@ -8,15 +8,14 @@ import { useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
-import { Book } from "@/lib/api/book";
 import { formatPrice } from "@/lib/format-price";
-import { type SellerInventoryListItem } from "@/app/seller/lib/api/inventory";
+import { type CatalogWork, type SellerInventoryListItem } from "@/app/seller/lib/api/inventory";
 
 function formatCount(value: number) {
   return value.toLocaleString();
 }
 
-export default function BooksPage() {
+export default function InventoryPage() {
   const globalBooks = useGlobalBooks();
   const sellerInventory = useSellerInventory();
   const [activeTab, setActiveTab] = useState("inventory");
@@ -56,7 +55,7 @@ export default function BooksPage() {
         >
           <TabsList>
             <TabsTrigger value="inventory">My inventory</TabsTrigger>
-            <TabsTrigger value="global">Global books</TabsTrigger>
+            <TabsTrigger value="global">Catalog</TabsTrigger>
           </TabsList>
           <TabsContent value="inventory" className="mt-4 space-y-4">
             <p className="text-muted-foreground text-sm">
@@ -92,7 +91,7 @@ export default function BooksPage() {
       <BottomDetailsPanel
         open={detailsOpen}
         ariaLabel="Book details"
-        title="Book details"
+        title=""
         onHeightChange={setDetailsPanelHeightPx}
       >
         {activeTab === "inventory" && singleInventory ? (
@@ -157,7 +156,7 @@ function InventoryDetails({ offer }: { offer: SellerInventoryListItem }) {
   );
 }
 
-function GlobalBookDetails({ book }: { book: Book }) {
+function GlobalBookDetails({ book }: { book: CatalogWork }) {
   return (
     <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
       {book.image ? (
@@ -178,16 +177,10 @@ function GlobalBookDetails({ book }: { book: Book }) {
             <p>{book.authors.map((a) => a.name).join(", ")}</p>
           </div>
         ) : null}
-        <div>
-          <span className="text-muted-foreground">Status</span>
-          <p>
-            <StatusBadge status={book.status} />
-          </p>
-        </div>
-        {book.synopsis ? (
+        {book.description ? (
           <div>
-            <span className="text-muted-foreground">Synopsis</span>
-            <p className="line-clamp-4">{book.synopsis}</p>
+            <span className="text-muted-foreground">Description</span>
+            <p className="line-clamp-4">{book.description}</p>
           </div>
         ) : null}
       </div>

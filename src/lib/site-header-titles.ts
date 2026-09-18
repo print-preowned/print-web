@@ -8,7 +8,7 @@ const PREFIX_TITLES: [string, string][] = [
   ["/seller/accounts", "Accounts"],
   ["/seller/privileges", "Privileges"],
   ["/seller/dashboard", "Dashboard"],
-  ["/seller/books", "Books"],
+  ["/seller/inventory", "Inventory"],
   ["/seller/authors", "Authors"],
   ["/seller/orders", "Orders"],
   ["/seller/users", "Users"],

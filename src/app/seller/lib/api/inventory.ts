@@ -80,6 +80,7 @@ export type CatalogWork = {
   image: string | null;
   description: string | null;
   original_language: string | null;
+  status: string;
   authors?: { id: string; name: string }[];
 };
 

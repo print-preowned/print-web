@@ -74,11 +74,11 @@ export const routeConfig: Record<string, RouteConfig> = {
     redirectTo: "/login",
   },
 
-  // Seller books (require READ_BOOK privilege)
-  "/seller/books": {
+  // Seller inventory
+  "/seller/inventory": {
     requireAuth: true,
     requiredContext: "SELLER",
-    requiredPrivileges: ["READ_BOOK"],
+    requiredPrivileges: ["READ_SELLER_INVENTORY"],
     redirectTo: "/login",
   },
 
