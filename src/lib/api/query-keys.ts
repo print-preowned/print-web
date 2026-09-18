@@ -8,27 +8,8 @@ export const publicationKeys = {
   byWork: (workId: string) => ["publications", "work", workId] as const,
 };
 
-export const sellerBookKeys = {
-  all: ["seller-books"] as const,
-  lookupByBookId: (bookId: string) =>
-    ["seller-books", "lookup", bookId] as const,
-};
-
-export const variantKeys = {
-  bySellerBook: (sellerBookId: string) =>
-    ["variants", sellerBookId] as const,
-};
-
-export const variantTypeKeys = {
-  all: ["variant-types"] as const,
-};
-
-export const variantOptionKeys = {
-  byTypes: (typeIds: string[]) =>
-    ["variant-options", ...typeIds] as const,
-};
-
 export const workKeys = {
+  catalog: ["works-catalog"] as const,
   search: (query: string) => ["works-search", query] as const,
 };
 

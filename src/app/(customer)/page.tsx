@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import { Book, readBooks } from "@/lib/api/book";
+import { CatalogWork, readWorks } from "@customer/api";
 import { BookListingCard } from "./books/book-listing-card";
 import { CatalogSearchForm } from "./books/catalog-search-form";
 import { GenreFilterChips } from "./books/genre-filter-chips";
 
-type BooksResponse = {
-  data?: Book[];
+type WorksResponse = {
+  data?: CatalogWork[];
 };
 
-async function getRecentBooks(): Promise<Book[]> {
+async function getRecentWorks(): Promise<CatalogWork[]> {
   try {
-    const res = await apiFetch<BooksResponse>(
-      readBooks({ page: 1, size: 12 }),
+    const res = await apiFetch<WorksResponse>(
+      readWorks({ page: 1, size: 12 }),
     );
     return res.data ?? [];
   } catch {
@@ -22,7 +22,7 @@ async function getRecentBooks(): Promise<Book[]> {
 }
 
 export default async function HomePage() {
-  const books = await getRecentBooks();
+  const books = await getRecentWorks();
 
   return (
     <div>

@@ -1,9 +1,9 @@
-import type { Book } from "@/lib/api/book";
+import type { CatalogWork } from "@customer/api";
 import { formatPrice } from "@customer/api";
 
 /** StoryGraph-style compact metadata for browse cards. */
 export function bookListingMeta(
-  book: Book,
+  work: CatalogWork,
   options?: {
     sellerCount?: number;
     fromPrice?: number | null;
@@ -14,7 +14,7 @@ export function bookListingMeta(
   const includeGenres = options?.includeGenres ?? true;
 
   if (includeGenres) {
-    const genres = book.genres?.slice(0, 2).map((g) => g.name);
+    const genres = work.genres?.slice(0, 2).map((g) => g.name);
     if (genres?.length) {
       parts.push(genres.join(" · "));
     }
@@ -33,11 +33,11 @@ export function bookListingMeta(
   return parts.join(" · ");
 }
 
-export function bookSynopsisExcerpt(
-  synopsis: string | null | undefined,
-  maxLength = 140,
+export function bookExcerpt(
+  description: string | null | undefined,
+  maxLength = 200,
 ): string | null {
-  const trimmed = synopsis?.trim();
+  const trimmed = description?.trim();
   if (!trimmed) return null;
   if (trimmed.length <= maxLength) return trimmed;
   return `${trimmed.slice(0, maxLength).trim()}…`;

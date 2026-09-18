@@ -1,14 +1,14 @@
 import Link from "next/link";
-import type { Book } from "@/lib/api/book";
+import type { CatalogWork } from "@customer/api";
 import {
   bookListingMeta,
-  bookSynopsisExcerpt,
+  bookExcerpt,
 } from "./book-listing-details";
 import { cn } from "@/lib/utils";
 import { BookGenreTag } from "./book-genre-tag";
 
 type BookListingRowProps = {
-  book: Book;
+  book: CatalogWork;
   sellerCount?: number;
   fromPrice?: number | null;
   className?: string;
@@ -27,7 +27,7 @@ export function BookListingRow({
     fromPrice,
     includeGenres: false,
   });
-  const excerpt = bookSynopsisExcerpt(book.synopsis, 200);
+  const excerpt = bookExcerpt(book.description, 200);
 
   return (
     <article className={cn("book-listing-row group py-6", className)}>

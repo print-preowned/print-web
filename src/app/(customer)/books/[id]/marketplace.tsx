@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink, Store } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
-import { formatVariantConfig } from "@/lib/api/variant";
+import { formatOfferConfig } from "@customer/api";
 import {
   formatPrice,
   PublicOffer,
@@ -94,7 +94,7 @@ function OfferAddToCart({
       image: offer.image,
       sellerId: offer.seller_id,
       sellerName: offer.seller_name,
-      configLabel: formatVariantConfig(selectedVariants),
+      configLabel: formatOfferConfig(selectedVariants),
       quantity: qty,
     };
   }

@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Book, readBooks } from "@/lib/api/book";
-import { bookKeys } from "@/lib/api/query-keys";
+import { CatalogWork, readWorks } from "@customer/api";
+import { workKeys } from "@/lib/api/query-keys";
 import usePagination from "@/lib/pagination/usePagination";
 import { Button } from "@/components/ui/button";
 import { BookListingRow } from "./book-listing-row";
@@ -51,13 +51,13 @@ function BooksCatalog() {
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<Book>({
-    queryKey: [...bookKeys.globalList, "customer"],
+  } = usePagination<CatalogWork>({
+    queryKey: [...workKeys.catalog, "customer"],
     getUrl: ({ page, size, search: q }) =>
-      readBooks({
+      readWorks({
         page,
         size,
-        filter: q ? { search: q as string } : undefined,
+        search: typeof q === "string" && q ? q : undefined,
       }),
     initialPageSize: 20,
     initialPage: pageFromUrl,

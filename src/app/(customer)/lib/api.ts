@@ -2,24 +2,30 @@ import { apiFetch } from "@/lib/api";
 import { buildRelativeUrl } from "@/lib/api/core";
 export { formatPrice } from "@/lib/format-price";
 import { ReadParams, buildQueryParams } from "@/lib/api/types";
-import type { ResolvedConfig } from "@/lib/api/variant";
 
-export type PublicCatalogVariant = {
+export type CatalogWork = {
   id: string;
-  seller_inventory_id?: string | null;
-  seller_book_id: string;
-  book_id: string;
-  book_title: string;
-  book_image?: string | null;
-  seller_id: string;
-  seller_name: string;
-  price: number;
-  currency: string;
-  discount?: number | null;
-  stock: number;
-  image?: string | null;
-  config: ResolvedConfig[];
+  title: string;
+  image: string | null;
+  description: string | null;
+  original_language?: string | null;
+  authors?: { id: string; name: string }[];
+  genres?: { id: string; name: string }[];
 };
+
+export function readWorks(params?: { page?: number; size?: number; search?: string }) {
+  return buildRelativeUrl("/works", params);
+}
+
+export function readWorkById(id: string) {
+  return buildRelativeUrl(`/works/${id}`);
+}
+
+export function formatOfferConfig(config: { [key: string]: string }): string {
+  const values = Object.values(config).filter(Boolean);
+  if (!values.length) return "—";
+  return values.join(" · ");
+}
 
 export type VariantKey = "language" | "binding" | "signed" | "condition" | "volume_number" | "edition";
 export type VariantsConfig = {
@@ -50,20 +56,6 @@ export type PublicOffer = {
   description: string | null;
 };
 
-export type PublicCatalogSellerBook = {
-  id: string;
-  book_id: string;
-  seller_id: string;
-  seller_name: string;
-  book_title: string;
-  book_image?: string | null;
-  synopsis?: string | null;
-  image?: string | null;
-  author_names: string[];
-  variant_count: number;
-  min_price?: number | null;
-};
-
 export type PublicSellerWork = {
   work_id: string;
   title: string;
@@ -82,10 +74,6 @@ export type PublicWorkOfferSummary = {
   seller_name: string;
   offer_count: number;
   min_price?: number | null;
-};
-
-export type PublicCatalogSellerBookDetail = PublicCatalogSellerBook & {
-  variants: PublicCatalogVariant[];
 };
 
 export type PublicSellerOffer = PublicWorkOfferSummary & {
@@ -121,10 +109,6 @@ export function readPublicSellerWorks(
 
 export function readPublicSellerProfile(sellerId: string) {
   return buildRelativeUrl(`/sellers/${sellerId}/public`);
-}
-
-export function readPublicSellerBookById(id: string) {
-  return buildRelativeUrl(`/offers/${id}`);
 }
 
 export function readSellerOffers(work_id: string, seller_id: string) {

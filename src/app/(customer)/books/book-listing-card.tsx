@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type { Book } from "@/lib/api/book";
+import type { CatalogWork } from "@customer/api";
 import { cn } from "@/lib/utils";
 import { BookGenreTag } from "./book-genre-tag";
 
 type BookListingCardProps = {
-  book: Book;
+  book: CatalogWork;
   animationDelay?: number;
   className?: string;
 };
