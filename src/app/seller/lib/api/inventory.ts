@@ -74,6 +74,19 @@ export function readPublicationByIsbn(isbn: string) {
   return generateUrl("/publications", { isbn });
 }
 
+export type CatalogWork = {
+  id: string;
+  title: string;
+  image: string | null;
+  description: string | null;
+  original_language: string | null;
+  authors?: { id: string; name: string }[];
+};
+
+export function readWorks(params?: { page?: number; size?: number; search?: string }) {
+  return generateUrl("/works", params);
+}
+
 export function readWorkPublications(workId: string) {
   return generateUrl(`/works/${workId}/publications`);
 }

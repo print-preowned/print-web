@@ -15,12 +15,13 @@ import { AutocompleteSelect } from "@/components/autocomplete";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { apiFetch } from "@/lib/api";
-import { Book, readBooks } from "@/lib/api/book";
-import { bookKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
+import { workKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { PaginatedResponse } from "@/lib/api/user";
 import {
   createInventory,
   readPublicationByIsbn,
+  readWorks,
+  type CatalogWork,
   type PublicationLookup,
   type InventoryCreatePayload,
   type InventoryCreateResponse,
@@ -30,7 +31,7 @@ import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { ISBN_ERROR_MESSAGE, ISBN_PATTERN } from "@/app/seller/lib/inventory-isbn";
 
-function workOption(work: Book) {
+function workOption(work: CatalogWork) {
   return {
     value: work.id,
     label: work.title,
@@ -119,7 +120,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<LookupMode>("isbn");
   const [publication, setPublication] = useState<PublicationLookup | null>(null);
-  const [selectedWork, setSelectedWork] = useState<Book | null>(null);
+  const [selectedWork, setSelectedWork] = useState<CatalogWork | null>(null);
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "miss">("idle");
   const [showNewWork, setShowNewWork] = useState(false);
   const [titleQuery, setTitleQuery] = useState("");
@@ -132,9 +133,9 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
     return () => clearTimeout(timer);
   }, [titleQuery]);
 
-  const titleSearch = useApiQuery<PaginatedResponse<Book>>(
-    bookKeys.search(debouncedTitle),
-    readBooks({ page: 1, size: 8, filter: { search: debouncedTitle } }),
+  const titleSearch = useApiQuery<PaginatedResponse<CatalogWork>>(
+    workKeys.search(debouncedTitle),
+    readWorks({ page: 1, size: 8, search: debouncedTitle }),
     { enabled: mode === "title" && debouncedTitle.length >= 2 },
   );
   const titleResults = titleSearch.data?.data ?? [];

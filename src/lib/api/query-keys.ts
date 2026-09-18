@@ -28,6 +28,10 @@ export const variantOptionKeys = {
     ["variant-options", ...typeIds] as const,
 };
 
+export const workKeys = {
+  search: (query: string) => ["works-search", query] as const,
+};
+
 export const bookKeys = {
   globalList: ["global-books"] as const,
   search: (query: string) => ["books-search", query] as const,
