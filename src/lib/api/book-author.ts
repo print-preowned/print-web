@@ -14,7 +14,7 @@ export function createBookAuthor(
   payload: { author_id: string },
 ) {
   return {
-    endpoint: `/books/${bookId}/authors`,
+    endpoint: `/works/${bookId}/authors`,
     method: "POST" as const,
     body: payload,
   };
@@ -22,17 +22,17 @@ export function createBookAuthor(
 
 export function deleteBookAuthor(bookId: string, authorId: string) {
   return {
-    endpoint: `/books/${bookId}/authors/${authorId}`,
+    endpoint: `/works/${bookId}/authors/${authorId}`,
     method: "DELETE" as const,
   };
 }
 
 export function readBookAuthors(bookId: string) {
-  return `/books/${bookId}/authors`;
+  return `/works/${bookId}/authors`;
 }
 
 export async function fetchBookAuthorByAuthor(authorId: string) {
   return apiFetch<{ data: BookAuthor[] }>(
-    generateUrl(`/authors/${authorId}/books`),
+    generateUrl(`/authors/${authorId}/works`),
   );
 }

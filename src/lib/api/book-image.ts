@@ -44,7 +44,7 @@ export function contentTypeForFileType(fileType: string): string {
 
 export async function readBookUploadUrl(fileType: string): Promise<BookUploadUrl> {
   const res = await apiFetch<BaseResponse<BookUploadUrl>>(
-    generateUrl("/books/upload-url", { file_type: fileType }),
+    generateUrl("/works/upload-url", { file_type: fileType }),
   );
   return res.data;
 }
