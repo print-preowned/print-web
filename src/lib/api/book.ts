@@ -18,7 +18,7 @@ export type Book = {
 
 export function readBooks(params?: ReadParams) {
   const query = buildQueryParams(params);
-  return generateUrl("/books", query);
+  return generateUrl("/works", query);
 }
 
 export type BookCreatePayload = {
@@ -31,7 +31,7 @@ export type BookCreatePayload = {
 
 export function createBook(payload: BookCreatePayload) {
   return {
-    endpoint: "/books",
+    endpoint: "/works",
     method: "POST" as const,
     body: payload,
   };
@@ -47,7 +47,7 @@ export function updateBook(
   },
 ) {
   return {
-    endpoint: `/books/${id}`,
+    endpoint: `/works/${id}`,
     method: "PATCH" as const,
     body: payload,
   };
@@ -55,11 +55,11 @@ export function updateBook(
 
 export function deleteBook(id: string) {
   return {
-    endpoint: `/books/${id}`,
+    endpoint: `/works/${id}`,
     method: "DELETE",
   };
 }
 
 export function readBookById(id: string) {
-  return generateUrl(`/books/${id}`);
+  return generateUrl(`/works/${id}`);
 }

@@ -7,35 +7,36 @@ modules:
       CUSTOMER:
         allowed:
           - READ_PUBLIC_BOOK
+        urls: /books
+        api: GET /works
       SELLER:
         allowed:
           - READ_BOOK
+        notes: Seller catalog search uses GET /works; offers use SELLER_INVENTORY
+      PLATFORM:
+        allowed:
           - CREATE_BOOK
           - UPDATE_BOOK
           - DELETE_BOOK
+        urls: /admin/books
+        api: /works
 
     privileges:
       READ_PUBLIC_BOOK:
         context: CUSTOMER
-        description: Read public book catalog data
-
+        description: Read public work catalog data
       READ_BOOK:
         context: SELLER
-        description: Read book data within a storefront
-
+        description: Search global works when onboarding inventory
       CREATE_BOOK:
-        context: SELLER
-
+        context: PLATFORM
       UPDATE_BOOK:
-        context: SELLER
-
+        context: PLATFORM
       DELETE_BOOK:
-        context: SELLER
-        owner_only: true
+        context: PLATFORM
 
     invariants:
       - id: MDC-BOOK-1
-        assertion: book_visibility_is_public_or_seller_scoped
-
+        assertion: customer_books_urls_read_works_api
       - id: MDC-BOOK-2
-        assertion: deleting_book_requires_owner
+        assertion: platform_catalog_mutations_use_works
