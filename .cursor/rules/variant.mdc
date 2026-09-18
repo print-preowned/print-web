@@ -1,41 +1,19 @@
 ---
 alwaysApply: true
 ---
-  variants:
+  seller_inventory:
     visibility:
-      CUSTOMER:
-        allowed:
-          - READ_PUBLIC_VARIANTS
       SELLER:
         allowed:
-          - READ_VARIANT
-          - CREATE_VARIANT
-          - UPDATE_VARIANT
-          - DELETE_VARIANT
-
-    privileges:
-      READ_PUBLIC_VARIANTS:
-        context: CUSTOMER
-
-      READ_VARIANT:
-        context: SELLER
-
-      CREATE_VARIANT:
-        context: SELLER
-
-      UPDATE_VARIANT:
-        context: SELLER
-
-      DELETE_VARIANT:
-        context: SELLER
-        owner_only: true
+          - READ_SELLER_INVENTORY
+          - CREATE_SELLER_INVENTORY
+          - UPDATE_SELLER_INVENTORY
+          - DELETE_SELLER_INVENTORY
 
     notes: >
-      API paths use /variants. Seller workspace copy uses Inventory, not bibliographic work/publication terms.
+      Seller workspace copy uses Inventory. The sellable unit is a seller_inventory
+      offer. Variant SKUs are retired.
 
     invariants:
-      - id: MDC-VARIANT-1
-        assertion: variants_are_seller_scoped
-
-      - id: MDC-VARIANT-2
-        assertion: variant_mutation_requires_seller_context
+      - id: MDC-INVENTORY-1
+        assertion: offers_are_seller_scoped
