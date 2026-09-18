@@ -20,21 +20,19 @@ export type SellerInventoryCreatePayload = {
   publication_id?: string;
   isbn?: string;
   work_id?: string;
-  work?: {
-    title: string;
-    original_language?: string;
-    synopsis?: string;
-    image?: string;
-  };
+  title?: string;
   language?: string;
   binding?: string;
-  price: string;
-  stock: number;
-  condition?: string;
-  signed?: boolean;
-  currency?: string;
   description?: string;
-  image?: string;
+  offer: {
+    price: string;
+    stock: number;
+    condition?: string;
+    signed?: boolean;
+    currency?: string;
+    description?: string;
+    image?: string;
+  };
 };
 
 export function readPublicationByIsbn(isbn: string) {

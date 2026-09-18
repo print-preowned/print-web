@@ -16,18 +16,7 @@ export type PublicationLookup = {
   status: string;
 };
 
-export type InventoryCreatePayload = {
-  publication_id?: string;
-  isbn?: string;
-  work_id?: string;
-  work?: {
-    title: string;
-    original_language?: string;
-    synopsis?: string;
-    image?: string;
-  };
-  language?: string;
-  binding?: string;
+export type InventoryOfferCreatePayload = {
   price: string;
   stock: number;
   condition?: string;
@@ -35,6 +24,17 @@ export type InventoryCreatePayload = {
   currency?: string;
   description?: string;
   image?: string;
+};
+
+export type InventoryCreatePayload = {
+  publication_id?: string;
+  isbn?: string;
+  work_id?: string;
+  title?: string;
+  language?: string;
+  binding?: string;
+  description?: string;
+  offer: InventoryOfferCreatePayload;
 };
 
 export type InventoryCreateResponse = {
@@ -72,6 +72,10 @@ export type SellerInventoryUpdatePayload = {
 
 export function readPublicationByIsbn(isbn: string) {
   return generateUrl("/publications", { isbn });
+}
+
+export function readWorkPublications(workId: string) {
+  return generateUrl(`/works/${workId}/publications`);
 }
 
 export function readSellerInventory(params?: { page?: number; size?: number; search?: string }) {

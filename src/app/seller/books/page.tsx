@@ -60,7 +60,7 @@ export default function BooksPage() {
           </TabsList>
           <TabsContent value="inventory" className="mt-4 space-y-4">
             <p className="text-muted-foreground text-sm">
-              Offers you&apos;re selling — publication, condition, price, and stock.
+              Offers you&apos;re selling — condition, price, and stock.
               Add another offer for the same ISBN when condition or signed copies differ.
             </p>
             <InventoryTable

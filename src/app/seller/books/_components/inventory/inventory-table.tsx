@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
@@ -17,7 +17,6 @@ import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { sellerInventoryKeys } from "@/lib/api/query-keys";
 import { formatPrice } from "@/lib/format-price";
-import { useSellerId } from "@/lib/auth/context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,8 +25,9 @@ import {
   deleteSellerInventory,
   type SellerInventoryListItem,
 } from "@/app/seller/lib/api/inventory";
-import { InventoryOfferForm } from "./inventory-offer-form";
+import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { InventoryOnboardForm } from "./inventory-onboard-form";
+import { Modal } from "@/components/ui/modal";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -55,7 +55,7 @@ export function InventoryTable({
   totalPages,
 }: InventoryTableProps) {
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
-  const sellerId = useSellerId();
+  const [adding, setAdding] = useState(false);
   const queryClient = useQueryClient();
 
   const deleteMutation = useApiMutation<unknown>({
@@ -81,7 +81,7 @@ export function InventoryTable({
       openDrawer({
         title: "Edit offer",
         description: "Update price, stock, and condition for this listing",
-        children: <InventoryOfferForm offer={offer} onSuccess={closeDrawer} />,
+        children: <InventoryEditOfferForm offer={offer} onSuccess={closeDrawer} />,
       });
     },
     [openDrawer, closeDrawer],
@@ -202,14 +202,6 @@ export function InventoryTable({
     },
   ];
 
-  if (!sellerId) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        Switch to a seller context to manage your inventory.
-      </p>
-    );
-  }
-
   return (
     <>
       <DataTable
@@ -221,23 +213,23 @@ export function InventoryTable({
         onPaginationChange={setPagination}
         isLoading={isLoading}
       >
-        <div className="flex mb-4">
-          <Button
-            onClick={() =>
-              openDrawer({
-                title: "Add to inventory",
-                description: "Search by ISBN first. If it is not in the catalog, create a provisional work.",
-                children: (
-                  <InventoryOnboardForm onSuccess={closeDrawer} />
-                ),
-              })
-            }
-          >
-            <PlusCircleIcon className="size-4 mr-2" />
+        <div className="mb-4 flex">
+          <Button onClick={() => setAdding(true)}>
+            <PlusCircleIcon className="mr-2 size-4" />
             Add to inventory
           </Button>
         </div>
       </DataTable>
+      <Modal
+        open={adding}
+        onOpenChange={setAdding}
+        title="Add to inventory"
+        description="Look up by ISBN or search the catalog by title, then set price and stock."
+        footer={null}
+        contentClassName="max-h-[85vh] max-w-2xl overflow-y-auto"
+      >
+        <InventoryOnboardForm onSuccess={() => setAdding(false)} />
+      </Modal>
       {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </>
   );

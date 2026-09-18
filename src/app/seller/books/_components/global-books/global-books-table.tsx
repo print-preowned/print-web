@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "@/components/status-badge";
@@ -14,17 +13,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
 import { Book } from "@/lib/api/book";
-import { createSellerBook } from "@/lib/api/seller-book";
-import { sellerBookKeys } from "@/lib/api/query-keys";
-import { useSellerId } from "@/lib/auth/context";
-import { useApiMutation } from "@/lib/hooks/useApiMutation";
-import { toast } from "sonner";
 import { RequestBookEditDialog } from "../requests/request-book-edit-dialog";
-import { AddBookToInventoryForm } from "./add-to-inventory-form";
-import { ChevronDown, FileEdit, PlusCircleIcon } from "lucide-react";
+import { ChevronDown, FileEdit } from "lucide-react";
 
 export interface GlobalBooksTableProps {
   selectedIds: Set<string>;
@@ -52,20 +44,8 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     searchApplied,
     setSearchApplied,
   } = props;
-  const sellerId = useSellerId();
-  const queryClient = useQueryClient();
-  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
   const [requestEditBook, setRequestEditBook] = useState<Book | null>(null);
-
-  const addToInventoryMutation = useApiMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: sellerBookKeys.all });
-      toast.success("Added to your inventory");
-    },
-    onError: (e: Error) =>
-      toast.error(e.message || "Failed to add (may already be in inventory)"),
-  });
 
   const toggleRow = useCallback(
     (id: string) => {
@@ -92,18 +72,10 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
 
   const selectedBooks = books.filter((b) => selectedIds.has(b.id));
   const singleSelected = selectedBooks.length === 1 ? selectedBooks[0] : null;
-  const hasSelection = selectedIds.size > 0;
 
   const handleRequestEdit = useCallback(() => {
     if (singleSelected) setRequestEditBook(singleSelected);
   }, [singleSelected]);
-
-  const handleAddToInventory = useCallback(() => {
-    selectedBooks.forEach((book) =>
-      addToInventoryMutation.mutate(createSellerBook({ book_id: book.id })),
-    );
-    setSelectedIds(new Set());
-  }, [selectedBooks, addToInventoryMutation, setSelectedIds]);
 
   const columns: ColumnDef<Book>[] = [
     {
@@ -163,19 +135,12 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
     },
   ];
 
-  if (!sellerId) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        Switch to a seller context to add books to your inventory.
-      </p>
-    );
-  }
 
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
-        Search the global book catalog. Add books to your inventory or request
-        edits (e.g. merge duplicates, correct details) via platform admin.
+        Search the global catalog to request edits (for example merge duplicates
+        or correct details). Add offers from My inventory.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Input
@@ -224,31 +189,8 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
                 <FileEdit className="size-4 mr-2" />
                 Request for edit
               </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={selectedIds.size === 0}
-                onClick={handleAddToInventory}
-              >
-                <PlusCircleIcon className="size-4 mr-2" />
-                Add to inventory
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            onClick={() =>
-              openDrawer({
-                title: "Create new book (provisional)",
-                description:
-                  "Add a book that isn’t in the global catalog yet. It will be added to your inventory and can be updated by platform admin later.",
-                children: (
-                  <AddBookToInventoryForm onSuccess={closeDrawer} />
-                ),
-              })
-            }
-            className="gap-1"
-          >
-            <PlusCircleIcon className="size-4" />
-            Create
-          </Button>
         </div>
       </div>
       <DataTable
@@ -266,7 +208,6 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
         open={!!requestEditBook}
         onOpenChange={(open) => !open && setRequestEditBook(null)}
       />
-      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }
