@@ -28,12 +28,12 @@ const LABELS: Record<SellerBookListingStatus, string> = {
 
 const DESCRIPTIONS: Partial<Record<SellerBookListingStatus, string>> = {
   DRAFT:
-    "Not published yet — customers cannot see or buy this listing. Only available before first go-live.",
-  ACTIVE: "Live — visible when variants are active and in stock",
+    "Not published yet — customers cannot see or buy this offer. Only available before first go-live.",
+  ACTIVE: "Live — visible when in stock",
   INACTIVE:
-    "Paused — hidden from customers; use after the listing has been live at least once",
+    "Paused — hidden from customers; use after the offer has been live at least once",
   SUSPENDED:
-    "Hidden by platform — fix listing details here, then contact support or wait for review to go live again",
+    "Hidden by platform — fix offer details here, then contact support or wait for review to go live again",
 };
 
 /** Seller-selectable statuses from the listing's current status. */
