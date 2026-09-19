@@ -18,8 +18,11 @@ modules:
           - CREATE_BOOK
           - UPDATE_BOOK
           - DELETE_BOOK
-        urls: /admin/books
+        urls: [/admin/books, /admin/books/create]
         api: [/works, /publications]
+        notes: >
+          Admin create is /admin/books/create (work plus first publication).
+          Edit on /admin/books manages work metadata and additional publications.
 
     privileges:
       READ_PUBLIC_BOOK:

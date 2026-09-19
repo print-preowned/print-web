@@ -14,13 +14,14 @@ import {
   schema as createBookFormSchema,
 } from "@/components/books/create-book-form-schema";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
-import { createBook, updateBook, Book } from "@/lib/api/book";
+import { updateBook, Book } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useDrawerFooter } from "@/components/form-drawer";
+import { AdminWorkPublications } from "./publications";
 
 type BookFormProps = {
-  book?: Book;
+  book: Book;
   onSuccess?: () => void;
 };
 
@@ -36,7 +37,6 @@ function linkedGenreIds(book?: Book): string[] {
 
 export function AdminBookForm({ book, onSuccess }: BookFormProps) {
   const queryClient = useQueryClient();
-  const isEditing = !!book;
 
   const defaultAuthorIds = useMemo(() => linkedAuthorIds(book), [book]);
   const defaultGenreIds = useMemo(() => linkedGenreIds(book), [book]);
@@ -57,7 +57,7 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
     defaultValues: {
       title: book?.title ?? "",
       image: book?.image ?? "",
-      synopsis: book?.synopsis ?? "",
+      description: book?.description ?? "",
     },
   });
 
@@ -80,40 +80,16 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
     resetForm({
       title: book.title,
       image: book.image,
-      synopsis: book.synopsis,
+      description: book.description,
     });
   }, [book, resetForm]);
-
-  const createMutation = useMutation({
-    mutationFn: async (values: CreateBookFormValues) => {
-      const request = createBook({
-        title: values.title,
-        image: values.image,
-        synopsis: values.synopsis,
-        author_ids: values.authorIds,
-        genre_ids: values.genreIds,
-      });
-      return apiFetch<Book>(request.endpoint, {
-        method: request.method,
-        body: request.body,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      toast.success("Book created successfully!");
-      onSuccess?.();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create book");
-    },
-  });
 
   const updateMutation = useMutation({
     mutationFn: async (values: CreateBookFormValues) => {
       const request = updateBook(book!.id, {
         title: values.title,
         image: values.image,
-        synopsis: values.synopsis,
+        description: values.description,
         author_ids: values.authorIds,
         genre_ids: values.genreIds,
       });
@@ -136,62 +112,57 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
     const values: CreateBookFormValues = {
       title: data.title.trim(),
       image: await image.resolveValue(data.image),
-      synopsis: data.synopsis.trim(),
+      description: data.description.trim(),
       authorIds: selectedAuthorIds,
       genreIds: selectedGenreIds,
     };
-    if (isEditing) {
-      updateMutation.mutate(values);
-    } else {
-      createMutation.mutate(values);
-    }
+    updateMutation.mutate(values);
   });
-
-  const isLoading = createMutation.isPending || updateMutation.isPending;
-  const submitLabel = isEditing ? "Update Book" : "Create Book";
 
   useDrawerFooter({
     formId: "admin-book-form",
-    submitLabel,
-    loadingLabel: isEditing ? "Updating..." : "Creating...",
-    isLoading,
+    submitLabel: "Update Book",
+    loadingLabel: "Updating...",
+    isLoading: updateMutation.isPending,
   });
 
   return (
-    <form
-      key={book?.id ?? "new"}
-      id="admin-book-form"
-      onSubmit={onSubmit}
-      className="flex flex-col gap-4"
-    >
-      <CreateBookFormFields
-        title={watch("title")}
-        onTitleChange={(value) =>
-          setValue("title", value, { shouldValidate: true, shouldDirty: true })
-        }
-        synopsis={watch("synopsis")}
-        onSynopsisChange={(value) =>
-          setValue("synopsis", value, {
-            shouldValidate: true,
-            shouldDirty: true,
-          })
-        }
-        imagePreview={image.preview}
-        onFileSelect={image.onFileSelect}
-        onImageClear={image.clear}
-        imageInputRef={image.inputRef}
-        titleError={errors.title?.message}
-        synopsisError={errors.synopsis?.message}
+    <div key={book?.id ?? "new"} className="flex flex-col gap-4">
+      <form
+        id="admin-book-form"
+        onSubmit={onSubmit}
+        className="flex flex-col gap-4"
       >
-        <BookAuthorGenreFields
-          selectedAuthorIds={selectedAuthorIds}
-          onSelectedAuthorIdsChange={setSelectedAuthorIds}
-          selectedGenreIds={selectedGenreIds}
-          onSelectedGenreIdsChange={setSelectedGenreIds}
-          linkedAuthors={book?.authors}
-          linkedGenres={book?.genres}
-        />
-      </CreateBookFormFields>
-    </form>
+        <CreateBookFormFields
+          title={watch("title")}
+          onTitleChange={(value) =>
+            setValue("title", value, { shouldValidate: true, shouldDirty: true })
+          }
+          description={watch("description")}
+          onDescriptionChange={(value) =>
+            setValue("description", value, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }
+          imagePreview={image.preview}
+          onFileSelect={image.onFileSelect}
+          onImageClear={image.clear}
+          imageInputRef={image.inputRef}
+          titleError={errors.title?.message}
+          descriptionError={errors.description?.message}
+        >
+          <BookAuthorGenreFields
+            selectedAuthorIds={selectedAuthorIds}
+            onSelectedAuthorIdsChange={setSelectedAuthorIds}
+            selectedGenreIds={selectedGenreIds}
+            onSelectedGenreIdsChange={setSelectedGenreIds}
+            linkedAuthors={book?.authors}
+            linkedGenres={book?.genres}
+          />
+        </CreateBookFormFields>
+      </form>
+      <AdminWorkPublications workId={book.id} workTitle={watch("title") || book.title} />
+    </div>
   );
 }

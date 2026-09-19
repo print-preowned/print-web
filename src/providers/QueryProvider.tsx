@@ -25,6 +25,8 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
                 refetchOnMount: false,
                 refetchOnReconnect: false,
                 staleTime: 1000 * 60 * 5, // 5 minutes
+                retryDelay: 3000,
+                retry: 1,
             },
             mutations: {
               mutationFn: (variables: unknown) => {

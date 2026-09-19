@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 export type CreateBookFormValues = {
   title: string;
   image: string;
-  synopsis: string;
+  description: string;
   authorIds: string[];
   genreIds: string[];
 };
@@ -21,14 +21,14 @@ export type CreateBookFormValues = {
 export type CreateBookFormFieldsProps = {
   title: string;
   onTitleChange: (value: string) => void;
-  synopsis: string;
-  onSynopsisChange: (value: string) => void;
+  description: string;
+  onDescriptionChange: (value: string) => void;
   imagePreview?: string | null;
   onFileSelect: (file: File) => void;
   onImageClear: () => void;
   imageInputRef?: React.RefObject<HTMLInputElement | null>;
   titleError?: string;
-  synopsisError?: string;
+  descriptionError?: string;
   className?: string;
   children?: React.ReactNode;
 };
@@ -36,14 +36,14 @@ export type CreateBookFormFieldsProps = {
 export function CreateBookFormFields({
   title,
   onTitleChange,
-  synopsis,
-  onSynopsisChange,
+  description,
+  onDescriptionChange,
   imagePreview = null,
   onFileSelect,
   onImageClear,
   imageInputRef,
   titleError,
-  synopsisError,
+  descriptionError,
   className,
   children,
 }: CreateBookFormFieldsProps) {
@@ -73,12 +73,12 @@ export function CreateBookFormFields({
         <Textarea
           id="book-synopsis"
           placeholder="Synopsis"
-          value={synopsis}
-          onChange={(e) => onSynopsisChange(e.target.value)}
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
           rows={2}
         />
-        {synopsisError && (
-          <p className="text-sm text-red-500">{synopsisError}</p>
+        {descriptionError && (
+          <p className="text-sm text-red-500">{descriptionError}</p>
         )}
       </div>
 
@@ -111,7 +111,7 @@ export function CreateBookForm({
   className,
 }: CreateBookFormProps) {
   const [title, setTitle] = useState(defaultTitle);
-  const [synopsis, setSynopsis] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
   const image = useImageUpload();
@@ -122,7 +122,7 @@ export function CreateBookForm({
 
   const reset = () => {
     setTitle("");
-    setSynopsis("");
+    setDescription("");
     setSelectedAuthorIds([]);
     setSelectedGenreIds([]);
     image.clear();
@@ -133,7 +133,7 @@ export function CreateBookForm({
     await onSubmit({
       title: trimmedTitle,
       image: await image.resolveValue(),
-      synopsis: synopsis.trim() || trimmedTitle,
+      description: description.trim(),
       authorIds: selectedAuthorIds,
       genreIds: selectedGenreIds,
     });
@@ -145,8 +145,8 @@ export function CreateBookForm({
       <CreateBookFormFields
         title={title}
         onTitleChange={setTitle}
-        synopsis={synopsis}
-        onSynopsisChange={setSynopsis}
+        description={description}
+        onDescriptionChange={setDescription}
         imagePreview={image.preview}
         onFileSelect={image.onFileSelect}
         onImageClear={image.clear}

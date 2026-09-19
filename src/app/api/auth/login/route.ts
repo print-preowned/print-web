@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
 import { applyAuthCookie } from "@/lib/auth/server-cookie";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const pathname = request.nextUrl.pathname;
     const body = await request.json();
     const res = await backendFetch<{ status_code: number; message: string; data: unknown; token: string }>(
-      "/auth/login",
+      pathname.startsWith("/api/admin/auth/") ? "/admin/auth/login" : "/auth/login",
       { method: "POST", body }
     );
     if (!res.token) {

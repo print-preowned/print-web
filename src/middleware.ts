@@ -73,6 +73,16 @@ export async function middleware(request: NextRequest) {
   const config = getRouteConfig(pathname) ?? undefined;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
+  if (pathname.startsWith("/api/admin/auth/")) {
+    // Dynamically swap "/api/admin/auth/" for "/api/auth/"
+    // e.g., /api/admin/auth/login -> /api/auth/login
+    const targetedPath = pathname.replace("/api/admin/auth/", "/api/auth/");
+    const rewriteUrl = new URL(targetedPath, request.url);
+
+    return NextResponse.rewrite(rewriteUrl);
+  }
+
+
   if (requiresAuth(pathname) && !token) {
     return redirectToLogin(
       pathname,
@@ -138,5 +148,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/api/admin/auth/:path*",
   ],
 };

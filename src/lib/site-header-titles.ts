@@ -18,6 +18,7 @@ const PREFIX_TITLES: [string, string][] = [
   ["/admin/users", "Platform user accounts"],
   ["/admin/dashboard", "Dashboard"],
   ["/admin/books", "Books"],
+  ["/admin/books/create", "Create book"],
   ["/admin/authors", "Authors"],
   ["/admin/genres", "Genres"],
   ["/admin/settings", "Settings"],

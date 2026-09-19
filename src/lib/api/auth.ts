@@ -28,7 +28,7 @@ export function signup(payload: Signup) {
 }
 
 export function platformLogin(payload: Login) {
-  return { endpoint: "/admin/users/login", method: "POST" as const, body: payload };
+  return { endpoint: "/admin/auth/login", method: "POST" as const, body: payload };
 }
 
 export interface ContextSwitchResponse {

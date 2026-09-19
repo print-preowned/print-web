@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { AdminBookForm } from "@/app/admin/(content)/books/form";
+import { AdminBookForm } from "@/app/admin/(content)/books/update-form";
+import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Book, deleteBook, readBooks, createBook } from "@/lib/api/book";
 import { apiFetch } from "@/lib/api";
@@ -28,7 +29,7 @@ import { parseCSV } from "@/lib/utils/csv";
 type BookCSVRow = {
   title: string;
   image: string;
-  synopsis: string;
+  description: string;
   status?: string;
 };
 
@@ -176,17 +177,11 @@ export default function AdminBooksPage() {
             />
           </div>
           <div className="flex gap-2">
-            <Button
-              onClick={() =>
-                openDrawer({
-                  title: "Create Book",
-                  description: "Add a new book",
-                  children: <AdminBookForm onSuccess={closeDrawer} />,
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Book
+            <Button asChild>
+              <Link href="/admin/books/create">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Book
+              </Link>
             </Button>
             <BulkUpload<BookCSVRow>
               title="Bulk Upload Books"
@@ -218,7 +213,7 @@ export default function AdminBooksPage() {
                 if (!item.title?.trim()) {
                   return { valid: false, error: "Title is required" };
                 }
-                if (!item.synopsis?.trim()) {
+                if (!item.description?.trim()) {
                   return { valid: false, error: "Synopsis is required" };
                 }
                 if (!item.image?.trim()) {
@@ -237,7 +232,7 @@ export default function AdminBooksPage() {
                     const request = createBook({
                       title: item.title,
                       image: item.image,
-                      synopsis: item.synopsis,
+                      description: item.description,
                     });
 
                     await apiFetch(request.endpoint, {

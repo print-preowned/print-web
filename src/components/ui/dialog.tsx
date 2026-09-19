@@ -56,28 +56,27 @@ function DialogClose({ children }: { children: React.ReactElement<{ onClick?: (e
   });
 }
 
-function DialogOverlay({ className }: { className?: string }) {
-  const { open } = useDialog();
-  if (!open) return null;
-  return createPortal(
-    <div className={cn("fixed inset-0 z-50 bg-black/50", className)} />, document.body
-  );
+function DialogOverlay(_props: { className?: string }) {
+  return null;
 }
 
 function DialogContent({ className, children }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, setOpen } = useDialog();
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-50 grid place-items-center">
-      <div className={cn("relative w-full max-w-lg border bg-card p-6 shadow-lg", className)}>
-        {children}
-        <button
-          aria-label="Close"
-          className="absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
-          onClick={() => setOpen(false)}
-        >
-          ×
-        </button>
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative grid h-full place-items-center overflow-y-auto p-4">
+        <div className={cn("relative w-full max-w-lg border bg-card p-6 shadow-lg", className)}>
+          {children}
+          <button
+            aria-label="Close"
+            className="absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+            onClick={() => setOpen(false)}
+          >
+            ×
+          </button>
+        </div>
       </div>
     </div>,
     document.body

@@ -41,15 +41,15 @@ export function BookAuthorGenreFields({
   const isAdmin = context === "PLATFORM";
 
   const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
-    queryKey: ["authors", { page: 1, size: 200 }],
-    queryFn: () => apiFetch(readAuthors({ page: 1, size: 200 })),
+    queryKey: ["authors", { page: 1, size: 100 }],
+    queryFn: () => apiFetch(readAuthors({ page: 1, size: 100 })),
   });
   const authors = authorsData?.data ?? [];
 
   const { data: genresData } = useQuery<PaginatedResponse<Genre>>({
-    queryKey: ["genres", { page: 1, size: 200 }],
+    queryKey: ["genres", { page: 1, size: 100 }],
     queryFn: () =>
-      apiFetch(readGenresListUrl({ page: 1, size: 200 })),
+      apiFetch(readGenresListUrl({ page: 1, size: 100 })),
     enabled: isAdmin || context === "SELLER",
   });
   const genres = genresData?.data ?? [];

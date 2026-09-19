@@ -8,7 +8,7 @@ export type Book = {
   id: string;
   title: string;
   image: string;
-  synopsis: string;
+  description: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -23,7 +23,7 @@ export function readBooks(params?: ReadParams) {
 
 export type BookCreatePayload = {
   title: string;
-  synopsis: string;
+  description: string;
   image?: string;
   author_ids?: string[];
   genre_ids?: string[];
