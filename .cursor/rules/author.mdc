@@ -23,7 +23,7 @@ alwaysApply: true
 
       WORK_AUTHOR:
         purpose: join_works_to_authors
-        table: book_authors
+        table: work_authors
         fields:
           - work_id
           - author_id
