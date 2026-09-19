@@ -1,4 +1,4 @@
-export function createBookGenre(
+export function createWorkGenre(
   workId: string,
   payload: { genre_id: string },
 ) {
@@ -9,13 +9,13 @@ export function createBookGenre(
   };
 }
 
-export function deleteBookGenre(workId: string, genreId: string) {
+export function deleteWorkGenre(workId: string, genreId: string) {
   return {
     endpoint: `/works/${workId}/genres/${genreId}`,
     method: "DELETE" as const,
   };
 }
 
-export function readBookGenres(workId: string) {
+export function readWorkGenres(workId: string) {
   return `/works/${workId}/genres`;
 }

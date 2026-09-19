@@ -23,6 +23,9 @@ modules:
         notes: >
           Admin create is /admin/books/create (work plus first publication).
           Edit on /admin/books manages work metadata and additional publications.
+          Work–author and work–genre clients are src/lib/api/work-author.ts and work-genre.ts
+          against /works/{id}/authors and /works/{id}/genres; privileges stay CREATE_BOOK_AUTHOR
+          and CREATE_BOOK_GENRE.
 
     privileges:
       READ_PUBLIC_BOOK:

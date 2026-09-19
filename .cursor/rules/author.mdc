@@ -21,10 +21,11 @@ alwaysApply: true
           - created_at
           - updated_at
 
-      BOOK_AUTHOR:
-        purpose: join_books_to_authors
+      WORK_AUTHOR:
+        purpose: join_works_to_authors
+        table: book_authors
         fields:
-          - book_id
+          - work_id
           - author_id
 
       AUTHOR_REQUEST:
@@ -134,7 +135,7 @@ alwaysApply: true
         enforce:
           - target_author_exists
           - source_author_exists
-          - update_all_book_author_references
+          - update_all_work_author_references
           - mark_source_as_merged
 
       GET /admin/author-requests:

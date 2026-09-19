@@ -16,11 +16,11 @@ import {
 import { createAuthor, updateAuthor, Author } from "@/lib/api/author";
 import { readBooks, Book } from "@/lib/api/book";
 import {
-  createBookAuthor,
-  deleteBookAuthor,
-  fetchBookAuthorByAuthor,
-  BookAuthor,
-} from "@/lib/api/book-author";
+  createWorkAuthor,
+  deleteWorkAuthor,
+  fetchWorkAuthorByAuthor,
+  WorkAuthor,
+} from "@/lib/api/work-author";
 import { apiFetch } from "@/lib/api";
 import { PaginatedResponse } from "@/lib/api/user";
 import { toast } from "sonner";
@@ -43,11 +43,11 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const books = booksData?.data ?? [];
 
   const { data: linksData } = useQuery({
-    queryKey: ["book-author", "by-author", author?.id],
-    queryFn: () => fetchBookAuthorByAuthor(author!.id),
+    queryKey: ["work-author", "by-author", author?.id],
+    queryFn: () => fetchWorkAuthorByAuthor(author!.id),
     enabled: !!author?.id,
   });
-  const existingLinks: BookAuthor[] = linksData?.data ?? [];
+  const existingLinks: WorkAuthor[] = linksData?.data ?? [];
   const linksInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const authorId = (res as { id?: string }).id;
       if (authorId && selectedBookIds.length > 0) {
         for (const bookId of selectedBookIds) {
-          const linkReq = createBookAuthor(bookId, { author_id: authorId });
+          const linkReq = createWorkAuthor(bookId, { author_id: authorId });
           await apiFetch(linkReq.endpoint, {
             method: linkReq.method,
             body: linkReq.body,
@@ -128,7 +128,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      queryClient.invalidateQueries({ queryKey: ["book-author"] });
+      queryClient.invalidateQueries({ queryKey: ["work-author"] });
       toast.success("Author created successfully!");
       onSuccess?.();
     },
@@ -155,21 +155,21 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       const toAdd = selectedBookIds.filter((id) => !existingBookIds.has(id));
       const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.work_id));
       for (const bookId of toAdd) {
-        const linkReq = createBookAuthor(bookId, { author_id: author!.id });
+        const linkReq = createWorkAuthor(bookId, { author_id: author!.id });
         await apiFetch(linkReq.endpoint, {
           method: linkReq.method,
           body: linkReq.body,
         });
       }
       for (const link of toRemove) {
-        const delReq = deleteBookAuthor(link.work_id, link.author_id);
+        const delReq = deleteWorkAuthor(link.work_id, link.author_id);
         await apiFetch(delReq.endpoint, { method: delReq.method });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
       queryClient.invalidateQueries({ queryKey: ["author", author!.id] });
-      queryClient.invalidateQueries({ queryKey: ["book-author"] });
+      queryClient.invalidateQueries({ queryKey: ["work-author"] });
       toast.success("Author updated successfully!");
       onSuccess?.();
     },

@@ -1,16 +1,16 @@
 import { apiFetch } from ".";
-import { createBookAuthor, deleteBookAuthor } from "./book-author";
-import { createBookGenre, deleteBookGenre } from "./book-genre";
+import { createWorkAuthor, deleteWorkAuthor } from "./work-author";
+import { createWorkGenre, deleteWorkGenre } from "./work-genre";
 
-export async function linkBookAuthorsAndGenres(
+export async function linkWorkAuthorsAndGenres(
   workId: string,
   authorIds: string[],
   genreIds: string[],
 ) {
-  await syncBookAuthorGenreLinks(workId, authorIds, genreIds, [], []);
+  await syncWorkAuthorGenreLinks(workId, authorIds, genreIds, [], []);
 }
 
-export async function syncBookAuthorGenreLinks(
+export async function syncWorkAuthorGenreLinks(
   workId: string,
   authorIds: string[],
   genreIds: string[],
@@ -31,22 +31,22 @@ export async function syncBookAuthorGenreLinks(
 
   await Promise.all([
     ...toAddAuthors.map(async (authorId) => {
-      const req = createBookAuthor(workId, { author_id: authorId });
+      const req = createWorkAuthor(workId, { author_id: authorId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveAuthors.map(async (authorId) => {
-      const req = deleteBookAuthor(workId, authorId);
+      const req = deleteWorkAuthor(workId, authorId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
     ...toAddGenres.map(async (genreId) => {
-      const req = createBookGenre(workId, { genre_id: genreId });
+      const req = createWorkGenre(workId, { genre_id: genreId });
       await apiFetch(req.endpoint, { method: req.method, body: req.body });
     }),
     ...toRemoveGenres.map(async (genreId) => {
-      const req = deleteBookGenre(workId, genreId);
+      const req = deleteWorkGenre(workId, genreId);
       await apiFetch(req.endpoint, { method: req.method });
     }),
   ]).catch((e) => {
-    throw new Error(`Failed to sync book author and genre links: ${e.message}`);
+    throw new Error(`Failed to sync work author and genre links: ${e.message}`);
   });
 }

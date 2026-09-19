@@ -1,6 +1,6 @@
 import { apiFetch, generateUrl } from ".";
 
-export type BookAuthor = {
+export type WorkAuthor = {
   id: string;
   work_id: string;
   author_id: string;
@@ -9,7 +9,7 @@ export type BookAuthor = {
   updated_at: string;
 };
 
-export function createBookAuthor(
+export function createWorkAuthor(
   workId: string,
   payload: { author_id: string },
 ) {
@@ -20,19 +20,19 @@ export function createBookAuthor(
   };
 }
 
-export function deleteBookAuthor(workId: string, authorId: string) {
+export function deleteWorkAuthor(workId: string, authorId: string) {
   return {
     endpoint: `/works/${workId}/authors/${authorId}`,
     method: "DELETE" as const,
   };
 }
 
-export function readBookAuthors(workId: string) {
+export function readWorkAuthors(workId: string) {
   return `/works/${workId}/authors`;
 }
 
-export async function fetchBookAuthorByAuthor(authorId: string) {
-  return apiFetch<{ data: BookAuthor[] }>(
+export async function fetchWorkAuthorByAuthor(authorId: string) {
+  return apiFetch<{ data: WorkAuthor[] }>(
     generateUrl(`/authors/${authorId}/works`),
   );
 }
