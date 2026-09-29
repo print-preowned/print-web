@@ -6,8 +6,8 @@ export type Genre = {
   name: string;
   description?: string | null;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function readGenres(params?: ReadParams) {
@@ -34,7 +34,7 @@ export function createGenre(payload: {
 
 export function updateGenre(
   id: string,
-  payload: Partial<Omit<Genre, "id" | "created_at" | "updated_at">>,
+  payload: Partial<Omit<Genre, "id" | "createdAt" | "updatedAt">>,
 ) {
   return {
     endpoint: `/genres/${id}`,

@@ -3,15 +3,15 @@ import { ReadParams, buildQueryParams } from "./types";
 
 export type Author = {
   id: string;
-  first_name: string;
-  last_name: string;
-  middle_name?: string | null;
+  firstName: string;
+  lastName: string;
+  middleName?: string | null;
   about: string;
   image?: string | null;
   followers?: number | null;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function readAuthors(params?: ReadParams) {
@@ -20,9 +20,9 @@ export function readAuthors(params?: ReadParams) {
 }
 
 export function createAuthor(payload: {
-  first_name: string;
-  last_name: string;
-  middle_name?: string | null;
+  firstName: string;
+  lastName: string;
+  middleName?: string | null;
   about: string;
   image: string;
   status?: string;
@@ -36,7 +36,7 @@ export function createAuthor(payload: {
 
 export function updateAuthor(
   id: string,
-  payload: Partial<Omit<Author, "_id" | "created_at" | "updated_at">>,
+  payload: Partial<Omit<Author, "_id" | "createdAt" | "updatedAt">>,
 ) {
   return {
     endpoint: `/authors/${id}`,

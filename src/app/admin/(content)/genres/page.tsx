@@ -115,10 +115,10 @@ export default function AdminGenresPage() {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created",
       cell: ({ row }) => (
-        <span>{new Date(row.original.created_at).toLocaleDateString()}</span>
+        <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
       ),
     },
     {

@@ -90,8 +90,8 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
         title: values.title,
         image: values.image,
         description: values.description,
-        author_ids: values.authorIds,
-        genre_ids: values.genreIds,
+        authorIds: values.authorIds,
+        genreIds: values.genreIds,
       });
       await apiFetch(request.endpoint, {
         method: request.method,

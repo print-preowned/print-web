@@ -70,8 +70,8 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         title: values.title,
         image: values.image,
         description: values.description,
-        author_ids: values.authorIds,
-        genre_ids: values.genreIds,
+        authorIds: values.authorIds,
+        genreIds: values.genreIds,
       });
       const book = await apiFetch<Book>(request.endpoint, {
         method: request.method,

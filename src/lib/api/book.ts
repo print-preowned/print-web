@@ -10,8 +10,8 @@ export type Book = {
   image: string;
   description: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   authors?: AuthorRef[];
   genres?: GenreRef[];
 };
@@ -25,8 +25,8 @@ export type BookCreatePayload = {
   title: string;
   description: string;
   image?: string;
-  author_ids?: string[];
-  genre_ids?: string[];
+  authorIds?: string[];
+  genreIds?: string[];
 };
 
 export function createBook(payload: BookCreatePayload) {
@@ -40,10 +40,10 @@ export function createBook(payload: BookCreatePayload) {
 export function updateBook(
   id: string,
   payload: Partial<
-    Omit<Book, "id" | "created_at" | "updated_at" | "authors" | "genres">
+    Omit<Book, "id" | "createdAt" | "updatedAt" | "authors" | "genres">
   > & {
-    author_ids?: string[];
-    genre_ids?: string[];
+    authorIds?: string[];
+    genreIds?: string[];
   },
 ) {
   return {

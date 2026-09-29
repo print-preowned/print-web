@@ -113,7 +113,7 @@ export default function AdminBooksPage() {
       accessorKey: "created_at",
       header: "Created",
       cell: ({ row }) => (
-        <span>{new Date(row.original.created_at).toLocaleDateString()}</span>
+        <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
       ),
     },
     {
@@ -170,7 +170,7 @@ export default function AdminBooksPage() {
         <div className="flex gap-8 justify-between">
           <div className="flex gap-4">
             <SearchInput
-              wrapperClassName="flex-1"
+              wrapperClassName="flex-1" 
               placeholder="Search books..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}

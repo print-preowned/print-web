@@ -37,8 +37,8 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const isEditing = !!author;
 
   const { data: booksData } = useQuery<PaginatedResponse<Book>>({
-    queryKey: ["books", { page: 1, size: 200 }],
-    queryFn: () => apiFetch(readBooks({ page: 1, size: 200 })),
+    queryKey: ["books", { page: 1, size: 500 }],
+    queryFn: () => apiFetch(readBooks({ page: 1, size: 100 })),
   });
   const books = booksData?.data ?? [];
 
@@ -80,9 +80,9 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: author || {
-      first_name: "",
-      last_name: "",
-      middle_name: "",
+      firstName: "",
+      lastName: "",
+      middleName: "",
       about: "",
       image: "",
       status: "ACTIVE",
@@ -91,9 +91,9 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
   useEffect(() => {
     if (author) {
-      setValue("first_name", author.first_name);
-      setValue("last_name", author.last_name);
-      setValue("middle_name", author.middle_name || "");
+      setValue("firstName", author.firstName);
+      setValue("lastName", author.lastName);
+      setValue("middleName", author.middleName || "");
       setValue("about", author.about);
       setValue("image", author.image || "");
       setValue("status", author.status);
@@ -103,9 +103,9 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const request = createAuthor({
-        first_name: data.first_name,
-        last_name: data.last_name,
-        middle_name: data.middle_name || null,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName || null,
         about: data.about,
         image: data.image || "",
         status: data.status,
@@ -140,9 +140,9 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       const request = updateAuthor(author!.id, {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        middle_name: data.middle_name || null,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName || null,
         about: data.about,
         image: data.image || "",
         status: data.status,
@@ -203,32 +203,32 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-3">
-          <Label htmlFor="first_name">First Name *</Label>
+          <Label htmlFor="firstName">Firstname *</Label>
           <Input
-            id="first_name"
-            {...register("first_name", { required: "First name is required" })}
+            id="firstName"
+            {...register("firstName", { required: "First name is required" })}
           />
-          {errors.first_name && (
-            <p className="text-sm text-red-500">{errors.first_name.message as string}</p>
+          {errors.firstName && (
+            <p className="text-sm text-red-500">{errors.firstName.message as string}</p>
           )}
         </div>
         <div className="flex flex-col gap-3">
-          <Label htmlFor="last_name">Last Name *</Label>
+          <Label htmlFor="lastName">Lastname *</Label>
           <Input
-            id="last_name"
-            {...register("last_name", { required: "Last name is required" })}
+            id="lastName"
+            {...register("lastName", { required: "Last name is required" })}
           />
-          {errors.last_name && (
-            <p className="text-sm text-red-500">{errors.last_name.message as string}</p>
+          {errors.lastName && (
+            <p className="text-sm text-red-500">{errors.lastName.message as string}</p>
           )}
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
-        <Label htmlFor="middle_name">Middle Name (Optional)</Label>
+        <Label htmlFor="middleName">Middlename (Optional)</Label>
         <Input
-          id="middle_name"
-          {...register("middle_name")}
+          id="middleName"
+          {...register("middleName")}
         />
       </div>
 
@@ -269,9 +269,11 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         </Select>
       </div>
 
-      <div className="flex flex-col gap-3">
+      {/* <div className="flex flex-col gap-3">
         <Label>Books</Label>
-        <Select onValueChange={addBook} value="">
+        <Select
+          onValueChange={addBook}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Add a book..." />
           </SelectTrigger>
@@ -308,7 +310,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
     </form>
   );
 }
