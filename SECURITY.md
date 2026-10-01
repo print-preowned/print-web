@@ -105,7 +105,7 @@ The backend currently:
 - ✅ Checks authentication (token exists and is valid)
 - ❌ Does NOT check privileges
 - ❌ Does NOT check ownership
-- ❌ Does NOT enforce business context
+- ❌ Does NOT enforce seller context
 
 **This is a critical security vulnerability.**
 
@@ -115,10 +115,10 @@ Following MDC-BE-2: `privilege_based_authorization` and `fail_closed`
 
 1. **Extract token from request**
 2. **Decode token** (validate structure, expiration)
-3. **Check context** (CUSTOMER vs BUSINESS)
+3. **Check context** (CUSTOMER vs SELLER)
 4. **Check privileges** (e.g., `DELETE_BOOK` in token)
 5. **Check ownership** (if `owner_only: true`)
-6. **Check business scope** (entity belongs to business)
+6. **Check seller scope** (entity belongs to seller)
 7. **Reject if any check fails** (fail-closed)
 
 ## Recommendations
@@ -138,7 +138,7 @@ Following MDC-BE-2: `privilege_based_authorization` and `fail_closed`
    - Create authorization middleware/decorator
    - Check privileges from token
    - Check ownership when required
-   - Enforce business scope
+   - Enforce seller scope
 
 ### Example: Proper Client Code
 

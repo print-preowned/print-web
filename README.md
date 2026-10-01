@@ -2,20 +2,20 @@
 
 Next.js frontend for **Print**, a marketplace platform for pre-owned books. The app serves three surfaces from one codebase:
 
-- **Customer** — browse books and authors, manage account, create a business
-- **Seller** — manage catalogue, inventory, users, roles, and business settings (business context)
+- **Customer** — browse books and authors, manage account, create a storefront
+- **Seller** — manage catalogue, inventory, users, roles, and storefront settings (seller context)
 - **Platform admin** — invite-only administration of users, books, authors, genres, and platform access
 
-Companion API: [print](../print) (FastAPI).
+Companion API: [print](https://github.com/print-preowned/print) (FastAPI).
 
 ## Features
 
 - **HttpOnly cookie auth** — JWT stored in an HttpOnly cookie; the browser never holds the raw token
 - **Next.js API routes** — login, register, logout, session, context switch, and a backend proxy at `/api/proxy`
-- **Multi-context routing** — middleware enforces `CUSTOMER`, `BUSINESS`, and `PLATFORM` contexts per route
+- **Multi-context routing** — middleware enforces `CUSTOMER`, `SELLER`, and `PLATFORM` contexts per route
 - **Privilege-aware guards** — route config and middleware check materialized token privileges and owner status
 - **Shared catalog UI** — book forms, author/genre linking, and S3 cover upload used by admin and seller flows
-- **Seller global books** — browse the global catalogue and add titles to a business listing
+- **Seller inventory onboarding** — search the global catalogue by ISBN or title and list an offer on a publication
 - **Unified shell** — shared sidebar and header across admin and seller areas
 
 ## Stack
@@ -34,7 +34,7 @@ src/
   app/
     (auth)/           # Customer login, register, password flows
     (customer)/       # Public storefront and account
-    seller/           # Business dashboard and CRUD
+    seller/           # Seller workspace (inventory, orders, account)
     admin/            # Platform admin (auth + content)
     api/
       auth/           # Session cookie routes
@@ -53,8 +53,8 @@ ESLint blocks cross-imports between `admin`, `(customer)`, and `seller` app fold
 ### Prerequisites
 
 - Node.js 20+
-- [Print API](../print) running locally (default `http://127.0.0.1:8000`)
-- MongoDB and Redis configured for the API
+- [Print API](https://github.com/print-preowned/print) running locally (default `http://127.0.0.1:8000`)
+- PostgreSQL, MongoDB, and Redis configured for the API
 
 ### Install
 
@@ -107,7 +107,7 @@ npm start
 2. The API route sets an HttpOnly cookie with the access token.
 3. Client `apiFetch` calls go through `/api/proxy/...` with `credentials: "include"`.
 4. Middleware verifies the JWT and enforces context, privileges, and owner rules before pages render.
-5. Context switch (`CUSTOMER` ↔ `BUSINESS`) calls `/api/auth/context-switch`, replaces the cookie, and redirects per MDC rules.
+5. Context switch (`CUSTOMER` ↔ `SELLER`) calls `/api/auth/context-switch`, replaces the cookie, and redirects per MDC rules.
 
 Session hydration uses `/api/auth/me`; the client auth context does not decode or store the JWT.
 
@@ -118,7 +118,7 @@ See `.cursor/rules/` for the enforced authorization and context-switching polici
 - **Browser:** `apiFetch` → `/api/proxy/{backend-path}` (cookie attached automatically)
 - **Server components / SSR:** `backendFetch` in `lib/api/server.ts` calls the API directly with the token from the request cookie
 
-Domain helpers live under `src/lib/api/` (`book.ts`, `author.ts`, `business.ts`, etc.).
+Domain helpers live under `src/lib/api/` (`book.ts`, `author.ts`, `seller.ts`, `seller-inventory.ts`, etc.).
 
 ## Scripts
 
@@ -133,7 +133,7 @@ npm run lint     # ESLint
 
 - Start the Print API before exercising login or CRUD flows.
 - Seed the API database (`print/scripts/seed_defaults.py`, `seed_super_admin.py`) before first admin login.
-- Admin routes require a `PLATFORM` token; seller routes require `BUSINESS`; customer catalog routes expect `CUSTOMER`.
+- Admin routes require a `PLATFORM` token; seller routes require `SELLER`; customer catalog routes expect `CUSTOMER`.
 - Password reset and invite-accept flows live under `(auth)` and `admin/(auth)` respectively.
 
 ## License

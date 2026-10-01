@@ -27,15 +27,15 @@ The implementation follows the PRINT Authorization & Context Model which enforce
 - **Single Active Context**: Enforces one context at a time (CUSTOMER or SELLER)
 - **Hooks**:
   - `useAuth()`: Access current auth state
-  - `usePrivilege(privilege)`: Check if user has privilege (BUSINESS only)
-  - `useIsOwner()`: Check if user is owner (BUSINESS only)
-  - `useSellerId()`: Get current business ID (BUSINESS only)
+  - `usePrivilege(privilege)`: Check if user has privilege (SELLER only)
+  - `useIsOwner()`: Check if user is owner (SELLER only)
+  - `useSellerId()`: Get current seller ID (SELLER only)
 
 #### Session refresh vs force logout
 
 | Situation | Client action |
 |-----------|---------------|
-| Server route **replaced** the auth cookie with a new valid JWT (login, signup, context switch, create/delete business) | Call `refreshSession()` so React state matches the cookie via `GET /api/auth/me` |
+| Server route **replaced** the auth cookie with a new valid JWT (login, signup, context switch, create/delete seller) | Call `refreshSession()` so React state matches the cookie via `GET /api/auth/me` |
 | API returns **401** (revoked/expired token) | `apiFetch` calls `forceLogout()` — clear cookie, clear React state, redirect to login (MDC-CS) |
 
 The JWT lives in an HttpOnly cookie; client code never reads it directly. `refreshSession()` is the bridge after cookie-changing routes. Do **not** call `refreshSession()` after revocation — the next API call gets 401 and triggers logout.
@@ -96,7 +96,7 @@ See `src/lib/auth/README.md` for detailed documentation.
 
 - **create_customer_token()**: Creates CUSTOMER context token
 - **create_seller_token()**: Creates SELLER context token with:
-  - Business ID
+  - Seller ID
   - Role information
   - Materialized privileges
   - Owner flag
@@ -119,23 +119,25 @@ See `src/lib/auth/README.md` for detailed documentation.
 
 ### Token Rules (MDC-TOKEN-*)
 
-- ✅ **MDC-TOKEN-C-1**: Customer tokens don't have business, privileges, role
-- ✅ **MDC-TOKEN-B-1**: Business tokens have required business fields
+- ✅ **MDC-TOKEN-C-1**: Customer tokens don't have seller, privileges, role
+- ✅ **MDC-TOKEN-B-1**: Seller tokens have required seller fields
 - ✅ **MDC-TOKEN-B-2**: Privileges are materialized in token
 
 ### Context Rules (MDC-CONTEXT-*)
 
 - ✅ **MDC-CONTEXT-1**: Single execution context enforced
 - ✅ **MDC-CONTEXT-2**: No mixed context execution
-- ✅ **MDC-CONTEXT-3**: Token reissue on context switch (ready for implementation)
+- ✅ **MDC-CONTEXT-3**: Token reissue on context switch
 
-## Next Steps
+## Status
 
-1. **Business Context**: Implement business selection and SELLER token generation
-2. **Context Switching**: Add UI for switching between CUSTOMER and SELLER contexts
-3. **Privilege Management**: Connect to backend role/privilege system
-4. **Middleware Updates**: Update backend middleware to validate token structure properly
-5. **Route Protection**: Apply RouteGuard to all protected routes
+All of the following are in place:
+
+1. **Seller context** — seller selection and SELLER token issuance via `POST /auth/context/seller/{sellerId}`
+2. **Context switching** — `useSwitchContext` and the context switcher UI, with cache clearing and redirect to the context root
+3. **Privilege management** — wired to the backend role/privilege system; privileges are materialized into the token
+4. **Token validation** — backend middleware validates token structure with no database lookups
+5. **Route protection** — every protected route is covered by route config plus middleware enforcement
 
 ## Files Created/Modified
 
@@ -150,7 +152,6 @@ See `src/lib/auth/README.md` for detailed documentation.
 - `src/app/layout.tsx` - Added AuthProvider
 - `src/app/(auth)/login/form.tsx` - Updated to use auth context
 - `src/app/admin/layout.tsx` - Uses ProtectedLayout
-- `src/app/dashboard/page.tsx` - Uses ProtectedLayout
 
 ### Backend (`print`)
 - `app/utility/token.py` - Token generation utilities
