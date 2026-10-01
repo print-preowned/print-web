@@ -22,10 +22,9 @@ modules:
         api: [/works, /publications]
         notes: >
           Admin create is /admin/books/create (work plus first publication).
-          Edit on /admin/books manages work metadata and additional publications.
-          Work–author and work–genre clients are src/lib/api/work-author.ts and work-genre.ts
-          against /works/{id}/authors and /works/{id}/genres. Linking uses AUTHOR and
-          GENRE privileges. Platform catalog authority is only MANAGE_BOOKS.
+          Edit on /admin/books manages work metadata, authors, genres, and
+          additional publications via /works and /publications. Platform
+          catalog authority is only MANAGE_BOOKS.
 
     privileges:
       READ_PUBLIC_BOOK:

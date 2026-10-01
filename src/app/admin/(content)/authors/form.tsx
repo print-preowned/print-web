@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,15 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAuthor, updateAuthor, Author } from "@/lib/api/author";
-import { readBooks, Book } from "@/lib/api/book";
-import {
-  createWorkAuthor,
-  deleteWorkAuthor,
-  fetchWorkAuthorByAuthor,
-  WorkAuthor,
-} from "@/lib/api/work-author";
 import { apiFetch } from "@/lib/api";
-import { PaginatedResponse } from "@/lib/api/user";
 import { toast } from "sonner";
 import { useDrawerFooter } from "@/components/form-drawer";
 
@@ -33,50 +25,7 @@ type AuthorFormProps = {
 
 export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const queryClient = useQueryClient();
-  const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
   const isEditing = !!author;
-
-  const { data: booksData } = useQuery<PaginatedResponse<Book>>({
-    queryKey: ["books", { page: 1, size: 500 }],
-    queryFn: () => apiFetch(readBooks({ page: 1, size: 100 })),
-  });
-  const books = booksData?.data ?? [];
-
-  const { data: linksData } = useQuery({
-    queryKey: ["work-author", "by-author", author?.id],
-    queryFn: () => fetchWorkAuthorByAuthor(author!.id),
-    enabled: !!author?.id,
-  });
-  const existingLinks: WorkAuthor[] = linksData?.data ?? [];
-  const linksInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (!author?.id || linksData === undefined) {
-      if (!author) linksInitializedRef.current = false;
-      return;
-    }
-    if (!linksInitializedRef.current) {
-      setSelectedBookIds(existingLinks.map((l) => l.work_id));
-      linksInitializedRef.current = true;
-    }
-  }, [author?.id, linksData, existingLinks]);
-
-  useEffect(() => {
-    if (!author) linksInitializedRef.current = false;
-  }, [author]);
-
-  const addBook = (bookId: string) => {
-    if (bookId && !selectedBookIds.includes(bookId)) {
-      setSelectedBookIds([...selectedBookIds, bookId]);
-    }
-  };
-
-  const removeBook = (bookId: string) => {
-    setSelectedBookIds(selectedBookIds.filter((id) => id !== bookId));
-  };
-
-  const selectedBooks = books.filter((b) => selectedBookIds.includes(b.id));
-  const availableBooks = books.filter((b) => !selectedBookIds.includes(b.id));
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: author || {
@@ -101,7 +50,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   }, [author, setValue]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Author) => {
       const request = createAuthor({
         firstName: data.firstName,
         lastName: data.lastName,
@@ -110,35 +59,23 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         image: data.image || "",
         status: data.status,
       });
-      const res = await apiFetch<{ id: string }>(request.endpoint, {
+      return apiFetch<{ id: string }>(request.endpoint, {
         method: request.method,
         body: request.body,
       });
-      const authorId = (res as { id?: string }).id;
-      if (authorId && selectedBookIds.length > 0) {
-        for (const bookId of selectedBookIds) {
-          const linkReq = createWorkAuthor(bookId, { author_id: authorId });
-          await apiFetch(linkReq.endpoint, {
-            method: linkReq.method,
-            body: linkReq.body,
-          });
-        }
-      }
-      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      queryClient.invalidateQueries({ queryKey: ["work-author"] });
       toast.success("Author created successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create author");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Author) => {
       const request = updateAuthor(author!.id, {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -151,34 +88,19 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         method: request.method,
         body: request.body,
       });
-      const existingBookIds = new Set(existingLinks.map((l) => l.work_id));
-      const toAdd = selectedBookIds.filter((id) => !existingBookIds.has(id));
-      const toRemove = existingLinks.filter((l) => !selectedBookIds.includes(l.work_id));
-      for (const bookId of toAdd) {
-        const linkReq = createWorkAuthor(bookId, { author_id: author!.id });
-        await apiFetch(linkReq.endpoint, {
-          method: linkReq.method,
-          body: linkReq.body,
-        });
-      }
-      for (const link of toRemove) {
-        const delReq = deleteWorkAuthor(link.work_id, link.author_id);
-        await apiFetch(delReq.endpoint, { method: delReq.method });
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
       queryClient.invalidateQueries({ queryKey: ["author", author!.id] });
-      queryClient.invalidateQueries({ queryKey: ["work-author"] });
       toast.success("Author updated successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update author");
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Author) => {
     if (isEditing) {
       updateMutation.mutate(data);
     } else {
@@ -268,49 +190,6 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
           </SelectContent>
         </Select>
       </div>
-
-      {/* <div className="flex flex-col gap-3">
-        <Label>Books</Label>
-        <Select
-          onValueChange={addBook}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Add a book..." />
-          </SelectTrigger>
-          <SelectContent>
-            {availableBooks.map((b) => (
-              <SelectItem key={b.id} value={b.id}>
-                {b.title}
-              </SelectItem>
-            ))}
-            {availableBooks.length === 0 && (
-              <SelectItem value="" disabled>
-                No more books to add
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-        {selectedBooks.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedBooks.map((b) => (
-              <span
-                key={b.id}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm flex items-center gap-2"
-              >
-                {b.title}
-                <button
-                  type="button"
-                  onClick={() => removeBook(b.id)}
-                  className="hover:bg-secondary/80 rounded-full"
-                  aria-label={`Remove ${b.title}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div> */}
     </form>
   );
 }

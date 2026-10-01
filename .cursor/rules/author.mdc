@@ -7,6 +7,10 @@ alwaysApply: true
       scope: GLOBAL
       ownership: PLATFORM
       seller_scoping: forbidden
+      notes: >
+        Authors live on the work document as [{id, name}].
+        Platform links them with PATCH /works/{id} author_ids.
+        There is no work_authors join table.
 
     tables:
       AUTHOR:
@@ -21,21 +25,13 @@ alwaysApply: true
           - created_at
           - updated_at
 
-      WORK_AUTHOR:
-        purpose: join_works_to_authors
-        table: work_authors
-        fields:
-          - work_id
-          - author_id
-
       AUTHOR_REQUEST:
         fields:
           - id
           - seller_id
-          - request_type: [UPDATE, MERGE, LINK_BOOK]
-          - author_id: nullable   # required for UPDATE, MERGE, LINK_BOOK
+          - request_type: [UPDATE, MERGE]
+          - author_id: nullable   # required for UPDATE, MERGE
           - target_author_id: nullable   # used for MERGE (from → to)
-          - book_id: nullable     # used for LINK_BOOK
           - requested_name
           - requested_changes     # json diff for UPDATE
           - reason                # required human explanation
@@ -72,12 +68,6 @@ alwaysApply: true
         require:
           - author_id          # source
           - target_author_id   # destination
-          - reason
-
-      LINK_BOOK:
-        require:
-          - book_id
-          - author_id
           - reason
 
 
@@ -135,7 +125,7 @@ alwaysApply: true
         enforce:
           - target_author_exists
           - source_author_exists
-          - update_all_work_author_references
+          - update_author_refs_on_works
           - mark_source_as_merged
 
       GET /admin/author-requests:
