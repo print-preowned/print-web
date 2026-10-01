@@ -24,7 +24,7 @@ import {
   type CatalogWork,
   type PublicationLookup,
   type InventoryCreatePayload,
-  type InventoryCreateResponse,
+  type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
 import { InventoryWorkOfferForm } from "./inventory-work-offer-form";
 import { InventoryOfferFields } from "./inventory-offer-fields";
@@ -125,7 +125,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
   const [showNewWork, setShowNewWork] = useState(false);
   const [titleQuery, setTitleQuery] = useState("");
   const [debouncedTitle, setDebouncedTitle] = useState("");
-  const { mutateAsync, isPending } = useApiMutation<InventoryCreateResponse>();
+  const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
 
   useEffect(() => {
     const trimmed = titleQuery.trim();

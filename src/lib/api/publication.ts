@@ -3,6 +3,12 @@ import { generateUrl } from ".";
 export type Publication = {
   id: string;
   work_id: string;
+  work?: {
+    id: string;
+    title: string;
+    image?: string | null;
+    authors?: { id: string; name?: string | null }[];
+  } | null;
   isbn13: string | null;
   title: string | null;
   image: string | null;

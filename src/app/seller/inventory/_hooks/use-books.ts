@@ -8,7 +8,7 @@ import {
   readSellerInventory,
   readWorks,
   type CatalogWork,
-  type SellerInventoryListItem,
+  type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
 
 function searchOrUndefined(s: string): string | undefined {
@@ -66,7 +66,7 @@ export function useGlobalBooks(): UseGlobalBooksReturn {
 }
 
 export interface UseSellerInventoryReturn {
-  inventory: SellerInventoryListItem[];
+  inventory: SellerInventory[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -84,7 +84,7 @@ export function useSellerInventory(): UseSellerInventoryReturn {
     pagination,
     setPagination,
     totalPages,
-  } = usePagination<SellerInventoryListItem>({
+  } = usePagination<SellerInventory>({
     queryKey: [...sellerInventoryKeys.all, sellerId ?? ""],
     getUrl: ({ page, size }) => {
       if (!sellerId) return "";

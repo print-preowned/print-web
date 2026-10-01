@@ -41,6 +41,9 @@ function OfferAddToCart({
   const [quantity, setQuantity] = useState(1);
 
   const selected = useMemo(() => {
+    if (Object.keys(variants).length === 0) {
+      return offers[0] ?? null;
+    }
     if (Object.keys(selectedVariants).length === Object.keys(variants).length) {
       const possibleIds = variants[Object.keys(selectedVariants)[0] as VariantKey]?.[Object.values(selectedVariants)[0]] || [];
       if (possibleIds?.length == 0) return null;
@@ -90,10 +93,10 @@ function OfferAddToCart({
     return {
       sellerInventoryId: offer.id ?? null,
       unitPrice: offer.price,
-      title: offer.publication.title,
-      image: offer.image,
-      sellerId: offer.seller_id,
-      sellerName: offer.seller_name,
+      title: offer.publication.title || offer.work.title || "",
+      image: offer.image || offer.publication.image || offer.work.image,
+      sellerId: offer.seller.id,
+      sellerName: offer.seller.name,
       configLabel: formatOfferConfig(selectedVariants),
       quantity: qty,
     };
@@ -218,7 +221,7 @@ function OfferAccordionItem({
   sellerOffer,
   isLoading,
 }: OfferAccordionItemProps) {
-  const panelId = `offer-panel-${offer.seller_id}`;
+  const panelId = `offer-panel-${offer.seller.id}`;
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
 
   useEffect(() => {
@@ -234,13 +237,13 @@ function OfferAccordionItem({
     [],
   );
 
-  const displayPrice = selectedPrice ?? offer.min_price;
+  const displayPrice = selectedPrice ?? offer.minPrice;
 
   return (
     <li className="overflow-hidden border border-border bg-card">
       <button
         type="button"
-        id={`offer-trigger-${offer.seller_id}`}
+        id={`offer-trigger-${offer.seller.id}`}
         aria-expanded={expanded}
         aria-controls={panelId}
         onClick={onToggle}
@@ -253,12 +256,12 @@ function OfferAccordionItem({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             <span className="font-display text-md font-semibold">
-              {offer.seller_name}
+              {offer.seller.name}
             </span>
             <Link
-              href={`/seller/${offer.seller_id}`}
+              href={`/seller/${offer.seller.id}`}
               className="inline-flex shrink-0 rounded-sm text-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
-              aria-label={`Visit ${offer.seller_name} storefront`}
+              aria-label={`Visit ${offer.seller.name} storefront`}
               title="Visit storefront"
               onClick={(e) => e.stopPropagation()}
             >
@@ -271,8 +274,8 @@ function OfferAccordionItem({
             </span>
           ) : null} */}
           <span className="mt-1 block text-sm text-muted-foreground">
-            {offer.offer_count}{" "}
-            {offer.offer_count === 1 ? "offer" : "offers"}
+            {offer.offerCount}{" "}
+            {offer.offerCount === 1 ? "offer" : "offers"}
           </span>
         </span>
 
@@ -294,7 +297,7 @@ function OfferAccordionItem({
         <div
           id={panelId}
           role="region"
-          aria-labelledby={`offer-trigger-${offer.seller_id}`}
+          aria-labelledby={`offer-trigger-${offer.seller.id}`}
           className="border-t border-border px-4 pb-5 pt-4 sm:px-5"
         >
           {isLoading ? (
@@ -322,7 +325,7 @@ export function Marketplace({ workId, offers }: Props) {
   const selectedSellerId =
     searchParams.get("seller") ?? searchParams.get("listing");
 
-  const setSelectedSeller = useCallback(
+    const setSelectedSeller = useCallback(
     (sellerId: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("listing");
@@ -353,13 +356,13 @@ export function Marketplace({ workId, offers }: Props) {
 
   useEffect(() => {
     if (offers.length === 1 && !selectedSellerId) {
-      setSelectedSeller(offers[0]!.seller_id);
+      setSelectedSeller(offers[0]!.seller.id);
     }
   }, [offers, selectedSellerId, setSelectedSeller]);
 
   const lowestPrice = offers.reduce<number | null>((min, offer) => {
-    if (offer.min_price == null) return min;
-    return min == null ? offer.min_price : Math.min(min, offer.min_price);
+    if (offer.minPrice == null) return min;
+    return min == null ? offer.minPrice : Math.min(min, offer.minPrice);
   }, null);
 
   if (offers.length === 0) {
@@ -405,16 +408,16 @@ export function Marketplace({ workId, offers }: Props) {
       <ul className="mt-8 space-y-3">
         {offers.map((offer) => (
           <OfferAccordionItem
-            key={offer.seller_id}
+            key={offer.seller.id}
             offer={offer}
-            expanded={selectedSellerId === offer.seller_id}
+            expanded={selectedSellerId === offer.seller.id}
             onToggle={() =>
               setSelectedSeller(
-                selectedSellerId === offer.seller_id ? null : offer.seller_id,
+                selectedSellerId === offer.seller.id ? null : offer.seller.id,
               )
             }
-            sellerOffer={selectedSellerId === offer.seller_id ? sellerOffer : null}
-            isLoading={selectedSellerId === offer.seller_id && isLoading}
+            sellerOffer={selectedSellerId === offer.seller.id ? sellerOffer : null}
+            isLoading={selectedSellerId === offer.seller.id && isLoading}
           />
         ))}
       </ul>

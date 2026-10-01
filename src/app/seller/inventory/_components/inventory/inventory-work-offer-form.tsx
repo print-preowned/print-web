@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   createInventory,
   readWorkPublications,
-  type InventoryCreateResponse,
+  type SellerInventory,
   type PublicationLookup,
 } from "@/app/seller/lib/api/inventory";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
@@ -59,7 +59,7 @@ type WorkOfferValues = {
 
 export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) {
   const queryClient = useQueryClient();
-  const { mutateAsync, isPending } = useApiMutation<InventoryCreateResponse>();
+  const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
   const publicationsQuery = useApiQuery<PublicationLookup[]>(
     publicationKeys.byWork(workId),
     readWorkPublications(workId),

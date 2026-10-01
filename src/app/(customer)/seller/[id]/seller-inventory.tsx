@@ -138,10 +138,10 @@ export function SellerInventory({ sellerId }: SellerInventoryProps) {
         ) : (
           <>
             <ul className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-              {works.map((work, i) => (
-                <li key={work.work_id}>
+              {works.map((listing, i) => (
+                <li key={listing.work.id}>
                   <SellerWorkCard
-                    work={work}
+                    listing={listing}
                     sellerId={sellerId}
                     animationDelay={i * 50}
                   />

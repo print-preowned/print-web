@@ -44,14 +44,10 @@ export function mergeAutocompleteOptions(
   extras?: readonly AutocompleteOption[],
 ): AutocompleteOption[] {
   const merged = new Map(primary.map((option) => [option.value, option]));
-  console.log(2222222, "primary", primary);
-  console.log(3333333, "extras", extras);
   for (const extra of extras ?? []) {
     if (!merged.has(extra.value)) {
-      console.log(4444444, "extra not merged", extra);
       merged.set(extra.value, extra);
     }
   }
-  console.log(5555555, "merged", merged);
   return [...merged.values()].sort((a, b) => a.label.localeCompare(b.label));
 }

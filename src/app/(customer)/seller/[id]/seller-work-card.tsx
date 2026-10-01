@@ -6,20 +6,21 @@ import {
 import { cn } from "@/lib/utils";
 
 type SellerWorkCardProps = {
-  work: PublicSellerWork;
+  listing: PublicSellerWork;
   sellerId: string;
   animationDelay?: number;
   className?: string;
 };
 
 export function SellerWorkCard({
-  work,
+  listing,
   sellerId,
   animationDelay,
   className,
 }: SellerWorkCardProps) {
-  const author = work.author_names[0];
-  const href = `/books/${work.work_id}?seller=${sellerId}#buy`;
+  const { work, minPrice } = listing;
+  const author = work.authors?.[0]?.name;
+  const href = `/books/${work.id}?seller=${sellerId}#buy`;
 
   return (
     <article
@@ -59,8 +60,8 @@ export function SellerWorkCard({
           <p className="text-sm text-muted-foreground">Unknown author</p>
         )}
 
-        {work.min_price != null ? (
-          <p className="text-sm font-semibold">{formatPrice(work.min_price)}</p>
+        {minPrice != null ? (
+          <p className="text-sm font-semibold">{formatPrice(minPrice)}</p>
         ) : null}
       </div>
     </article>

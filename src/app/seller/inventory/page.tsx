@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { formatPrice } from "@/lib/format-price";
-import { type CatalogWork, type SellerInventoryListItem } from "@/app/seller/lib/api/inventory";
+import { type CatalogWork, inventoryImage, inventoryTitle, type SellerInventory } from "@/app/seller/lib/api/inventory";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -104,12 +104,13 @@ export default function InventoryPage() {
   );
 }
 
-function InventoryDetails({ offer }: { offer: SellerInventoryListItem }) {
+function InventoryDetails({ offer }: { offer: SellerInventory }) {
+  const image = inventoryImage(offer);
   return (
     <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
-      {offer.image ? (
+      {image ? (
         <img
-          src={offer.image}
+          src={image}
           alt=""
           className="h-32 w-24 rounded border object-cover"
         />
@@ -117,7 +118,7 @@ function InventoryDetails({ offer }: { offer: SellerInventoryListItem }) {
       <div className="flex min-w-0 flex-col gap-2 text-sm">
         <div>
           <span className="text-muted-foreground">Title</span>
-          <p className="font-medium">{offer.title}</p>
+          <p className="font-medium">{inventoryTitle(offer)}</p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <div>

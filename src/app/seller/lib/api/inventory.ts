@@ -37,27 +37,44 @@ export type InventoryCreatePayload = {
   offer: InventoryOfferCreatePayload;
 };
 
-export type InventoryCreateResponse = {
+export type WorkRef = {
   id: string;
-  publication_id: string;
+  title: string;
+  image?: string | null;
+  authors?: { id: string; name?: string | null }[];
 };
 
-export type SellerInventoryListItem = {
+export type PublicationRef = {
   id: string;
-  seller_id: string;
-  publication_id: string;
-  work_id: string;
-  title: string;
+  language: string | null;
+  binding: string;
+  volumeNumber: number | null;
+  edition: string | null;
+  title: string | null;
   image: string | null;
+};
+
+export type SellerRef = {
+  id: string;
+  name: string;
+  status?: string;
+};
+
+export type SellerInventory = {
+  id: string;
+  seller: SellerRef;
+  work: WorkRef;
+  publication: PublicationRef;
   price: number;
   stock: number;
   currency: string;
   condition: string | null;
   signed: boolean | null;
   description: string | null;
+  image: string | null;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt?: string | null;
 };
 
 export type SellerInventoryUpdatePayload = {
@@ -69,6 +86,14 @@ export type SellerInventoryUpdatePayload = {
   image?: string | null;
   status?: string;
 };
+
+export function inventoryTitle(item: SellerInventory) {
+  return (item.publication.title || item.work.title || "").trim();
+}
+
+export function inventoryImage(item: SellerInventory) {
+  return item.image || item.publication.image || item.work.image || null;
+}
 
 export function readPublicationByIsbn(isbn: string) {
   return generateUrl("/publications", { isbn });

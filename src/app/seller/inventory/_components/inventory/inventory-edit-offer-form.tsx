@@ -7,12 +7,12 @@ import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { sellerInventoryKeys } from "@/lib/api/query-keys";
 import {
   updateSellerInventory,
-  type SellerInventoryListItem,
+  type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
 
 type Props = {
-  offer: SellerInventoryListItem;
+  offer: SellerInventory;
   onSuccess?: () => void;
 };
 

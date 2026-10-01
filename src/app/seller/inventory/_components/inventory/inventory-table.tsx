@@ -23,7 +23,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import {
   deleteSellerInventory,
-  type SellerInventoryListItem,
+  inventoryTitle,
+  inventoryImage,
+  type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { InventoryOnboardForm } from "./inventory-onboard-form";
@@ -36,7 +38,7 @@ function formatCount(value: number) {
 export interface InventoryTableProps {
   selectedIds: Set<string>;
   onSelectId: (ids: Set<string>) => void;
-  inventory: SellerInventoryListItem[];
+  inventory: SellerInventory[];
   isLoading: boolean;
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<
@@ -77,7 +79,7 @@ export function InventoryTable({
   );
 
   const openEditDrawer = useCallback(
-    (offer: SellerInventoryListItem) => {
+    (offer: SellerInventory) => {
       openDrawer({
         title: "Edit offer",
         description: "Update price, stock, and condition for this listing",
@@ -88,7 +90,7 @@ export function InventoryTable({
   );
 
   const toggleAllOnPage = useCallback(
-    (rows: SellerInventoryListItem[]) => {
+    (rows: SellerInventory[]) => {
       const next = new Set(selectedIds);
       const pageIds = new Set(rows.map((row) => row.id));
       const allSelected = rows.length > 0 && rows.every((row) => next.has(row.id));
@@ -99,7 +101,7 @@ export function InventoryTable({
     [selectedIds, setSelectedIds],
   );
 
-  const columns: ColumnDef<SellerInventoryListItem>[] = [
+  const columns: ColumnDef<SellerInventory>[] = [
     {
       id: "select",
       header: ({ table }) => {
@@ -130,7 +132,7 @@ export function InventoryTable({
       accessorKey: "title",
       header: "Book",
       cell: ({ row }) => (
-        <BookTableTitleCell title={row.original.title} image={row.original.image} />
+        <BookTableTitleCell title={inventoryTitle(row.original)} image={inventoryImage(row.original)} />
       ),
     },
     {

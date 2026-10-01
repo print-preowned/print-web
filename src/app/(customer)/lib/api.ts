@@ -34,46 +34,57 @@ export type VariantsConfig = {
   };
 };
 
+export type SellerRef = {
+  id: string;
+  name: string;
+};
+
 export type PublicOffer = {
   id: string;
-  work_id: string;
-  publication_id: string;
-  publication: {
-    language: string | null
-    binding: string
-    volume_number: number | null
-    edition: string | null
-    title: string
-    image: string | null
+  seller: SellerRef;
+  work: {
+    id: string;
+    title: string;
+    image?: string | null;
+    authors?: { id: string; name?: string | null }[];
   };
-  seller_id: string;
-  seller_name: string;
+  publication: {
+    id: string;
+    language: string | null;
+    binding: string;
+    volumeNumber: number | null;
+    edition: string | null;
+    title: string | null;
+    image: string | null;
+  };
   price: number;
   currency: string;
-  discount?: number | null;
   stock: number;
   image?: string | null;
   description: string | null;
+  condition?: string | null;
+  signed?: boolean | null;
 };
 
 export type PublicSellerWork = {
-  work_id: string;
-  title: string;
-  image?: string | null;
-  description?: string | null;
-  author_names: string[];
-  min_price?: number | null;
-  total_stock: number;
-  offer_count: number;
-  is_available: boolean;
+  work: {
+    id: string;
+    title: string;
+    image?: string | null;
+    authors?: { id: string; name?: string | null }[];
+  };
+  minPrice?: number | null;
+  totalStock: number;
+  offerCount: number;
+  isAvailable: boolean;
 };
 
 export type PublicWorkOfferSummary = {
-  work_id: string;
-  seller_id: string;
-  seller_name: string;
-  offer_count: number;
-  min_price?: number | null;
+  workId: string;
+  seller: SellerRef;
+  offerCount: number;
+  minPrice?: number | null;
+  totalStock: number;
 };
 
 export type PublicSellerOffer = PublicWorkOfferSummary & {
@@ -95,6 +106,7 @@ export function readOffers(
   const query = buildQueryParams(params);
   if (params?.exclude_id) query.exclude_id = params.exclude_id;
   return buildRelativeUrl(`/works/${workId}/offers`);
+
 }
 
 export function readPublicSellerWorks(
