@@ -25,77 +25,12 @@ import { parseCSV } from "@/lib/utils/csv";
 import { apiFetch } from "@/lib/api";
 
 type AuthorCSVRow = {
-  firstName: string;
-  lastName: string;
-  middleName?: string;
+  given_names?: string;
+  family_name?: string;
   about: string;
   image?: string;
   status?: string;
 };
-
-// Dummy author records for admin display
-const dummyAuthors: Author[] = [
-  {
-    id: "dummy-1",
-    firstName: "Jane",
-    lastName: "Smith",
-    middleName: null,
-    about: "Award-winning fiction author with over 20 published novels. Known for her compelling character development and intricate plotlines.",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
-    followers: 125000,
-    status: "ACTIVE",
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "dummy-2",
-    firstName: "Michael",
-    lastName: "Chen",
-    middleName: "David",
-    about: "Business strategist and thought leader in digital transformation. Author of multiple bestsellers on technology and innovation.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-    followers: 89000,
-    status: "ACTIVE",
-    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "dummy-3",
-    firstName: "Sarah",
-    lastName: "Johnson",
-    middleName: null,
-    about: "Celebrity chef and cookbook author known for innovative recipes and fusion cuisine. Has published 12 cookbooks.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
-    followers: 210000,
-    status: "ACTIVE",
-    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "dummy-4",
-    firstName: "David",
-    lastName: "Williams",
-    middleName: null,
-    about: "Master of mystery and suspense with bestselling thriller series. Known for unexpected plot twists and engaging narratives.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
-    followers: 350000,
-    status: "ACTIVE",
-    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "dummy-5",
-    firstName: "Emily",
-    lastName: "Rodriguez",
-    middleName: "Maria",
-    about: "Life coach and motivational speaker helping millions achieve success. Author of 6 self-help books.",
-    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop",
-    followers: 450000,
-    status: "INACTIVE",
-    createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
 
 export default function AdminAuthorsPage() {
   const queryClient = useQueryClient();
@@ -141,7 +76,7 @@ export default function AdminAuthorsPage() {
       header: "Name",
       cell: ({ row }) => (
         <span className="font-medium">
-          {row.original.firstName} {row.original.middleName} {row.original.lastName}
+          {row.original.name.displayNameFlat}
         </span>
       ),
     },
@@ -219,8 +154,9 @@ export default function AdminAuthorsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="CANONICAL">Canonical</SelectItem>
+                <SelectItem value="PROVISIONAL">Provisional</SelectItem>
+                <SelectItem value="DEPRECATED">Deprecated</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -239,9 +175,9 @@ export default function AdminAuthorsPage() {
             </Button>
             <BulkUpload<AuthorCSVRow>
               title="Bulk Upload Authors"
-              description="Upload multiple authors from a CSV file. Each row should contain: first_name, last_name, middle_name (optional), about, image (optional), and optional status."
-              sampleHeaders={["first_name", "last_name", "middle_name", "about", "image", "status"]}
-              sampleRow={["Jane", "Smith", "", "Award-winning fiction author", "https://example.com/image.jpg", "ACTIVE"]}
+              description="Upload multiple authors from a CSV file. Each row should contain: given_names (optional), family_name, about, image (optional), and optional status."
+              sampleHeaders={["given_names", "family_name", "about", "image", "status"]}
+              sampleRow={["Chinua", "Achebe", "Award-winning fiction author", "https://example.com/image.jpg", "CANONICAL"]}
               parseCSV={(csvText) => {
                 const rows = parseCSV(csvText);
                 if (rows.length < 2) throw new Error("CSV must have header row and at least one data row");
@@ -254,12 +190,9 @@ export default function AdminAuthorsPage() {
                   return obj as AuthorCSVRow;
                 });
               }}
-              validateItem={(item, index) => {
-                if (!item.firstName?.trim()) {
-                  return { valid: false, error: "First name is required" };
-                }
-                if (!item.lastName?.trim()) {
-                  return { valid: false, error: "Last name is required" };
+              validateItem={(item) => {
+                if (!item.family_name?.trim() && !item.given_names?.trim()) {
+                  return { valid: false, error: "Family name is required" };
                 }
                 if (!item.about?.trim()) {
                   return { valid: false, error: "About is required" };
@@ -275,12 +208,13 @@ export default function AdminAuthorsPage() {
                   try {
                     const item = items[i];
                     const request = createAuthor({
-                      firstName: item.firstName,
-                      lastName: item.lastName,
-                      middleName: item.middleName || null,
+                      name: {
+                        keyNames: (item.family_name || item.given_names || "").trim(),
+                        namesBeforeKey: item.family_name ? item.given_names?.trim() || null : null,
+                      },
                       about: item.about,
                       image: item.image || "",
-                      status: item.status || "ACTIVE",
+                      status: item.status === "ACTIVE" ? "CANONICAL" : item.status || "CANONICAL",
                     });
                     
                     await apiFetch(request.endpoint, {

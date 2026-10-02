@@ -92,9 +92,7 @@ export function AuthorsTable() {
       header: "Name",
       cell: ({ row }) => (
         <span className="font-medium">
-          {row.original.first_name}{" "}
-          {row.original.middle_name && `${row.original.middle_name} `}
-          {row.original.last_name}
+          {row.original.name.displayNameFlat}
         </span>
       ),
       enableHiding: false,

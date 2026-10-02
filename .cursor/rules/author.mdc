@@ -16,14 +16,30 @@ alwaysApply: true
       AUTHOR:
         fields:
           - id
-          - canonical_name
+          - kind: [PERSON, ORGANIZATION]
+          - name.key_names
+          - name.names_before_key
+          - name.names_after_key
+          - name.prefix_to_key
+          - name.name_prefix
+          - name.name_suffix
+          - name.display_name_flat
+          - name.display_name_inverted
+          - name_source: [UNSTRUCTURED, STRUCTURED, CURATED]
+          - name_variants: [{value, kind, language, source}]
           - normalized_name
           - bio
-          - metadata
           - status: [CANONICAL, PROVISIONAL, MERGED, DEPRECATED]
           - created_by_seller_id    #nullable
           - created_at
           - updated_at
+        notes: >
+          key_names is the required filing element. The work link stores
+          display_name_flat. Contributor role stays on the work, not here.
+          name_variants.kind is PSEUDONYM, FORMER, TRANSLITERATION,
+          NATIVE_SCRIPT, or ALTERNATE. name_variants.source is openlibrary,
+          onix, or curated, and may be empty. name_source describes the
+          filing name, not a variant.
 
       AUTHOR_REQUEST:
         fields:

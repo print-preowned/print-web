@@ -5,9 +5,8 @@ import z from "zod";
 import { Author } from "@/lib/api/author";
 
 export const schema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  middle_name: z.string().optional(),
+  key_names: z.string().min(1, "Family name is required"),
+  names_before_key: z.string().optional(),
   about: z.string().min(1, "About is required"),
   image: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   status: z.string().optional(),
@@ -17,35 +16,23 @@ export function AuthorForm({ author }: { author: Author | undefined }) {
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
       <form className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-3">
-            <Label htmlFor="first_name">First Name</Label>
-            <Input
-              id="first_name"
-              name="first_name"
-              placeholder="John"
-              defaultValue={author?.first_name}
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-3">
-            <Label htmlFor="last_name">Last Name</Label>
-            <Input
-              id="last_name"
-              name="last_name"
-              placeholder="Doe"
-              defaultValue={author?.last_name}
-              required
-            />
-          </div>
+        <div className="flex flex-col gap-3">
+          <Label htmlFor="names_before_key">Given names</Label>
+          <Input
+            id="names_before_key"
+            name="names_before_key"
+            placeholder="Chinua"
+            defaultValue={author?.name.namesBeforeKey ?? ""}
+          />
         </div>
         <div className="flex flex-col gap-3">
-          <Label htmlFor="middle_name">Middle Name (Optional)</Label>
+          <Label htmlFor="key_names">Family name</Label>
           <Input
-            id="middle_name"
-            name="middle_name"
-            placeholder="Michael"
-            defaultValue={author?.middle_name ?? ""}
+            id="key_names"
+            name="key_names"
+            placeholder="Achebe"
+            defaultValue={author?.name.keyNames}
+            required
           />
         </div>
         <div className="flex flex-col gap-3">
@@ -73,4 +60,3 @@ export function AuthorForm({ author }: { author: Author | undefined }) {
     </div>
   );
 }
-

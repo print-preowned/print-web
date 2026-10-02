@@ -25,7 +25,7 @@ export type BookAuthorGenreFieldsProps = {
 };
 
 function authorLabel(author: Author) {
-  return [author.firstName, author.lastName].filter(Boolean).join(" ");
+  return author.name.displayNameFlat;
 }
 
 export function BookAuthorGenreFields({
