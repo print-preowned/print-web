@@ -62,13 +62,13 @@ export function RequestBookEditDialog({
                 variant="ghost"
                 size="sm"
                 className="h-7 gap-1 text-xs"
-                onClick={copyRef(book.title)}
+                onClick={copyRef(book.title.displayTitle)}
               >
                 <Copy className="size-3" />
                 Copy
               </Button>
             </div>
-            <p className="font-medium">{book.title}</p>
+            <p className="font-medium">{book.title.displayTitle}</p>
           </div>
         )}
         <Alert className="border-muted bg-muted/30">

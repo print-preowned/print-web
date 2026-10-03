@@ -34,7 +34,7 @@ import { ISBN_ERROR_MESSAGE, ISBN_PATTERN } from "@/app/seller/lib/inventory-isb
 function workOption(work: CatalogWork) {
   return {
     value: work.id,
-    label: work.title,
+    label: work.title.displayTitle,
     description: work.authors?.length
       ? work.authors.map((author) => author.name).join(", ")
       : "No authors listed",
@@ -406,7 +406,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
       {offerFormVisible ? (
         <InventoryWorkOfferForm
           workId={selectedWork.id}
-          workTitle={selectedWork.title}
+          workTitle={selectedWork.title.displayTitle}
           onSuccess={onSuccess}
         />
       ) : null}

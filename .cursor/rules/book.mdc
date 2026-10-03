@@ -24,7 +24,9 @@ modules:
           Admin create is /admin/books/create (work plus first publication).
           Edit on /admin/books manages work metadata, authors, genres, and
           additional publications via /works and /publications. Platform
-          catalog authority is only MANAGE_BOOKS.
+          catalog authority is only MANAGE_BOOKS. GET /works returns a
+          structured title; customer and admin cards use displayTitle.
+          Embedded offer titles stay a string.
 
     privileges:
       READ_PUBLIC_BOOK:

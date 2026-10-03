@@ -54,7 +54,7 @@ export function BookListingRow({
         <div className="min-w-0 flex-1 space-y-2">
           <Link href={`/books/${book.id}`}>
             <h2 className="font-display text-lg font-bold leading-snug transition-colors group-hover:text-accent group-hover:underline sm:text-xl">
-              {book.title}
+              {book.title.displayTitle}
             </h2>
           </Link>
 

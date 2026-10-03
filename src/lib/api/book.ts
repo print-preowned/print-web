@@ -1,12 +1,15 @@
 import { generateUrl } from ".";
 import { ReadParams, buildQueryParams } from "./types";
+import type { WorkTitle } from "./work-title";
+
+export type { WorkTitle } from "./work-title";
 
 export type AuthorRef = { id: string; name: string };
 export type GenreRef = { id: string; name: string };
 
 export type Book = {
   id: string;
-  title: string;
+  title: WorkTitle;
   image: string;
   description: string;
   status: string;
@@ -23,6 +26,8 @@ export function readBooks(params?: ReadParams) {
 
 export type BookCreatePayload = {
   title: string;
+  titlePrefix?: string;
+  subtitle?: string;
   description: string;
   image?: string;
   authorIds?: string[];
@@ -39,11 +44,10 @@ export function createBook(payload: BookCreatePayload) {
 
 export function updateBook(
   id: string,
-  payload: Partial<
-    Omit<Book, "id" | "createdAt" | "updatedAt" | "authors" | "genres">
-  > & {
+  payload: Partial<BookCreatePayload> & {
     authorIds?: string[];
     genreIds?: string[];
+    status?: string;
   },
 ) {
   return {

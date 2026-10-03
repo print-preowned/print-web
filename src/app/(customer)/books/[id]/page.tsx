@@ -73,7 +73,7 @@ export default async function WorkDetailPage({
               </Link>
             </p>
             <h1 className="font-display mt-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-              {work.title}
+              {work.title.displayTitle}
             </h1>
             {primaryAuthor ? (
               <p className="mt-3 text-lg text-muted-foreground">

@@ -17,6 +17,7 @@ import {
 } from "@/components/books/create-book-form-schema";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { createBook, type Book } from "@/lib/api/book";
+import { previewWorkTitle } from "@/lib/api/work-title";
 import { createPublication, PublicationCreatePayload } from "@/lib/api/publication";
 import { apiFetch } from "@/lib/api";
 import {
@@ -48,15 +49,20 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     resolver: zodResolver(createBookFormSchema),
     defaultValues: {
       title: "",
+      titlePrefix: "",
+      subtitle: "",
       image: "",
       description: "",
     },
   });
 
   const workTitle = watch("title");
+  const titlePrefix = watch("titlePrefix") ?? "";
+  const subtitle = watch("subtitle") ?? "";
+  const displayTitle = previewWorkTitle(titlePrefix, workTitle, subtitle);
   const publicationPlaceholder = useMemo(
-    () => workTitle.trim() || "Same as work",
-    [workTitle],
+    () => displayTitle.trim() || "Same as work",
+    [displayTitle],
   );
 
   const image = useImageUpload({
@@ -68,6 +74,8 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     mutationFn: async (values: CreateBookFormValues) => {
       const request = createBook({
         title: values.title,
+        titlePrefix: values.titlePrefix || undefined,
+        subtitle: values.subtitle || undefined,
         image: values.image,
         description: values.description,
         authorIds: values.authorIds,
@@ -78,7 +86,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         body: request.body,
       });
       const publicationRequest = createPublication(
-        publicationFieldsFromDraft(publication, book.title, book.id) as PublicationCreatePayload,
+        publicationFieldsFromDraft(publication, book.title.displayTitle, book.id) as PublicationCreatePayload,
       );
       try {
         await apiFetch(publicationRequest.endpoint, {
@@ -113,6 +121,8 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     }
     const values: CreateBookFormValues = {
       title: data.title.trim(),
+      titlePrefix: data.titlePrefix?.trim(),
+      subtitle: data.subtitle?.trim(),
       image: await image.resolveValue(data.image),
       description: data.description.trim(),
       authorIds: selectedAuthorIds,
@@ -134,6 +144,14 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
           title={workTitle}
           onTitleChange={(value) =>
             setValue("title", value, { shouldValidate: true, shouldDirty: true })
+          }
+          titlePrefix={titlePrefix}
+          onTitlePrefixChange={(value) =>
+            setValue("titlePrefix", value, { shouldDirty: true })
+          }
+          subtitle={subtitle}
+          onSubtitleChange={(value) =>
+            setValue("subtitle", value, { shouldDirty: true })
           }
           description={watch("description")}
           onDescriptionChange={(value) =>

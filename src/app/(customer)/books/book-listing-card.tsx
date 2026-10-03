@@ -45,7 +45,7 @@ export function BookListingCard({
       <div className="mt-3 space-y-1.5">
         <Link href={`/books/${book.id}`}>
           <h2 className="font-display text-base font-bold leading-snug transition-colors group-hover:text-accent group-hover:underline">
-            {book.title}
+            {book.title.displayTitle}
           </h2>
         </Link>
 

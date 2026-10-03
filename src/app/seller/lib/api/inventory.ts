@@ -1,4 +1,5 @@
 import { generateUrl } from "@/lib/api";
+import type { WorkTitle } from "@/lib/api/work-title";
 
 export type PublicationLookup = {
   id: string;
@@ -101,10 +102,10 @@ export function readPublicationByIsbn(isbn: string) {
 
 export type CatalogWork = {
   id: string;
-  title: string;
+  title: WorkTitle;
   image: string | null;
   description: string | null;
-  original_language: string | null;
+  language: string | null;
   status: string;
   authors?: { id: string; name: string }[];
 };

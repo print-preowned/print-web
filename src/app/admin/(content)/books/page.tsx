@@ -75,7 +75,7 @@ export default function AdminBooksPage() {
       header: "Title",
       cell: ({ row }) => (
         <BookTableTitleCell
-          title={row.original.title}
+          title={row.original.title.displayTitle}
           image={row.original.image}
         />
       ),

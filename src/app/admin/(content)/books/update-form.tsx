@@ -15,6 +15,7 @@ import {
 } from "@/components/books/create-book-form-schema";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { updateBook, Book } from "@/lib/api/book";
+import { previewWorkTitle } from "@/lib/api/work-title";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useDrawerFooter } from "@/components/form-drawer";
@@ -55,7 +56,9 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
   } = useForm<CreateBookFormSchema>({
     resolver: zodResolver(createBookFormSchema),
     defaultValues: {
-      title: book?.title ?? "",
+      title: book?.title?.titleWithoutPrefix ?? "",
+      titlePrefix: book?.title?.titlePrefix ?? "",
+      subtitle: book?.title?.subtitle ?? "",
       image: book?.image ?? "",
       description: book?.description ?? "",
     },
@@ -78,7 +81,9 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
   useEffect(() => {
     if (!book) return;
     resetForm({
-      title: book.title,
+      title: book.title.titleWithoutPrefix,
+      titlePrefix: book.title.titlePrefix ?? "",
+      subtitle: book.title.subtitle ?? "",
       image: book.image,
       description: book.description,
     });
@@ -88,6 +93,8 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
     mutationFn: async (values: CreateBookFormValues) => {
       const request = updateBook(book!.id, {
         title: values.title,
+        titlePrefix: values.titlePrefix ?? "",
+        subtitle: values.subtitle ?? "",
         image: values.image,
         description: values.description,
         authorIds: values.authorIds,
@@ -111,6 +118,8 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
   const onSubmit = handleSubmit(async (data) => {
     const values: CreateBookFormValues = {
       title: data.title.trim(),
+      titlePrefix: data.titlePrefix?.trim(),
+      subtitle: data.subtitle?.trim(),
       image: await image.resolveValue(data.image),
       description: data.description.trim(),
       authorIds: selectedAuthorIds,
@@ -138,6 +147,14 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
           onTitleChange={(value) =>
             setValue("title", value, { shouldValidate: true, shouldDirty: true })
           }
+          titlePrefix={watch("titlePrefix") ?? ""}
+          onTitlePrefixChange={(value) =>
+            setValue("titlePrefix", value, { shouldDirty: true })
+          }
+          subtitle={watch("subtitle") ?? ""}
+          onSubtitleChange={(value) =>
+            setValue("subtitle", value, { shouldDirty: true })
+          }
           description={watch("description")}
           onDescriptionChange={(value) =>
             setValue("description", value, {
@@ -162,7 +179,16 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
           />
         </CreateBookFormFields>
       </form>
-      <AdminWorkPublications workId={book.id} workTitle={watch("title") || book.title} />
+      <AdminWorkPublications
+        workId={book.id}
+        workTitle={
+          previewWorkTitle(
+            watch("titlePrefix") ?? "",
+            watch("title"),
+            watch("subtitle") ?? "",
+          ) || book.title.displayTitle
+        }
+      />
     </div>
   );
 }

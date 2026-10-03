@@ -170,7 +170,7 @@ function GlobalBookDetails({ book }: { book: CatalogWork }) {
       <div className="flex min-w-0 flex-col gap-2 text-sm">
         <div>
           <span className="text-muted-foreground">Title</span>
-          <p className="font-medium">{book.title}</p>
+          <p className="font-medium">{book.title.displayTitle}</p>
         </div>
         {book.authors?.length ? (
           <div>

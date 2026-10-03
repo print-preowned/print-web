@@ -2,13 +2,14 @@ import { apiFetch } from "@/lib/api";
 import { buildRelativeUrl } from "@/lib/api/core";
 export { formatPrice } from "@/lib/format-price";
 import { ReadParams, buildQueryParams } from "@/lib/api/types";
+import type { WorkTitle } from "@/lib/api/work-title";
 
 export type CatalogWork = {
   id: string;
-  title: string;
+  title: WorkTitle;
   image: string | null;
   description: string | null;
-  original_language?: string | null;
+  language?: string | null;
   authors?: { id: string; name: string }[];
   genres?: { id: string; name: string }[];
 };

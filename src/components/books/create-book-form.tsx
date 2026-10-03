@@ -9,9 +9,12 @@ import { ImageDropzone } from "@/components/image-dropzone";
 import { BookAuthorGenreFields } from "@/components/books/book-author-genre-fields";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { cn } from "@/lib/utils";
+import { previewWorkTitle } from "@/lib/api/work-title";
 
 export type CreateBookFormValues = {
   title: string;
+  titlePrefix?: string;
+  subtitle?: string;
   image: string;
   description: string;
   authorIds: string[];
@@ -21,6 +24,10 @@ export type CreateBookFormValues = {
 export type CreateBookFormFieldsProps = {
   title: string;
   onTitleChange: (value: string) => void;
+  titlePrefix?: string;
+  onTitlePrefixChange?: (value: string) => void;
+  subtitle?: string;
+  onSubtitleChange?: (value: string) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
   imagePreview?: string | null;
@@ -36,6 +43,10 @@ export type CreateBookFormFieldsProps = {
 export function CreateBookFormFields({
   title,
   onTitleChange,
+  titlePrefix = "",
+  onTitlePrefixChange,
+  subtitle = "",
+  onSubtitleChange,
   description,
   onDescriptionChange,
   imagePreview = null,
@@ -58,7 +69,38 @@ export function CreateBookFormFields({
           onChange={(e) => onTitleChange(e.target.value)}
         />
         {titleError && <p className="text-sm text-red-500">{titleError}</p>}
+        {onTitlePrefixChange ? (
+          <p className="text-muted-foreground text-xs">
+            This is the filing title. Put articles such as The or Le in the prefix.
+          </p>
+        ) : null}
       </div>
+
+      {onTitlePrefixChange ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="book-title-prefix">Title prefix</Label>
+            <Input
+              id="book-title-prefix"
+              placeholder="The"
+              value={titlePrefix}
+              onChange={(e) => onTitlePrefixChange(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="book-subtitle">Subtitle</Label>
+            <Input
+              id="book-subtitle"
+              placeholder="Subtitle"
+              value={subtitle}
+              onChange={(e) => onSubtitleChange?.(e.target.value)}
+            />
+          </div>
+          <p className="text-muted-foreground text-xs sm:col-span-2">
+            Displays as {previewWorkTitle(titlePrefix, title, subtitle) || "—"}.
+          </p>
+        </div>
+      ) : null}
 
       <ImageDropzone
         id="book-cover"
