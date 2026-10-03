@@ -18,7 +18,7 @@ modules:
           - CREATE_BOOK
           - UPDATE_BOOK
           - DELETE_BOOK
-        urls: [/admin/books, /admin/books/create, /admin/publishers]
+        urls: [/admin/books, /admin/books/create, /admin/publishers, /admin/series]
         api: [/works, /publications]
         notes: >
           Admin create is /admin/books/create (work plus first publication).
@@ -33,7 +33,9 @@ modules:
           is paperback, hardcover, ebook, or audiobook. A publication
           stores a publisher and the imprint name from the title page.
           Publishers are managed at /admin/publishers. An imprint can be
-          its own publisher, pointing at a parent house.
+          its own publisher, pointing at a parent house. Series are
+          managed at /admin/series. A series spans works. A publication
+          stores the series and its number in that series.
 
     privileges:
       READ_PUBLIC_BOOK:
@@ -58,4 +60,4 @@ modules:
       - id: MDC-BOOK-2
         assertion: platform_catalog_mutations_use_works_and_publications
       - id: MDC-BOOK-3
-        assertion: book_privileges_cover_works_publications_authors_genres_and_publishers
+        assertion: book_privileges_cover_works_publications_authors_genres_publishers_and_series

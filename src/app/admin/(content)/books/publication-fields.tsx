@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiFetch } from "@/lib/api";
 import { PRODUCT_FORMS } from "@/lib/api/publication";
+import { readSeriesListUrl, type Series } from "@/lib/api/series";
+import { PaginatedResponse } from "@/lib/api/user";
 import {
   isbnFieldError,
   publishedDateError,
@@ -32,6 +37,20 @@ export function PublicationFields({
   idPrefix = "publication",
 }: Props) {
   const [dateError, setDateError] = useState<string | null>(null);
+  const { data: seriesData } = useQuery<PaginatedResponse<Series>>({
+    queryKey: ["series", { page: 1, size: 100 }],
+    queryFn: () => apiFetch(readSeriesListUrl({ page: 1, size: 100 })),
+  });
+  const seriesOptions = useMemo(
+    () =>
+      mergeAutocompleteOptions(
+        (seriesData?.data ?? []).map((row) => ({ value: row.id, label: row.title })),
+        draft.series_id && draft.series_title
+          ? [{ value: draft.series_id, label: draft.series_title }]
+          : [],
+      ),
+    [draft.series_id, draft.series_title, seriesData?.data],
+  );
 
   function set<K extends keyof PublicationDraft>(key: K, value: PublicationDraft[K]) {
     onChange({ ...draft, [key]: value });
@@ -153,6 +172,33 @@ export function PublicationFields({
           <option value="OUT_OF_PRINT">Out of print</option>
           <option value="FORTHCOMING">Forthcoming</option>
         </select>
+      </div>
+      <AutocompleteSelect
+        id={`${idPrefix}-series`}
+        label="Series"
+        placeholder="Search series..."
+        options={seriesOptions}
+        value={draft.series_id || null}
+        onValueChange={(value) => {
+          const selected = seriesOptions.find((option) => option.value === value);
+          onChange({
+            ...draft,
+            series_id: value ?? "",
+            series_title: selected?.label ?? "",
+            series_number: value ? draft.series_number : "",
+          });
+        }}
+        showClear
+        noResultsMessage="No series match your search"
+      />
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-series-number`}>Series number</Label>
+        <Input
+          id={`${idPrefix}-series-number`}
+          value={draft.series_number}
+          onChange={(event) => set("series_number", event.target.value)}
+          disabled={!draft.series_id}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-volume`}>Volume</Label>

@@ -41,11 +41,14 @@ function publicationSummary(publication: Publication, workTitle: string) {
     publication.imprintName && publication.imprintName !== publication.publisher?.name
       ? publication.imprintName
       : null,
+    publication.series?.title
+      ? publication.seriesNumber
+        ? `${publication.series.title} ${publication.seriesNumber}`
+        : publication.series.title
+      : null,
     publication.volumeNumber != null
       ? `Vol. ${publication.volumeNumber}`
-      : publication.volume_number != null
-        ? `Vol. ${publication.volume_number}`
-        : null,
+      : null,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" · ");
@@ -156,7 +159,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
         <div>
           <h3 className="text-sm font-medium">Publications</h3>
           <p className="text-muted-foreground text-xs">
-            ISBN, product form, and publisher of this work. Sellers offer these, not the work itself.
+            ISBN, product form, publisher, and series of this work. Sellers offer these, not the work itself.
           </p>
         </div>
         {!formOpen ? (

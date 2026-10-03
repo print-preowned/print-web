@@ -41,6 +41,8 @@ export type Publication = {
   countryOfPublication?: string | null;
   publisher?: { id: string; name: string } | null;
   imprintName?: string | null;
+  series?: { id: string; title: string } | null;
+  seriesNumber?: string | null;
   heightMm?: number | null;
   widthMm?: number | null;
   thicknessMm?: number | null;
@@ -72,6 +74,8 @@ export type PublicationCreatePayload = {
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   publisher_id?: string | null;
   imprint_name?: string | null;
+  series_id?: string | null;
+  series_number?: string | null;
   height_mm?: number | null;
   width_mm?: number | null;
   thickness_mm?: number | null;
@@ -94,6 +98,8 @@ export type PublicationUpdatePayload = {
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   publisher_id?: string | null;
   imprint_name?: string | null;
+  series_id?: string | null;
+  series_number?: string | null;
   height_mm?: number | null;
   width_mm?: number | null;
   thickness_mm?: number | null;
