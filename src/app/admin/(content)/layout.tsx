@@ -5,10 +5,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
+  IconBuilding,
   IconChartBar,
-  IconDashboard,
   IconListDetails,
-  IconSettings,
   IconShieldLock,
   IconTags,
   IconUsers,
@@ -35,6 +34,11 @@ const sidebarData = {
       title: "Genres",
       url: "/admin/genres",
       icon: IconTags,
+    },
+    {
+      title: "Publishers",
+      url: "/admin/publishers",
+      icon: IconBuilding,
     },
     {
       title: "Users",

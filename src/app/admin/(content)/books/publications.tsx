@@ -37,6 +37,10 @@ function publicationSummary(publication: Publication, workTitle: string) {
     publication.edition,
     publication.editionNumber != null ? `Ed. ${publication.editionNumber}` : null,
     publication.publishedDate,
+    publication.publisher?.name,
+    publication.imprintName && publication.imprintName !== publication.publisher?.name
+      ? publication.imprintName
+      : null,
     publication.volumeNumber != null
       ? `Vol. ${publication.volumeNumber}`
       : publication.volume_number != null
@@ -152,7 +156,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
         <div>
           <h3 className="text-sm font-medium">Publications</h3>
           <p className="text-muted-foreground text-xs">
-            ISBN and product forms of this work. Sellers offer these, not the work itself.
+            ISBN, product form, and publisher of this work. Sellers offer these, not the work itself.
           </p>
         </div>
         {!formOpen ? (

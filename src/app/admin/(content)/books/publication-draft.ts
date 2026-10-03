@@ -26,6 +26,9 @@ export type PublicationDraft = {
   published_date: string;
   country_of_publication: string;
   publishing_status: "" | PublishingStatus;
+  publisher_id: string;
+  publisher_name: string;
+  imprint_name: string;
   volume_number: string;
   page_count: string;
   weight_grams: string;
@@ -45,6 +48,9 @@ export const EMPTY_PUBLICATION_DRAFT: PublicationDraft = {
   published_date: "",
   country_of_publication: "",
   publishing_status: "",
+  publisher_id: "",
+  publisher_name: "",
+  imprint_name: "",
   volume_number: "",
   page_count: "",
   weight_grams: "",
@@ -110,6 +116,9 @@ export function draftFromPublication(publication: Publication): PublicationDraft
       publishingStatus === "FORTHCOMING"
         ? publishingStatus
         : "",
+    publisher_id: publication.publisher?.id ?? "",
+    publisher_name: publication.publisher?.name ?? "",
+    imprint_name: publication.imprintName ?? "",
     volume_number: numberText(publication.volumeNumber ?? publication.volume_number),
     page_count: numberText(publication.pageCount ?? publication.page_count),
     weight_grams: numberText(publication.weightGrams ?? publication.weight_grams),
@@ -138,6 +147,8 @@ export function publicationFieldsFromDraft(
     published_date: draft.published_date.trim() || null,
     country_of_publication: draft.country_of_publication.trim() || null,
     publishing_status: draft.publishing_status || null,
+    publisher_id: draft.publisher_id || null,
+    imprint_name: draft.imprint_name.trim() || null,
     volume_number: optionalInt(draft.volume_number) ?? null,
     page_count: optionalInt(draft.page_count) ?? null,
     weight_grams: optionalInt(draft.weight_grams) ?? null,

@@ -39,6 +39,8 @@ export type Publication = {
   publishedDatePrecision?: "YEAR" | "MONTH" | "DAY" | null;
   publishingStatus?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   countryOfPublication?: string | null;
+  publisher?: { id: string; name: string } | null;
+  imprintName?: string | null;
   heightMm?: number | null;
   widthMm?: number | null;
   thicknessMm?: number | null;
@@ -68,6 +70,8 @@ export type PublicationCreatePayload = {
   published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
   country_of_publication?: string | null;
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
+  publisher_id?: string | null;
+  imprint_name?: string | null;
   height_mm?: number | null;
   width_mm?: number | null;
   thickness_mm?: number | null;
@@ -88,6 +92,8 @@ export type PublicationUpdatePayload = {
   published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
   country_of_publication?: string | null;
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
+  publisher_id?: string | null;
+  imprint_name?: string | null;
   height_mm?: number | null;
   width_mm?: number | null;
   thickness_mm?: number | null;
