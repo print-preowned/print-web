@@ -19,6 +19,8 @@ import {
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { isbnFieldError } from "@/app/seller/lib/inventory-isbn";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
+import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/publication";
+
 
 type Props = {
   workId: string;
@@ -26,20 +28,9 @@ type Props = {
   onSuccess?: () => void;
 };
 
-function formatBinding(binding: string) {
-  switch (binding) {
-    case "PAPERBACK":
-      return "Paperback";
-    case "HARDCOVER":
-      return "Hardcover";
-    default:
-      return binding === "OTHER" ? "Other" : binding;
-  }
-}
-
 function publicationDetails(publication: PublicationLookup) {
   return [
-    formatBinding(publication.binding),
+    formatProductForm(publication.productForm ?? publication.binding ?? ""),
     publication.edition,
     publication.volume_number != null ? `Vol. ${publication.volume_number}` : null,
     publication.language,
@@ -53,7 +44,7 @@ type WorkOfferValues = {
   title: string;
   language: string;
   isbn: string;
-  binding: "OTHER" | "PAPERBACK" | "HARDCOVER";
+  product_form: ProductForm;
   offer: InventoryOfferValues;
 };
 
@@ -70,7 +61,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
       publication_id: "",
       title: workTitle,
       language: "",
-      binding: "PAPERBACK",
+      product_form: "PAPERBACK",
       isbn: "",
       offer: {
         price: "",
@@ -120,7 +111,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
                       ? { title: publicationTitle }
                       : {}),
                     language: values.language.trim() || undefined,
-                    binding: values.binding,
+                    product_form: values.product_form,
                     isbn: values.isbn.trim() || undefined,
                   }),
               offer: {
@@ -207,7 +198,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium">Another format</span>
                     <span className="text-muted-foreground mt-1 block text-xs">
-                      This title is already in the catalog, but not this binding or ISBN.
+                      This title is already in the catalog, but not this product form or ISBN.
                     </span>
                   </span>
                 </label>
@@ -216,7 +207,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
           </>
         ) : (
           <p className="text-muted-foreground text-sm">
-            No formats are listed for this title yet. Set binding and optional ISBN
+            No formats are listed for this title yet. Set the product form and optional ISBN
             below to add one.
           </p>
         )}
@@ -265,15 +256,17 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="work-offer-binding">Binding</Label>
+              <Label htmlFor="work-offer-form">Product form</Label>
               <select
-                id="work-offer-binding"
+                id="work-offer-form"
                 className="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
-                {...form.register("binding")}
+                {...form.register("product_form")}
               >
-                <option value="PAPERBACK">Paperback</option>
-                <option value="HARDCOVER">Hardcover</option>
-                <option value="OTHER">Other</option>
+                {PRODUCT_FORMS.map((form) => (
+                  <option key={form.value} value={form.value}>
+                    {form.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

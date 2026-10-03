@@ -26,7 +26,11 @@ modules:
           additional publications via /works and /publications. Platform
           catalog authority is only MANAGE_BOOKS. GET /works returns a
           structured title; customer and admin cards use displayTitle.
-          Embedded offer titles stay a string.
+          Embedded offer titles stay a string. A publication's isbn13
+          is the indexed ISBN-13; other identifier schemes, the edition
+          number, and the published date travel with the publication.
+          The edition statement stays the edition field. The product form
+          is paperback, hardcover, ebook, or audiobook.
 
     privileges:
       READ_PUBLIC_BOOK:

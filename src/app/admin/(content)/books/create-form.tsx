@@ -24,6 +24,7 @@ import {
   EMPTY_PUBLICATION_DRAFT,
   isbnFieldError,
   publicationFieldsFromDraft,
+  publishedDateError,
   type PublicationDraft,
 } from "./publication-draft";
 import { PublicationFields } from "./publication-fields";
@@ -119,6 +120,11 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
       setIsbnError(error);
       return;
     }
+    const dateError = publishedDateError(publication.published_date);
+    if (dateError) {
+      toast.error(dateError);
+      return;
+    }
     const values: CreateBookFormValues = {
       title: data.title.trim(),
       titlePrefix: data.titlePrefix?.trim(),
@@ -180,7 +186,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         <div>
           <h3 className="text-sm font-medium">First publication</h3>
           <p className="text-muted-foreground text-xs">
-            The ISBN and binding sellers will offer. Add more editions after saving.
+            The ISBN and product form sellers will offer. Add more editions after saving.
           </p>
         </div>
         <PublicationFields

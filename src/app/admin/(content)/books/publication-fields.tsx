@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PRODUCT_FORMS } from "@/lib/api/publication";
 import {
   isbnFieldError,
-  type Binding,
+  publishedDateError,
+  type ProductForm,
   type PublicationDraft,
+  type PublishingStatus,
 } from "./publication-draft";
 
 type Props = {
@@ -27,6 +31,8 @@ export function PublicationFields({
   showVerified = false,
   idPrefix = "publication",
 }: Props) {
+  const [dateError, setDateError] = useState<string | null>(null);
+
   function set<K extends keyof PublicationDraft>(key: K, value: PublicationDraft[K]) {
     onChange({ ...draft, [key]: value });
   }
@@ -60,16 +66,18 @@ export function PublicationFields({
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-binding`}>Binding</Label>
+        <Label htmlFor={`${idPrefix}-form`}>Product form</Label>
         <select
-          id={`${idPrefix}-binding`}
+          id={`${idPrefix}-form`}
           className="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
-          value={draft.binding}
-          onChange={(event) => set("binding", event.target.value as Binding)}
+          value={draft.product_form}
+          onChange={(event) => set("product_form", event.target.value as ProductForm)}
         >
-          <option value="PAPERBACK">Paperback</option>
-          <option value="HARDCOVER">Hardcover</option>
-          <option value="OTHER">Other</option>
+          {PRODUCT_FORMS.map((form) => (
+            <option key={form.value} value={form.value}>
+              {form.label}
+            </option>
+          ))}
         </select>
       </div>
       <div className="space-y-2">
@@ -92,12 +100,59 @@ export function PublicationFields({
         <p className="text-muted-foreground text-xs">Only if this edition’s title differs from the work.</p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-edition`}>Edition</Label>
+        <Label htmlFor={`${idPrefix}-edition`}>Edition statement</Label>
         <Input
           id={`${idPrefix}-edition`}
           value={draft.edition}
           onChange={(event) => set("edition", event.target.value)}
+          placeholder="First, Revised"
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-edition-number`}>Edition number</Label>
+        <Input
+          id={`${idPrefix}-edition-number`}
+          inputMode="numeric"
+          value={draft.edition_number}
+          onChange={(event) => set("edition_number", event.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-published`}>Published</Label>
+        <Input
+          id={`${idPrefix}-published`}
+          value={draft.published_date}
+          onChange={(event) => {
+            set("published_date", event.target.value);
+            if (dateError) setDateError(null);
+          }}
+          onBlur={(event) => setDateError(publishedDateError(event.target.value))}
+          placeholder="1969, 1969-10, or 1969-10-21"
+        />
+        {dateError ? <p className="text-destructive text-sm">{dateError}</p> : null}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-country`}>Country of publication</Label>
+        <Input
+          id={`${idPrefix}-country`}
+          value={draft.country_of_publication}
+          onChange={(event) => set("country_of_publication", event.target.value)}
+          placeholder="NG"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-status`}>Publishing status</Label>
+        <select
+          id={`${idPrefix}-status`}
+          className="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+          value={draft.publishing_status}
+          onChange={(event) => set("publishing_status", event.target.value as "" | PublishingStatus)}
+        >
+          <option value="">Unknown</option>
+          <option value="ACTIVE">In print</option>
+          <option value="OUT_OF_PRINT">Out of print</option>
+          <option value="FORTHCOMING">Forthcoming</option>
+        </select>
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-volume`}>Volume</Label>
@@ -124,6 +179,33 @@ export function PublicationFields({
           inputMode="numeric"
           value={draft.weight_grams}
           onChange={(event) => set("weight_grams", event.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-height`}>Height (mm)</Label>
+        <Input
+          id={`${idPrefix}-height`}
+          inputMode="numeric"
+          value={draft.height_mm}
+          onChange={(event) => set("height_mm", event.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-width`}>Width (mm)</Label>
+        <Input
+          id={`${idPrefix}-width`}
+          inputMode="numeric"
+          value={draft.width_mm}
+          onChange={(event) => set("width_mm", event.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-thickness`}>Thickness (mm)</Label>
+        <Input
+          id={`${idPrefix}-thickness`}
+          inputMode="numeric"
+          value={draft.thickness_mm}
+          onChange={(event) => set("thickness_mm", event.target.value)}
         />
       </div>
       {showVerified ? (

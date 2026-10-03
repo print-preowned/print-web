@@ -28,7 +28,7 @@ export function formatOfferConfig(config: { [key: string]: string }): string {
   return values.join(" · ");
 }
 
-export type VariantKey = "language" | "binding" | "signed" | "condition" | "volume_number" | "edition";
+export type VariantKey = "language" | "product_form" | "signed" | "condition" | "volume_number" | "edition";
 export type VariantsConfig = {
   [K in VariantKey]?: {
     [key: string]: string[];
@@ -52,7 +52,7 @@ export type PublicOffer = {
   publication: {
     id: string;
     language: string | null;
-    binding: string;
+    productForm: string;
     volumeNumber: number | null;
     edition: string | null;
     title: string | null;

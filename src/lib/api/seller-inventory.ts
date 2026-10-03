@@ -7,7 +7,8 @@ export type PublicationLookup = {
   title: string | null;
   image: string | null;
   language: string | null;
-  binding: string;
+  productForm?: string | null;
+  binding?: string | null;
   volume_number: number | null;
   edition: string | null;
   page_count: number | null;
@@ -22,7 +23,7 @@ export type SellerInventoryCreatePayload = {
   work_id?: string;
   title?: string;
   language?: string;
-  binding?: string;
+  product_form?: string;
   description?: string;
   offer: {
     price: string;

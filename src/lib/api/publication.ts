@@ -1,5 +1,19 @@
 import { generateUrl } from ".";
 
+export const PRODUCT_FORMS = [
+  { value: "PAPERBACK", label: "Paperback" },
+  { value: "HARDCOVER", label: "Hardcover" },
+  { value: "EBOOK", label: "Ebook" },
+  { value: "AUDIOBOOK", label: "Audiobook" },
+  { value: "OTHER", label: "Other" },
+] as const;
+
+export type ProductForm = (typeof PRODUCT_FORMS)[number]["value"];
+
+export function formatProductForm(value: string) {
+  return PRODUCT_FORMS.find((form) => form.value === value)?.label ?? value;
+}
+
 export type Publication = {
   id: string;
   work_id: string;
@@ -13,11 +27,27 @@ export type Publication = {
   title: string | null;
   image: string | null;
   language: string | null;
-  binding: string;
+  binding?: string;
+  productForm?: ProductForm | string | null;
   volume_number: number | null;
   edition: string | null;
+  editionStatement?: string | null;
+  editionNumber?: number | null;
+  identifiers?: { scheme: string; value: string }[];
+  normalizedTitle?: string | null;
+  publishedDate?: string | null;
+  publishedDatePrecision?: "YEAR" | "MONTH" | "DAY" | null;
+  publishingStatus?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
+  countryOfPublication?: string | null;
+  heightMm?: number | null;
+  widthMm?: number | null;
+  thicknessMm?: number | null;
   page_count: number | null;
+  pageCount?: number | null;
   weight_grams: number | null;
+  weightGrams?: number | null;
+  volumeNumber?: number | null;
+  isVerified?: boolean;
   is_verified: boolean;
   status: string;
   created_at?: string;
@@ -30,9 +60,17 @@ export type PublicationCreatePayload = {
   title?: string | null;
   image?: string | null;
   language?: string | null;
-  binding?: string;
+  product_form?: ProductForm | string | null;
   volume_number?: number | null;
   edition?: string | null;
+  edition_number?: number | null;
+  published_date?: string | null;
+  published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
+  country_of_publication?: string | null;
+  publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
+  height_mm?: number | null;
+  width_mm?: number | null;
+  thickness_mm?: number | null;
   page_count?: number | null;
   weight_grams?: number | null;
 };
@@ -42,9 +80,17 @@ export type PublicationUpdatePayload = {
   title?: string | null;
   image?: string | null;
   language?: string | null;
-  binding?: string;
+  product_form?: ProductForm | string | null;
   volume_number?: number | null;
   edition?: string | null;
+  edition_number?: number | null;
+  published_date?: string | null;
+  published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
+  country_of_publication?: string | null;
+  publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
+  height_mm?: number | null;
+  width_mm?: number | null;
+  thickness_mm?: number | null;
   page_count?: number | null;
   weight_grams?: number | null;
   is_verified?: boolean;

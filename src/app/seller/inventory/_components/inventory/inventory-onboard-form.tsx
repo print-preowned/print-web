@@ -30,6 +30,8 @@ import { InventoryWorkOfferForm } from "./inventory-work-offer-form";
 import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { ISBN_ERROR_MESSAGE, ISBN_PATTERN } from "@/app/seller/lib/inventory-isbn";
+import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/publication";
+
 
 function workOption(work: CatalogWork) {
   return {
@@ -42,7 +44,7 @@ function workOption(work: CatalogWork) {
 }
 
 const inputClassName = "bg-background";
-type BindingValue = "OTHER" | "PAPERBACK" | "HARDCOVER";
+type ProductFormValue = ProductForm;
 type LookupMode = "isbn" | "title";
 
 type InventoryFormValues = {
@@ -51,7 +53,7 @@ type InventoryFormValues = {
   title: string;
   description: string;
   language: string;
-  binding: BindingValue;
+  product_form: ProductFormValue;
   offer: {
     price: string;
     stock: string;
@@ -68,7 +70,7 @@ const buildInventorySchema = ({ publication, showNewWork }: { publication: Publi
     title: z.string().trim(),
     description: z.string().trim(),
     language: z.string().trim(),
-    binding: z.enum(["OTHER", "PAPERBACK", "HARDCOVER"]),
+    product_form: z.enum(["PAPERBACK", "HARDCOVER", "EBOOK", "AUDIOBOOK", "OTHER"]),
     offer: z.object({
       price: z.string().trim().min(1, "Price is required"),
       stock: z.string().trim().min(1, "Stock is required"),
@@ -159,7 +161,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
       title: "",
       description: "",
       language: "",
-      binding: "OTHER",
+      product_form: "OTHER",
       offer: {
         price: "",
         stock: "1",
@@ -223,7 +225,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
       }
       setPublication(result);
       setValue("language", result.language ?? "");
-      setValue("binding", (result.binding ?? "OTHER") as BindingValue);
+      setValue("product_form", (result.productForm ?? result.binding ?? "OTHER") as ProductFormValue);
       setValue("isbn", result.isbn13 ?? value);
       setLookupState("idle");
       toast.success("Found in catalog");
@@ -244,7 +246,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
             description: values.description.trim() || undefined,
           }),
       language: values.language.trim() || undefined,
-      binding: values.binding,
+      product_form: values.product_form,
       offer: {
         price: values.offer.price,
         stock: parsedStock,
@@ -274,7 +276,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
       title: "",
       description: "",
       language: "",
-      binding: "OTHER",
+      product_form: "OTHER",
       offer: {
         price: "",
         stock: "1",
@@ -417,7 +419,7 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
             <div className="bg-muted/50 rounded-md p-3 text-sm">
               <div className="font-medium">Found in catalog</div>
               <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                <span>{publication.binding}</span>
+                <span>{formatProductForm(publication.productForm ?? publication.binding ?? "")}</span>
                 {publication.language ? <span>{publication.language}</span> : null}
                 {publication.isbn13 ? <span>{publication.isbn13}</span> : null}
                 {publication.page_count ? <span>{publication.page_count} pages</span> : null}
@@ -463,15 +465,17 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="new-book-binding">Binding</Label>
+                  <Label htmlFor="new-book-form">Product form</Label>
                   <select
-                    id="new-book-binding"
+                    id="new-book-form"
                     className="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
-                    {...register("binding")}
+                    {...register("product_form")}
                   >
-                    <option value="PAPERBACK">Paperback</option>
-                    <option value="HARDCOVER">Hardcover</option>
-                    <option value="OTHER">Other</option>
+                    {PRODUCT_FORMS.map((form) => (
+                      <option key={form.value} value={form.value}>
+                        {form.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2 md:col-span-2">

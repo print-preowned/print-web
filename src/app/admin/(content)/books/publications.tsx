@@ -20,9 +20,10 @@ import {
 import {
   EMPTY_PUBLICATION_DRAFT,
   draftFromPublication,
-  formatBinding,
+  formatProductForm,
   isbnFieldError,
   publicationFieldsFromDraft,
+  publishedDateError,
   type PublicationDraft,
 } from "./publication-draft";
 import { PublicationFields } from "./publication-fields";
@@ -30,11 +31,17 @@ import { PublicationFields } from "./publication-fields";
 function publicationSummary(publication: Publication, workTitle: string) {
   return [
     publication.title?.trim() || workTitle,
-    formatBinding(publication.binding),
+    formatProductForm(publication.productForm ?? publication.binding ?? ""),
     publication.isbn13,
     publication.language,
     publication.edition,
-    publication.volume_number != null ? `Vol. ${publication.volume_number}` : null,
+    publication.editionNumber != null ? `Ed. ${publication.editionNumber}` : null,
+    publication.publishedDate,
+    publication.volumeNumber != null
+      ? `Vol. ${publication.volumeNumber}`
+      : publication.volume_number != null
+        ? `Vol. ${publication.volume_number}`
+        : null,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" · ");
@@ -83,9 +90,14 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const error = isbnFieldError(draft.isbn13);
-    if (error) {
-      setIsbnError(error);
+    const isbnError = isbnFieldError(draft.isbn13);
+    if (isbnError) {
+      setIsbnError(isbnError);
+      return;
+    }
+    const dateError = publishedDateError(draft.published_date);
+    if (dateError) {
+      toast.error(dateError);
       return;
     }
 
@@ -120,7 +132,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
   }
 
   async function onDelete(publication: Publication) {
-    if (!confirm(`Delete this publication (${formatBinding(publication.binding)})?`)) {
+    if (!confirm(`Delete this publication (${formatProductForm(publication.productForm ?? publication.binding ?? "")})?`)) {
       return;
     }
     const request = deletePublication(publication.id);
@@ -140,7 +152,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
         <div>
           <h3 className="text-sm font-medium">Publications</h3>
           <p className="text-muted-foreground text-xs">
-            ISBN and binding editions of this work. Sellers offer these, not the work itself.
+            ISBN and product forms of this work. Sellers offer these, not the work itself.
           </p>
         </div>
         {!formOpen ? (
@@ -202,6 +214,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
             {isEditing ? "Edit publication" : "Add publication"}
           </p>
           <PublicationFields
+            key={editingId ?? "new"}
             draft={draft}
             onChange={setDraft}
             workTitle={workTitle}

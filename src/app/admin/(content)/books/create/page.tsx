@@ -12,7 +12,7 @@ export default function AdminCreateBookPage() {
       <div>
         <h1 className="text-xl font-semibold">Create book</h1>
         <p className="text-muted-foreground text-sm">
-          Add the work and its first ISBN / binding publication.
+          Add the work and its first publication.
         </p>
       </div>
       <AdminCreateBookForm onSuccess={back} onCancel={back} />

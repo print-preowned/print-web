@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink, Store } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
+import { formatProductForm } from "@/lib/api/publication";
 import { formatOfferConfig } from "@customer/api";
 import {
   formatPrice,
@@ -112,7 +113,7 @@ function OfferAddToCart({
     <div className="space-y-4">
       {Object.keys(variants).map((key) => {
         const values = variants[key as VariantKey];
-        const label = key.toUpperCase();
+        const label = key === "product_form" ? "Product form" : key.toUpperCase();
         return (
           <fieldset key={key}>
             <legend className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
@@ -121,7 +122,7 @@ function OfferAddToCart({
 
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {Object.keys(values!).map((value) => {
-                const label = value.toUpperCase();
+                const label = key === "product_form" ? formatProductForm(value) : value.toUpperCase();
                 const checked = selectedVariants?.[key] === value;
                 return (
                   <li key={value}>
