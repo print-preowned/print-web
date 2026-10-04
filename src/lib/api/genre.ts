@@ -5,6 +5,8 @@ export type Genre = {
   id: string;
   name: string;
   description?: string | null;
+  parentId?: string | null;
+  parentName?: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -23,6 +25,7 @@ export function readGenresListUrl(params?: ReadParams) {
 export function createGenre(payload: {
   name: string;
   description?: string | null;
+  parent_id?: string | null;
   status?: string;
 }) {
   return {
@@ -34,7 +37,12 @@ export function createGenre(payload: {
 
 export function updateGenre(
   id: string,
-  payload: Partial<Omit<Genre, "id" | "createdAt" | "updatedAt">>,
+  payload: Partial<{
+    name: string;
+    description?: string | null;
+    parent_id?: string | null;
+    status?: string;
+  }>,
 ) {
   return {
     endpoint: `/genres/${id}`,

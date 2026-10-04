@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import {
   IconBuilding,
   IconChartBar,
+  IconBookmark,
   IconLibrary,
   IconListDetails,
   IconShieldLock,
@@ -45,6 +46,11 @@ const sidebarData = {
       title: "Series",
       url: "/admin/series",
       icon: IconLibrary,
+    },
+    {
+      title: "Subjects",
+      url: "/admin/subjects",
+      icon: IconBookmark,
     },
     {
       title: "Users",
