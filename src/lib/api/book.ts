@@ -4,7 +4,14 @@ import type { WorkTitle } from "./work-title";
 
 export type { WorkTitle } from "./work-title";
 
-export type AuthorRef = { id: string; name: string };
+export type AuthorRef = {
+  id?: string;
+  name: string;
+  role?: string;
+  sequence?: number | null;
+  unnamed?: string | null;
+};
+
 export type GenreRef = { id: string; name: string };
 
 export type Book = {

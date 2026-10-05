@@ -29,7 +29,7 @@ type BookFormProps = {
 const EMPTY_IDS: string[] = [];
 
 function linkedAuthorIds(book?: Book): string[] {
-  return book?.authors?.map((a) => a.id) ?? EMPTY_IDS;
+  return book?.authors?.flatMap((author) => (author.id ? [author.id] : [])) ?? EMPTY_IDS;
 }
 
 function linkedGenreIds(book?: Book): string[] {

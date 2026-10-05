@@ -61,10 +61,9 @@ export function BookAuthorGenreFields({
           value: author.id,
           label: authorLabel(author),
         })),
-        linkedAuthors?.map((author) => ({
-          value: author.id,
-          label: author.name,
-        })),
+        linkedAuthors?.flatMap((author) =>
+          author.id ? [{ value: author.id, label: author.name }] : [],
+        ),
       ),
     [authors, linkedAuthors],
   );
