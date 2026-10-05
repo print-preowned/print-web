@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CatalogWork } from "@customer/api";
 import { cn } from "@/lib/utils";
+import { catalogWorkLines } from "./catalog-lines";
 import { BookGenreTag } from "./book-genre-tag";
 
 type BookListingCardProps = {
@@ -16,6 +17,7 @@ export function BookListingCard({
 }: BookListingCardProps) {
   const author = book.authors?.[0]?.name;
   const primaryGenre = book.genres?.[0];
+  const lines = catalogWorkLines(book);
 
   return (
     <article
@@ -54,6 +56,12 @@ export function BookListingCard({
         ) : (
           <p className="text-sm text-muted-foreground">Unknown author</p>
         )}
+
+        {lines.map((line) => (
+          <p key={line} className="text-sm text-muted-foreground">
+            {line}
+          </p>
+        ))}
 
         {primaryGenre ? (
           <BookGenreTag

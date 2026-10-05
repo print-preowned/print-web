@@ -9,6 +9,7 @@ import {
   readOffers,
   readWorkById,
 } from "@customer/api";
+import { catalogWorkLines } from "../catalog-lines";
 import { BookGenreTag } from "../book-genre-tag";
 import { Marketplace } from "./marketplace";
 
@@ -47,6 +48,7 @@ export default async function WorkDetailPage({
   const offers = await getOffers(id);
   const primaryAuthor = work.authors?.[0];
   const genres = work.genres ?? [];
+  const lines = catalogWorkLines(work);
 
   return (
     <div className="storefront-paper min-h-[70vh]">
@@ -80,6 +82,11 @@ export default async function WorkDetailPage({
                 {primaryAuthor.name}
               </p>
             ) : null}
+            {lines.map((line) => (
+              <p key={line} className="mt-1 text-sm text-muted-foreground">
+                {line}
+              </p>
+            ))}
 
             {genres.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-1.5">

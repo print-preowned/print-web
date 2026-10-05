@@ -5,6 +5,7 @@ import {
   bookExcerpt,
 } from "./book-listing-details";
 import { cn } from "@/lib/utils";
+import { catalogWorkLines } from "./catalog-lines";
 import { BookGenreTag } from "./book-genre-tag";
 
 type BookListingRowProps = {
@@ -22,6 +23,7 @@ export function BookListingRow({
 }: BookListingRowProps) {
   const author = book.authors?.[0]?.name;
   const genres = book.genres ?? [];
+  const lines = catalogWorkLines(book);
   const meta = bookListingMeta(book, {
     sellerCount,
     fromPrice,
@@ -63,6 +65,12 @@ export function BookListingRow({
           ) : (
             <p className="text-sm text-muted-foreground">Unknown author</p>
           )}
+
+          {lines.map((line) => (
+            <p key={line} className="text-sm text-muted-foreground">
+              {line}
+            </p>
+          ))}
 
           <p className="book-listing-meta">{meta}</p>
 

@@ -12,6 +12,8 @@ export type CatalogWork = {
   language?: string | null;
   authors?: { id: string; name: string }[];
   genres?: { id: string; name: string }[];
+  seriesMemberships?: { id: string; title: string; seriesNumber?: string | null }[];
+  containedIn?: { id: string; title: string }[];
 };
 
 export function readWorks(params?: { page?: number; size?: number; search?: string }) {

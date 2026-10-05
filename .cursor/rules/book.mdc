@@ -40,7 +40,11 @@ modules:
           subjects at /admin/subjects. A genre is set on the work.
           When a work is filed under a genre and a narrower genre, the
           work stores the narrower one.           A search for a genre includes
-          works filed under it. A contributor role lives on the work.
+          works filed under it. A search reads works through search_titles,
+          which also holds publication titles. Series memberships are copied
+          onto the work. A card shows the series number and the omnibus
+          that contains the work.
+          A contributor role lives on the work.
           Changing a work's title, image, or authors refreshes the copies
           on publications and offers.           A publication edit refreshes the offer snapshot: language,
           product form, volume, edition, title, and image. A subject is not copied into a genre.
