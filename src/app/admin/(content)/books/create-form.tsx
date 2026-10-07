@@ -77,7 +77,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         title: values.title,
         titlePrefix: values.titlePrefix || undefined,
         subtitle: values.subtitle || undefined,
-        image: values.image,
+        images: values.image ? [values.image] : [],
         description: values.description,
         authorIds: values.authorIds,
         genreIds: values.genreIds,

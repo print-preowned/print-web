@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
+import { firstImage } from "@/lib/cover";
 import { type CatalogWork } from "@/app/seller/lib/api/inventory";
 import { RequestBookEditDialog } from "../requests/request-book-edit-dialog";
 import { ChevronDown, FileEdit } from "lucide-react";
@@ -113,7 +114,7 @@ export function GlobalBooksTable(props: GlobalBooksTableProps) {
       cell: ({ row }) => (
         <BookTableTitleCell
           title={row.original.title.displayTitle}
-          image={row.original.image}
+          image={firstImage(row.original.images)}
         />
       ),
     },

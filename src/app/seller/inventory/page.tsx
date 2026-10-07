@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { formatPrice } from "@/lib/format-price";
+import { firstImage } from "@/lib/cover";
 import { type CatalogWork, inventoryImage, inventoryTitle, type SellerInventory } from "@/app/seller/lib/api/inventory";
 
 function formatCount(value: number) {
@@ -158,11 +159,12 @@ function InventoryDetails({ offer }: { offer: SellerInventory }) {
 }
 
 function GlobalBookDetails({ book }: { book: CatalogWork }) {
+  const cover = firstImage(book.images);
   return (
     <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
-      {book.image ? (
+      {cover ? (
         <img
-          src={book.image}
+          src={cover}
           alt=""
           className="h-32 w-24 rounded border object-cover"
         />

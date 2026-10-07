@@ -4,6 +4,7 @@ import {
   bookListingMeta,
   bookExcerpt,
 } from "./book-listing-details";
+import { firstImage } from "@/lib/cover";
 import { cn } from "@/lib/utils";
 import { catalogWorkLines } from "./catalog-lines";
 import { BookGenreTag } from "./book-genre-tag";
@@ -21,6 +22,7 @@ export function BookListingRow({
   fromPrice,
   className,
 }: BookListingRowProps) {
+  const cover = firstImage(book.images);
   const author = book.authors?.[0]?.name;
   const genres = book.genres ?? [];
   const lines = catalogWorkLines(book);
@@ -39,9 +41,9 @@ export function BookListingRow({
           className="block shrink-0 transition-opacity hover:opacity-90"
         >
           <div className="book-cover aspect-[2/3] w-20 bg-muted sm:w-24">
-            {book.image ? (
+            {cover ? (
               <img
-                src={book.image}
+                src={cover}
                 alt=""
                 className="h-full w-full object-cover"
               />

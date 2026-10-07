@@ -17,7 +17,7 @@ export type GenreRef = { id: string; name: string };
 export type Book = {
   id: string;
   title: WorkTitle;
-  image: string;
+  images: string[];
   description: string;
   status: string;
   createdAt: string;
@@ -36,7 +36,7 @@ export type BookCreatePayload = {
   titlePrefix?: string;
   subtitle?: string;
   description: string;
-  image?: string;
+  images?: string[];
   authorIds?: string[];
   genreIds?: string[];
 };

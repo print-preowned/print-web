@@ -3,6 +3,7 @@ import {
   formatPrice,
   type PublicSellerWork,
 } from "@customer/api";
+import { firstImage } from "@/lib/cover";
 import { cn } from "@/lib/utils";
 
 type SellerWorkCardProps = {
@@ -19,6 +20,7 @@ export function SellerWorkCard({
   className,
 }: SellerWorkCardProps) {
   const { work, minPrice } = listing;
+  const cover = firstImage(work.images);
   const author = work.authors?.[0]?.name;
   const href = `/books/${work.id}?seller=${sellerId}#buy`;
 
@@ -33,9 +35,9 @@ export function SellerWorkCard({
     >
       <Link href={href} className="block">
         <div className="book-cover aspect-[2/3] overflow-hidden bg-muted">
-          {work.image ? (
+          {cover ? (
             <img
-              src={work.image}
+              src={cover}
               alt=""
               className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
             />

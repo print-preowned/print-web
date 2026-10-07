@@ -20,12 +20,12 @@ export type Publication = {
   work?: {
     id: string;
     title: string;
-    image?: string | null;
+    images?: string[] | null;
     authors?: { id: string; name?: string | null }[];
   } | null;
   isbn13: string | null;
   title: string | null;
-  image: string | null;
+  images: string[];
   language: string | null;
   binding?: string;
   productForm?: ProductForm | string | null;
@@ -62,7 +62,7 @@ export type PublicationCreatePayload = {
   work_id: string;
   isbn13?: string | null;
   title?: string | null;
-  image?: string | null;
+  images?: string[] | null;
   language?: string | null;
   product_form?: ProductForm | string | null;
   volume_number?: number | null;
@@ -86,7 +86,7 @@ export type PublicationCreatePayload = {
 export type PublicationUpdatePayload = {
   isbn13?: string | null;
   title?: string | null;
-  image?: string | null;
+  images?: string[] | null;
   language?: string | null;
   product_form?: ProductForm | string | null;
   volume_number?: number | null;

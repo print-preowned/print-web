@@ -7,7 +7,7 @@ import type { WorkTitle } from "@/lib/api/work-title";
 export type CatalogWork = {
   id: string;
   title: WorkTitle;
-  image: string | null;
+  images: string[];
   description: string | null;
   language?: string | null;
   authors?: { id: string; name: string }[];
@@ -48,7 +48,7 @@ export type PublicOffer = {
   work: {
     id: string;
     title: string;
-    image?: string | null;
+    images?: string[] | null;
     authors?: { id: string; name?: string | null }[];
   };
   publication: {
@@ -58,12 +58,12 @@ export type PublicOffer = {
     volumeNumber: number | null;
     edition: string | null;
     title: string | null;
-    image: string | null;
+    images: string[];
   };
   price: number;
   currency: string;
   stock: number;
-  image?: string | null;
+  images?: string[] | null;
   description: string | null;
   condition?: string | null;
   signed?: boolean | null;
@@ -73,7 +73,7 @@ export type PublicSellerWork = {
   work: {
     id: string;
     title: string;
-    image?: string | null;
+    images?: string[] | null;
     authors?: { id: string; name?: string | null }[];
   };
   minPrice?: number | null;

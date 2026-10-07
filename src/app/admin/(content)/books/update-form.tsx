@@ -15,6 +15,7 @@ import {
 } from "@/components/books/create-book-form-schema";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { updateBook, Book } from "@/lib/api/book";
+import { firstImage } from "@/lib/cover";
 import { previewWorkTitle } from "@/lib/api/work-title";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -59,13 +60,13 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
       title: book?.title?.titleWithoutPrefix ?? "",
       titlePrefix: book?.title?.titlePrefix ?? "",
       subtitle: book?.title?.subtitle ?? "",
-      image: book?.image ?? "",
+      image: firstImage(book?.images) ?? "",
       description: book?.description ?? "",
     },
   });
 
   const image = useImageUpload({
-    initialPreview: book?.image ?? null,
+    initialPreview: firstImage(book?.images) ?? null,
     onValueChange: (value) =>
       setValue("image", value, { shouldValidate: true, shouldDirty: true }),
   });
@@ -84,7 +85,7 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
       title: book.title.titleWithoutPrefix,
       titlePrefix: book.title.titlePrefix ?? "",
       subtitle: book.title.subtitle ?? "",
-      image: book.image,
+      image: firstImage(book.images) ?? "",
       description: book.description,
     });
   }, [book, resetForm]);
@@ -95,7 +96,7 @@ export function AdminBookForm({ book, onSuccess }: BookFormProps) {
         title: values.title,
         titlePrefix: values.titlePrefix ?? "",
         subtitle: values.subtitle ?? "",
-        image: values.image,
+        images: values.image ? [values.image] : [],
         description: values.description,
         authorIds: values.authorIds,
         genreIds: values.genreIds,

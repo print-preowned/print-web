@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { formatProductForm } from "@/lib/api/publication";
 import { formatOfferConfig } from "@customer/api";
+import { firstImage } from "@/lib/cover";
 import {
   formatPrice,
   PublicOffer,
@@ -95,7 +96,10 @@ function OfferAddToCart({
       sellerInventoryId: offer.id ?? null,
       unitPrice: offer.price,
       title: offer.publication.title || offer.work.title || "",
-      image: offer.image || offer.publication.image || offer.work.image,
+      image:
+        firstImage(offer.images) ||
+        firstImage(offer.publication.images) ||
+        firstImage(offer.work.images),
       sellerId: offer.seller.id,
       sellerName: offer.seller.name,
       configLabel: formatOfferConfig(selectedVariants),

@@ -45,9 +45,9 @@ modules:
           onto the work. A card shows the series number and the omnibus
           that contains the work.
           A contributor role lives on the work.
-          Changing a work's title, image, or authors refreshes the copies
-          on publications and offers.           A publication edit refreshes the offer snapshot: language,
-          product form, volume, edition, title, and image. A subject is not copied into a genre.
+          Changing a work's title, images, or authors refreshes the copies
+          on publications and offers. A publication edit refreshes the offer snapshot: language,
+          product form, volume, edition, title, and images. A subject is not copied into a genre.
 
     privileges:
       READ_PUBLIC_BOOK:

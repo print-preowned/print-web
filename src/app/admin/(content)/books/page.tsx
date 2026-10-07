@@ -13,6 +13,7 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import usePagination from "@/lib/pagination/usePagination";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
+import { firstImage } from "@/lib/cover";
 import { EllipsisVertical, Plus } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -76,7 +77,7 @@ export default function AdminBooksPage() {
       cell: ({ row }) => (
         <BookTableTitleCell
           title={row.original.title.displayTitle}
-          image={row.original.image}
+          image={firstImage(row.original.images)}
         />
       ),
     },
@@ -231,7 +232,7 @@ export default function AdminBooksPage() {
                     const item = items[i];
                     const request = createBook({
                       title: item.title,
-                      image: item.image,
+                      images: item.image ? [item.image] : [],
                       description: item.description,
                     });
 

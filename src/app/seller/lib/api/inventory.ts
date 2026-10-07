@@ -1,12 +1,13 @@
 import { generateUrl } from "@/lib/api";
 import type { WorkTitle } from "@/lib/api/work-title";
+import { firstImage } from "@/lib/cover";
 
 export type PublicationLookup = {
   id: string;
   work_id: string;
   isbn13: string | null;
   title: string | null;
-  image: string | null;
+  images: string[];
   language: string | null;
   productForm?: string | null;
   binding?: string | null;
@@ -25,7 +26,7 @@ export type InventoryOfferCreatePayload = {
   signed?: boolean;
   currency?: string;
   description?: string;
-  image?: string;
+  images?: string[];
 };
 
 export type InventoryCreatePayload = {
@@ -42,7 +43,7 @@ export type InventoryCreatePayload = {
 export type WorkRef = {
   id: string;
   title: string;
-  image?: string | null;
+  images?: string[] | null;
   authors?: { id: string; name?: string | null }[];
 };
 
@@ -53,7 +54,7 @@ export type PublicationRef = {
   volumeNumber: number | null;
   edition: string | null;
   title: string | null;
-  image: string | null;
+  images: string[];
 };
 
 export type SellerRef = {
@@ -73,7 +74,7 @@ export type SellerInventory = {
   condition: string | null;
   signed: boolean | null;
   description: string | null;
-  image: string | null;
+  images: string[];
   status: string;
   createdAt: string;
   updatedAt?: string | null;
@@ -85,7 +86,7 @@ export type SellerInventoryUpdatePayload = {
   condition?: string | null;
   signed?: boolean | null;
   description?: string | null;
-  image?: string | null;
+  images?: string[] | null;
   status?: string;
 };
 
@@ -94,7 +95,11 @@ export function inventoryTitle(item: SellerInventory) {
 }
 
 export function inventoryImage(item: SellerInventory) {
-  return item.image || item.publication.image || item.work.image || null;
+  return (
+    firstImage(item.images) ||
+    firstImage(item.publication.images) ||
+    firstImage(item.work.images)
+  );
 }
 
 export function readPublicationByIsbn(isbn: string) {
@@ -104,7 +109,7 @@ export function readPublicationByIsbn(isbn: string) {
 export type CatalogWork = {
   id: string;
   title: WorkTitle;
-  image: string | null;
+  images: string[];
   description: string | null;
   language: string | null;
   status: string;

@@ -10,6 +10,7 @@ import {
   readWorkById,
 } from "@customer/api";
 import { catalogWorkLines } from "../catalog-lines";
+import { firstImage } from "@/lib/cover";
 import { BookGenreTag } from "../book-genre-tag";
 import { Marketplace } from "./marketplace";
 
@@ -48,6 +49,7 @@ export default async function WorkDetailPage({
   const offers = await getOffers(id);
   const primaryAuthor = work.authors?.[0];
   const genres = work.genres ?? [];
+  const cover = firstImage(work.images);
   const lines = catalogWorkLines(work);
 
   return (
@@ -55,9 +57,9 @@ export default async function WorkDetailPage({
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14">
         <div className="grid gap-10 md:grid-cols-[minmax(0,240px)_1fr]">
           <div className="book-cover aspect-[2/3] overflow-hidden bg-muted md:sticky md:top-24 md:self-start">
-            {work.image ? (
+            {cover ? (
               <img
-                src={work.image}
+                src={cover}
                 alt=""
                 className="h-full w-full object-cover"
               />

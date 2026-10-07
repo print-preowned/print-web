@@ -5,7 +5,7 @@ export type PublicationLookup = {
   work_id: string;
   isbn13: string | null;
   title: string | null;
-  image: string | null;
+  images: string[];
   language: string | null;
   productForm?: string | null;
   binding?: string | null;
@@ -32,7 +32,7 @@ export type SellerInventoryCreatePayload = {
     signed?: boolean;
     currency?: string;
     description?: string;
-    image?: string;
+    images?: string[];
   };
 };
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CatalogWork } from "@customer/api";
+import { firstImage } from "@/lib/cover";
 import { cn } from "@/lib/utils";
 import { catalogWorkLines } from "./catalog-lines";
 import { BookGenreTag } from "./book-genre-tag";
@@ -15,6 +16,7 @@ export function BookListingCard({
   animationDelay,
   className,
 }: BookListingCardProps) {
+  const cover = firstImage(book.images);
   const author = book.authors?.[0]?.name;
   const primaryGenre = book.genres?.[0];
   const lines = catalogWorkLines(book);
@@ -30,9 +32,9 @@ export function BookListingCard({
     >
       <Link href={`/books/${book.id}`} className="block">
         <div className="book-cover aspect-[2/3] overflow-hidden bg-muted">
-          {book.image ? (
+          {cover ? (
             <img
-              src={book.image}
+              src={cover}
               alt=""
               className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
             />
