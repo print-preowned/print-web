@@ -124,7 +124,9 @@ export function NavUser({
               </DropdownMenuItem>
               {context === "SELLER" && (
                 <DropdownMenuItem
-                  onClick={handleSwitchToCustomer}
+                  onClick={() => {
+                    void handleSwitchToCustomer()
+                  }}
                   disabled={isSwitchingToCustomer}
                 >
                   <IconShoppingBag />

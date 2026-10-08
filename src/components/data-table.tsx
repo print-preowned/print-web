@@ -45,7 +45,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 declare module "@tanstack/react-table" {
-  interface TableMeta<TData extends unknown> {
+  interface TableMeta<TData> {
     onDelete?: (id: string) => void;
   }
 }

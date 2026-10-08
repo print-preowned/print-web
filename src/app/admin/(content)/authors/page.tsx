@@ -183,7 +183,7 @@ export default function AdminAuthorsPage() {
                 if (rows.length < 2) throw new Error("CSV must have header row and at least one data row");
                 const headers = rows[0].map(h => h.trim().toLowerCase());
                 return rows.slice(1).map(row => {
-                  const obj: any = {};
+                  const obj: Record<string, string> = {};
                   headers.forEach((header, idx) => {
                     obj[header] = row[idx]?.trim() || "";
                   });

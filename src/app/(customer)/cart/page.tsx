@@ -54,7 +54,7 @@ export default function CartPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-display text-lg font-semibold">
-                        {line.bookTitle}
+                        {line.title}
                       </p>
                       {line.configLabel && line.configLabel !== "—" ? (
                         <p className="mt-1 text-sm text-muted-foreground">

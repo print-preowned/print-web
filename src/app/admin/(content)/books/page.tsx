@@ -203,7 +203,7 @@ export default function AdminBooksPage() {
                 }
                 const headers = rows[0].map((h) => h.trim().toLowerCase());
                 return rows.slice(1).map((row) => {
-                  const obj: any = {};
+                  const obj: Record<string, string> = {};
                   headers.forEach((header, idx) => {
                     obj[header] = row[idx]?.trim() || "";
                   });

@@ -9,11 +9,15 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useState } from "react";
 
+type ForgotPasswordFormValues = {
+  email: string;
+};
+
 export function ForgotPasswordForm() {
-  const { handleSubmit, register, formState: { errors } } = useForm();
+  const { handleSubmit, register, formState: { errors } } = useForm<ForgotPasswordFormValues>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRequestReset = async (data: any) => {
+  const handleRequestReset = async (data: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
     try {
       const request = requestPasswordReset({ email: data.email });
@@ -32,7 +36,7 @@ export function ForgotPasswordForm() {
       } else {
         toast.success(res.message || "If an account with that email exists, a password reset link has been sent.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Password reset request error:", error);
       // Error toast is handled by apiFetch
     } finally {

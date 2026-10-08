@@ -44,7 +44,7 @@ export function parseCSV(csvText: string): string[][] {
 /**
  * Parse CSV and convert to objects using header row
  */
-export function parseCSVToObjects<T extends Record<string, any>>(
+export function parseCSVToObjects<T extends Record<string, string>>(
   csvText: string,
   headerMap: Record<string, keyof T>
 ): T[] {
@@ -58,12 +58,12 @@ export function parseCSVToObjects<T extends Record<string, any>>(
   
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
-    const obj: any = {};
+    const obj: Record<string, string> = {};
     
     headers.forEach((header, index) => {
       const mappedKey = headerMap[header];
       if (mappedKey) {
-        obj[mappedKey] = row[index]?.trim() || "";
+        obj[String(mappedKey)] = row[index]?.trim() || "";
       }
     });
     

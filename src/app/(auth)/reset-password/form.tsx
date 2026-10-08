@@ -14,14 +14,19 @@ interface ResetPasswordFormProps {
   token: string;
 }
 
+type ResetPasswordFormValues = {
+  password: string;
+  confirm_password: string;
+};
+
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
-  const { handleSubmit, register, watch, formState: { errors } } = useForm();
+  const { handleSubmit, register, watch, formState: { errors } } = useForm<ResetPasswordFormValues>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const password = watch("password");
 
-  const handleReset = async (data: any) => {
+  const handleReset = async (data: ResetPasswordFormValues) => {
     if (data.password !== data.confirm_password) {
       toast.error("Passwords do not match");
       return;
@@ -42,7 +47,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       // Check if we're in admin context by checking the current path
       const isAdmin = window.location.pathname.startsWith("/admin");
       router.push(isAdmin ? "/admin/login" : "/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Password reset error:", error);
       // Error toast is handled by apiFetch
     } finally {

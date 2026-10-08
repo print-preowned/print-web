@@ -1,9 +1,10 @@
 "use client"
 
+import { ReactNode } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 
-export default function AuthLayout({ children }: React.ComponentProps<"div">) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   const methods = useForm();
   
   return (

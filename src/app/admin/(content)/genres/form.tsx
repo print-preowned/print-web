@@ -26,16 +26,22 @@ type GenreFormProps = {
   onSuccess?: () => void;
 };
 
+type GenreFormValues = {
+  name: string;
+  description: string;
+  status: string;
+};
+
 export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!genre;
   const [parentId, setParentId] = useState<string | null>(genre?.parentId ?? null);
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
-    defaultValues: genre || {
-      name: "",
-      description: "",
-      status: "ACTIVE",
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GenreFormValues>({
+    defaultValues: {
+      name: genre?.name ?? "",
+      description: genre?.description ?? "",
+      status: genre?.status ?? "ACTIVE",
     },
   });
 
@@ -65,7 +71,7 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
   }, [genre, setValue]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: GenreFormValues) => {
       const request = await createGenre({
         name: data.name,
         description: data.description || null,
@@ -82,13 +88,13 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
       toast.success("Genre created successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create genre");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: GenreFormValues) => {
       const request = await updateGenre(genre!.id, {
         name: data.name,
         description: data.description || null,
@@ -106,12 +112,12 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
       toast.success("Genre updated successfully!");
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update genre");
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: GenreFormValues) => {
     if (isEditing) {
       updateMutation.mutate(data);
     } else {

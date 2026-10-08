@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react";
+import { useState, useRef, type ReactElement } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,10 +26,10 @@ interface BulkUploadProps<T> {
   validateItem: (item: T, index: number) => { valid: boolean; error?: string };
   sampleHeaders: string[];
   sampleRow: string[];
-  children?: React.ReactNode;
+  children?: ReactElement;
 }
 
-export function BulkUpload<T extends Record<string, any>>({
+export function BulkUpload<T extends Record<string, unknown>>({
   title,
   description,
   onUpload,
@@ -155,8 +155,8 @@ export function BulkUpload<T extends Record<string, any>>({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogTrigger asChild>
-        {children || (
+      <DialogTrigger>
+        {children ?? (
           <Button variant="outline">
             <Upload className="mr-2 h-4 w-4" />
             Bulk Upload

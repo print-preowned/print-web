@@ -150,7 +150,7 @@ export function AuthorsTable() {
   if (!hasReadAuthor) {
     return (
       <p className="text-sm text-muted-foreground">
-        You don't have permission to view authors.
+        You do not have permission to view authors.
       </p>
     );
   }

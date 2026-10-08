@@ -147,7 +147,7 @@ export default function UsersPage() {
   );
 }
 
-export const schema = z.object({
+const schema = z.object({
   id: z.string(),
   first_name: z.string(),
   last_name: z.string(),

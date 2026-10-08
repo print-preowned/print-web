@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreateInviteResponse, createPlatformInvite, PlatformInvite, readPlatformPrivilegeSets } from "@/lib/api/platform";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { CreateInviteResponse, createPlatformInvite, readPlatformPrivilegeSets } from "@/lib/api/platform";
+import { useQuery } from "@tanstack/react-query";
 import { FieldValues, useForm, Controller } from "react-hook-form";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 export function InviteForm() {
   const router = useRouter();
   const { handleSubmit, register, control } = useForm();
-  const { mutateAsync } = useMutation<any, any, any>({});
 
   // Fetch platform privilege sets
   const { data: privilegeSetsData, isLoading: isLoadingPrivilegeSets } = useQuery({
@@ -43,7 +42,7 @@ export function InviteForm() {
       toast.success(res.message || `Invitation email sent to ${data.email}`);
       
       router.push("/admin/users");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Invite creation error:", error);
       // Error toast is handled by apiFetch
     }

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { acceptPlatformInvite } from "@/lib/api/platform";
-import { useMutation } from "@tanstack/react-query";
 import { FieldValues, useForm } from "react-hook-form";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -20,7 +19,6 @@ interface AcceptInviteFormProps {
 export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
   const router = useRouter();
   const { handleSubmit, register, watch, formState: { errors } } = useForm();
-  const { mutateAsync } = useMutation<any, any, any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const password = watch("password");
@@ -49,7 +47,7 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
 
       toast.success("Account created successfully! Please login.");
       router.push("/admin/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Accept invite error:", error);
       // Error toast is handled by apiFetch
     } finally {

@@ -20,7 +20,7 @@ export function ChangePasswordForm({
 }: ChangePasswordFormProps) {
   const router = useRouter();
   const { refreshSession } = useAuth();
-  const { handleSubmit, register, watch, formState: { errors } } = useForm();
+  const { handleSubmit, register, formState: { errors } } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = async (data: Record<string, string>) => {
