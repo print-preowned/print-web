@@ -19,10 +19,9 @@ function platformRedirect(session: Session) {
     : "/admin/books";
 }
 
-export function LoginForm({ isPlatform = false }: { isPlatform?: boolean }) {
+export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: boolean, reason?: string | null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionExpired = searchParams.get("reason") === "session_expired";
+  const sessionExpired = reason === "session_expired";
   const { session, isLoading, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();
 

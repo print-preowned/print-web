@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,12 +10,10 @@ import {
 } from "@/components/ui/card";
 import { ResetPasswordForm } from "./form";
 import { validatePasswordResetToken } from "@/lib/api/password";
-import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
   const [token, setToken] = useState<string | null>(null);
@@ -31,7 +29,6 @@ export default function ResetPasswordPage() {
 
     setToken(tokenParam);
 
-    // Validate token on mount
     validatePasswordResetToken(tokenParam)
       .then((response) => {
         if (response.valid) {
@@ -82,5 +79,22 @@ export default function ResetPasswordPage() {
         <ResetPasswordForm token={token} />
       </CardContent>
     </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">Validating Token</CardTitle>
+            <CardDescription>Please wait...</CardDescription>
+          </CardHeader>
+        </Card>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

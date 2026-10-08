@@ -3,10 +3,8 @@ function resolveJwtSecret(): string {
   if (secret) {
     return secret;
   }
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET is required in production");
-  }
-  return "secret";
+
+  throw new Error("JWT_SECRET is required");
 }
 
 export function getJwtSecretKey(): Uint8Array {

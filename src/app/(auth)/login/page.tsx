@@ -5,7 +5,9 @@ import { CardContent } from "@/components/ui/card";
 import { LoginForm } from "./form";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason: string }> }) {
+  const { reason } = await searchParams;
+  
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -13,7 +15,7 @@ export default function LoginPage() {
         <CardDescription>Login to your account to continue</CardDescription>
       </CardHeader>
       <CardContent>
-        <LoginForm />
+        <LoginForm reason={reason} />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm mt-6">
         <Link href="/forgot-password" className="underline underline-offset-4">

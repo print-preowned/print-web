@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,9 +11,8 @@ import {
 import { ResetPasswordForm } from "@/app/(auth)/reset-password/form";
 import { validatePasswordResetToken } from "@/lib/api/password";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 
-export default function AdminResetPasswordPage() {
+function AdminResetPasswordContent() {
   const searchParams = useSearchParams();
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
@@ -30,7 +29,6 @@ export default function AdminResetPasswordPage() {
 
     setToken(tokenParam);
 
-    // Validate token on mount
     validatePasswordResetToken(tokenParam)
       .then((response) => {
         if (response.valid) {
@@ -81,5 +79,22 @@ export default function AdminResetPasswordPage() {
         <ResetPasswordForm token={token} />
       </CardContent>
     </Card>
+  );
+}
+
+export default function AdminResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">Validating Token</CardTitle>
+            <CardDescription>Please wait...</CardDescription>
+          </CardHeader>
+        </Card>
+      }
+    >
+      <AdminResetPasswordContent />
+    </Suspense>
   );
 }
