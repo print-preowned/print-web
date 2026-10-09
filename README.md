@@ -68,7 +68,7 @@ Create `.env.local` in the project root:
 
 ```bash
 # Backend URL (used by API routes and SSR)
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 
 # Must match the backend JWT_SECRET
 JWT_SECRET=secret
@@ -76,7 +76,7 @@ JWT_SECRET=secret
 
 | Variable | Description |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | FastAPI base URL |
+| `NEXT_PUBLIC_API_BASE_URL` | FastAPI base URL |
 | `JWT_SECRET` | HMAC secret for middleware JWT verification — must match the API |
 
 In production, set a strong `JWT_SECRET` and serve the app over HTTPS so the auth cookie can use `Secure`.
