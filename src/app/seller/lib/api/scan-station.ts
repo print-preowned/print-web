@@ -121,18 +121,19 @@ export function resolveScanSession(stationId: string) {
   };
 }
 
+export type ScanSessionImportOffer = {
+  price: string;
+  stock: number;
+  condition: string;
+  signed?: boolean;
+  currency?: string;
+  description?: string;
+};
+
 export function importScanSession(
   stationId: string,
   body: {
-    offer: {
-      price: string;
-      stock: number;
-      condition: string;
-      signed?: boolean;
-      currency?: string;
-      description?: string;
-    };
-    isbns?: string[];
+    items: Array<{ isbn: string; offer: ScanSessionImportOffer }>;
   },
 ) {
   return {

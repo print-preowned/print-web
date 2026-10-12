@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
@@ -34,6 +34,32 @@ import {
 import { useScanEvents } from "../_hooks/use-scan-events";
 import { BaseResponse } from "@/app/(customer)/lib/api";
 
+type RowOffer = {
+  price: string;
+  stock: string;
+  condition: string;
+};
+
+function seedRow(defaults: RowOffer): RowOffer {
+  return {
+    price: defaults.price,
+    stock: defaults.stock,
+    condition: defaults.condition,
+  };
+}
+
+function syncRowsToIsbns(
+  isbns: string[],
+  prev: Record<string, RowOffer>,
+  defaults: RowOffer,
+): Record<string, RowOffer> {
+  const next: Record<string, RowOffer> = {};
+  for (const isbn of isbns) {
+    next[isbn] = prev[isbn] ?? seedRow(defaults);
+  }
+  return next;
+}
+
 export default function BulkScanPage() {
   const [stationId, setStationId] = useState<string | null>(null);
   const [session, setSession] = useState<ScanSession | null>(null);
@@ -42,11 +68,16 @@ export default function BulkScanPage() {
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("1");
   const [condition, setCondition] = useState<string>(INVENTORY_CONDITION_VALUES[0] ?? "Good");
+  const [rows, setRows] = useState<Record<string, RowOffer>>({});
   const { mutateAsync, isPending } = useApiMutation<
     BaseResponse<ScanSession | ScanSessionResolveItem[] | ScanSessionImportResult[]> | void
   >();
 
-  const { data: stationsData, isSuccess } = useApiQuery<{data: ScanStation[]}>(
+  const defaults: RowOffer = { price, stock, condition };
+  const defaultsRef = useRef(defaults);
+  defaultsRef.current = defaults;
+
+  const { data: stationsData, isSuccess } = useApiQuery<{ data: ScanStation[] }>(
     scanStationKeys.all,
     listScanStations(),
   );
@@ -63,8 +94,10 @@ export default function BulkScanPage() {
         silentStatuses: [404],
       });
       setSession(current);
+      setRows((prev) => syncRowsToIsbns(current.isbns, prev, defaultsRef.current));
     } catch {
       setSession(null);
+      setRows({});
     }
   }, []);
 
@@ -72,16 +105,19 @@ export default function BulkScanPage() {
     stationId,
     (event) => {
       if (event.type !== "session_item" || !event.isbn) return;
+      const isbn = event.isbn;
       setSession((prev) => {
-        if (!prev || !event.isbn) return prev;
-        const isbns = prev.isbns.includes(event.isbn)
-          ? prev.isbns
-          : [...prev.isbns, event.isbn];
+        if (!prev) return prev;
+        const isbns = prev.isbns.includes(isbn) ? prev.isbns : [...prev.isbns, isbn];
         return {
           ...prev,
           isbns,
           count: event.count ?? isbns.length,
         };
+      });
+      setRows((prev) => {
+        if (prev[isbn]) return prev;
+        return { ...prev, [isbn]: seedRow(defaultsRef.current) };
       });
       setResolved(null);
       setImportResults(null);
@@ -95,6 +131,7 @@ export default function BulkScanPage() {
     try {
       const started = (await mutateAsync(startScanSession(stationId)))?.data as ScanSession;
       setSession(started);
+      setRows(syncRowsToIsbns(started.isbns, {}, defaults));
       setResolved(null);
       setImportResults(null);
       toast.success("Bulk scan session started — scans append to the queue");
@@ -108,6 +145,7 @@ export default function BulkScanPage() {
     try {
       await mutateAsync(endScanSession(stationId));
       setSession(null);
+      setRows({});
       setResolved(null);
       setImportResults(null);
       toast.success("Scan session ended");
@@ -119,7 +157,8 @@ export default function BulkScanPage() {
   async function resolveAll() {
     if (!stationId) return;
     try {
-      const items = (await mutateAsync(resolveScanSession(stationId)))?.data as ScanSessionResolveItem[];
+      const items = (await mutateAsync(resolveScanSession(stationId)))
+        ?.data as ScanSessionResolveItem[];
       setResolved(items);
       toast.success(`Resolved ${items.filter((item) => item.found).length} of ${items.length}`);
     } catch {
@@ -127,23 +166,49 @@ export default function BulkScanPage() {
     }
   }
 
+  function applyDefaultsToAll() {
+    if (!session) return;
+    setRows((prev) => {
+      const next: Record<string, RowOffer> = {};
+      for (const isbn of session.isbns) {
+        next[isbn] = seedRow(defaults);
+      }
+      // Preserve any keys that somehow exist; overwrite session ISBNs.
+      return { ...prev, ...next };
+    });
+    toast.success("Defaults applied to all rows");
+  }
+
+  function updateRow(isbn: string, patch: Partial<RowOffer>) {
+    setRows((prev) => {
+      const current = prev[isbn] ?? seedRow(defaults);
+      return { ...prev, [isbn]: { ...current, ...patch } };
+    });
+  }
+
   async function importAll() {
-    if (!stationId) return;
-    if (!price.trim() || Number(price) <= 0) {
-      toast.error("Enter a price greater than zero");
+    if (!stationId || !session) return;
+    const items = session.isbns.map((isbn) => {
+      const row = rows[isbn] ?? seedRow(defaults);
+      return {
+        isbn,
+        offer: {
+          price: row.price.trim(),
+          stock: Number(row.stock) || 0,
+          condition: row.condition,
+          signed: false,
+        },
+      };
+    });
+    const bad = items.find((item) => !item.offer.price || Number(item.offer.price) <= 0);
+    if (bad) {
+      toast.error(`Enter a price greater than zero for ${bad.isbn}`);
       return;
     }
     try {
-      const results = (await mutateAsync(
-        importScanSession(stationId, {
-          offer: {
-            price: price.trim(),
-            stock: Number(stock) || 0,
-            condition,
-            signed: false,
-          },
-        }),
-      ))?.data as ScanSessionImportResult[];
+      const results = (
+        await mutateAsync(importScanSession(stationId, { items }))
+      )?.data as ScanSessionImportResult[];
       setImportResults(results);
       const ok = results.filter((row) => row.inventory_id).length;
       toast.success(`Created ${ok} of ${results.length} offers`);
@@ -158,6 +223,8 @@ export default function BulkScanPage() {
     void refreshSession(stationId);
   }, [stationId, refreshSession]);
 
+  const titleByIsbn = new Map((resolved ?? []).map((item) => [item.isbn, item]));
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
       <div className="flex items-center gap-3">
@@ -170,7 +237,8 @@ export default function BulkScanPage() {
         <div>
           <h1 className="text-xl font-semibold">Bulk scan session</h1>
           <p className="text-muted-foreground text-sm">
-            Start a session so the station webhook queues ISBNs instead of driving the single-offer form.
+            Start a session so the station webhook queues ISBNs instead of driving the
+            single-offer form.
           </p>
         </div>
       </div>
@@ -233,30 +301,6 @@ export default function BulkScanPage() {
             </div>
           </div>
 
-          <ul className="max-h-64 space-y-1 overflow-y-auto font-mono text-sm">
-            {session.isbns.map((isbn) => (
-              <li key={isbn}>{isbn}</li>
-            ))}
-            {session.isbns.length === 0 ? (
-              <li className="text-muted-foreground font-sans">Waiting for scans…</li>
-            ) : null}
-          </ul>
-
-          {resolved ? (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Resolve results</p>
-              <ul className="max-h-48 space-y-1 overflow-y-auto text-sm">
-                {resolved.map((item) => (
-                  <li key={item.isbn}>
-                    <span className="font-mono">{item.isbn}</span>
-                    {" — "}
-                    {item.found ? item.title || "Found" : "Not in catalog / OL"}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="bulk-price">Default price</Label>
@@ -277,7 +321,7 @@ export default function BulkScanPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Condition</Label>
+              <Label>Default condition</Label>
               <Select value={condition} onValueChange={setCondition}>
                 <SelectTrigger>
                   <SelectValue />
@@ -292,6 +336,93 @@ export default function BulkScanPage() {
               </Select>
             </div>
           </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={applyDefaultsToAll}
+              disabled={session.count === 0}
+            >
+              Apply defaults to all
+            </Button>
+          </div>
+
+          {session.isbns.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Waiting for scans…</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[36rem] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="py-2 pr-2 font-medium">ISBN</th>
+                    <th className="py-2 pr-2 font-medium">Title</th>
+                    <th className="py-2 pr-2 font-medium">Price</th>
+                    <th className="py-2 pr-2 font-medium">Stock</th>
+                    <th className="py-2 font-medium">Condition</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {session.isbns.map((isbn) => {
+                    const row = rows[isbn] ?? seedRow(defaults);
+                    const resolvedRow = titleByIsbn.get(isbn);
+                    return (
+                      <tr key={isbn} className="border-b align-top">
+                        <td className="py-2 pr-2 font-mono text-xs">{isbn}</td>
+                        <td className="text-muted-foreground max-w-[12rem] py-2 pr-2">
+                          {resolvedRow
+                            ? resolvedRow.found
+                              ? resolvedRow.title || "Found"
+                              : "Not in catalog / OL"
+                            : "—"}
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input
+                            value={row.price}
+                            onChange={(event) =>
+                              updateRow(isbn, { price: event.target.value })
+                            }
+                            inputMode="decimal"
+                            className="h-8 w-24"
+                          />
+                        </td>
+                        <td className="py-2 pr-2">
+                          <Input
+                            value={row.stock}
+                            onChange={(event) =>
+                              updateRow(isbn, { stock: event.target.value })
+                            }
+                            inputMode="numeric"
+                            className="h-8 w-16"
+                          />
+                        </td>
+                        <td className="py-2">
+                          <Select
+                            value={row.condition}
+                            onValueChange={(value) =>
+                              updateRow(isbn, { condition: value })
+                            }
+                          >
+                            <SelectTrigger className="h-8 w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {INVENTORY_CONDITION_VALUES.map((value) => (
+                                <SelectItem key={value} value={value}>
+                                  {value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <Button
             type="button"
@@ -315,7 +446,8 @@ export default function BulkScanPage() {
         </div>
       ) : (
         <p className="text-muted-foreground text-sm">
-          Create a station on the inventory page, then start a session here before scanning in bulk.
+          Create a station on the inventory page, then start a session here before scanning
+          in bulk.
         </p>
       )}
     </div>
