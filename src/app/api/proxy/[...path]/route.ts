@@ -3,6 +3,8 @@ import { buildBackendUrl } from "@/lib/api/core";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 
 const UPSTREAM_TIMEOUT_MS = 30_000;
+/** SSE / long-poll paths must not share the short JSON proxy timeout. */
+const STREAM_UPSTREAM_TIMEOUT_MS = 60 * 60 * 1000;
 
 /** Sent upstream. `Cookie` is absent by design: it is swapped for a bearer token. */
 const FORWARDED_REQUEST_HEADERS = ["accept", "accept-language", "content-type"];
@@ -108,6 +110,13 @@ async function proxy(
     }
   }
 
+  const isEventStream =
+    pathStr.includes("/events") ||
+    (request.headers.get("accept") || "").includes("text/event-stream");
+  const upstreamTimeoutMs = isEventStream
+    ? STREAM_UPSTREAM_TIMEOUT_MS
+    : UPSTREAM_TIMEOUT_MS;
+
   let res: Response;
   try {
     res = await fetch(url, {
@@ -119,7 +128,7 @@ async function proxy(
       redirect: "manual",
       signal: AbortSignal.any([
         request.signal,
-        AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        AbortSignal.timeout(upstreamTimeoutMs),
       ]),
     });
   } catch (err) {

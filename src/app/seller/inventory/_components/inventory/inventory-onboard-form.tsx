@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,13 +19,13 @@ import { workKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { PaginatedResponse } from "@/lib/api/user";
 import {
   createInventory,
-  readPublicationByIsbn,
   readWorks,
   type CatalogWork,
   type PublicationLookup,
   type InventoryCreatePayload,
   type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
+import { resolveInventoryIsbn } from "@/app/seller/lib/api/scan-station";
 import { InventoryWorkOfferForm } from "./inventory-work-offer-form";
 import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
@@ -118,7 +118,13 @@ const buildInventorySchema = ({ publication, showNewWork }: { publication: Publi
     }
   });
 
-export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) {
+export function InventoryOnboardForm({
+  onSuccess,
+  initialIsbn = null,
+}: {
+  onSuccess?: () => void;
+  initialIsbn?: string | null;
+}) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<LookupMode>("isbn");
   const [publication, setPublication] = useState<PublicationLookup | null>(null);
@@ -199,40 +205,56 @@ export function InventoryOnboardForm({ onSuccess }: { onSuccess?: () => void }) 
     resetResolution();
   }
 
-  async function lookupByIsbn() {
-    const value = getValues("lookupIsbn").trim();
-    if (!value) {
-      setError("lookupIsbn", { type: "manual", message: "Enter an ISBN" });
-      return;
-    }
-    if (!ISBN_PATTERN.test(value)) {
-      setError("lookupIsbn", { type: "manual", message: ISBN_ERROR_MESSAGE });
-      return;
-    }
-    clearErrors("lookupIsbn");
-    setLookupState("loading");
-    setShowNewWork(false);
-    try {
-      const result = await apiFetch<PublicationLookup | null>(readPublicationByIsbn(value), {
-        silentStatuses: [404],
-      });
-      if (!result) {
-        setPublication(null);
-        setLookupState("miss");
-        setShowNewWork(true);
-        setValue("isbn", value);
+  const lookupByIsbn = useCallback(
+    async (rawIsbn?: string) => {
+      const value = (rawIsbn ?? getValues("lookupIsbn")).trim();
+      if (!value) {
+        setError("lookupIsbn", { type: "manual", message: "Enter an ISBN" });
         return;
       }
-      setPublication(result);
-      setValue("language", result.language ?? "");
-      setValue("product_form", (result.productForm ?? result.binding ?? "OTHER") as ProductFormValue);
-      setValue("isbn", result.isbn13 ?? value);
-      setLookupState("idle");
-      toast.success("Found in catalog");
-    } catch {
-      setLookupState("idle");
-    }
-  }
+      if (!ISBN_PATTERN.test(value)) {
+        setError("lookupIsbn", { type: "manual", message: ISBN_ERROR_MESSAGE });
+        return;
+      }
+      clearErrors("lookupIsbn");
+      setMode("isbn");
+      setValue("lookupIsbn", value);
+      setLookupState("loading");
+      setShowNewWork(false);
+      try {
+        const resolveCall = resolveInventoryIsbn(value);
+        const result = await apiFetch<PublicationLookup | null>(resolveCall.endpoint, {
+          method: resolveCall.method,
+          body: resolveCall.body,
+          silentStatuses: [404],
+        });
+        if (!result) {
+          setPublication(null);
+          setLookupState("miss");
+          setShowNewWork(true);
+          setValue("isbn", value);
+          return;
+        }
+        setPublication(result);
+        setValue("language", result.language ?? "");
+        setValue(
+          "product_form",
+          (result.productForm ?? result.binding ?? "OTHER") as ProductFormValue,
+        );
+        setValue("isbn", result.isbn13 ?? value);
+        setLookupState("idle");
+        toast.success("Found in catalog");
+      } catch {
+        setLookupState("idle");
+      }
+    },
+    [clearErrors, getValues, setError, setValue],
+  );
+
+  useEffect(() => {
+    if (!initialIsbn) return;
+    void lookupByIsbn(initialIsbn);
+  }, [initialIsbn, lookupByIsbn]);
 
   async function submit(values: InventoryFormValues) {
     const parsedStock = Number(values.offer.stock);

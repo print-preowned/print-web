@@ -4,6 +4,10 @@ export const sellerInventoryKeys = {
   all: ["seller-inventory"] as const,
 };
 
+export const scanStationKeys = {
+  all: ["scan-stations"] as const,
+};
+
 export const publicationKeys = {
   byWork: (workId: string) => ["publications", "work", workId] as const,
 };

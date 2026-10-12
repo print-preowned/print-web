@@ -29,6 +29,8 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { InventoryOnboardForm } from "./inventory-onboard-form";
+import { ScanStationPanel } from "./scan-station-panel";
+import { useScanEvents } from "../../_hooks/use-scan-events";
 import { Modal } from "@/components/ui/modal";
 
 function formatCount(value: number) {
@@ -58,6 +60,14 @@ export function InventoryTable({
 }: InventoryTableProps) {
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [adding, setAdding] = useState(false);
+  const [scanStationId, setScanStationId] = useState<string | null>(null);
+  const [scannedIsbn, setScannedIsbn] = useState<string | null>(null);
+
+  useScanEvents(scanStationId, (event) => {
+    if (event.type !== "scan") return;
+    setScannedIsbn(event.isbn);
+    setAdding(true);
+  });
   const queryClient = useQueryClient();
 
   const deleteMutation = useApiMutation<unknown>({
@@ -206,6 +216,12 @@ export function InventoryTable({
 
   return (
     <>
+      <div className="mb-4">
+        <ScanStationPanel
+          selectedStationId={scanStationId}
+          onSelectStation={setScanStationId}
+        />
+      </div>
       <DataTable
         data={inventory}
         columns={columns}
@@ -224,13 +240,22 @@ export function InventoryTable({
       </DataTable>
       <Modal
         open={adding}
-        onOpenChange={setAdding}
+        onOpenChange={(open) => {
+          setAdding(open);
+          if (!open) setScannedIsbn(null);
+        }}
         title="Add to inventory"
-        description="Look up by ISBN or search the catalog by title, then set price and stock."
+        description="Look up by ISBN or search the catalog by title, then set price and stock. With a scanner station selected, scans open this form and resolve the ISBN."
         footer={null}
         contentClassName="max-h-[85vh] max-w-2xl overflow-y-auto"
       >
-        <InventoryOnboardForm onSuccess={() => setAdding(false)} />
+        <InventoryOnboardForm
+          onSuccess={() => {
+            setAdding(false);
+            setScannedIsbn(null);
+          }}
+          initialIsbn={scannedIsbn}
+        />
       </Modal>
       {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </>
