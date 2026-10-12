@@ -68,7 +68,7 @@ export default function BulkScanPage() {
     }
   }, []);
 
-  useScanEvents(
+  const { reconnecting } = useScanEvents(
     stationId,
     (event) => {
       if (event.type !== "session_item" || !event.isbn) return;
@@ -213,6 +213,12 @@ export default function BulkScanPage() {
             <p className="text-sm">
               Queue: <span className="font-medium">{session.count}</span> ISBN
               {session.count === 1 ? "" : "s"}
+              {reconnecting ? (
+                <span className="text-muted-foreground">
+                  {" "}
+                  — Reconnecting… scans may be missed until this clears.
+                </span>
+              ) : null}
             </p>
             <div className="flex gap-2">
               <Button

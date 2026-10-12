@@ -35,12 +35,15 @@ type Props = {
   selectedStationId: string | null;
   onSelectStation: (stationId: string | null) => void;
   onHoldsClaimChange?: (holdsClaim: boolean) => void;
+  /** True while interactive SSE is offline and retrying. */
+  reconnecting?: boolean;
 };
 
 export function ScanStationPanel({
   selectedStationId,
   onSelectStation,
   onHoldsClaimChange,
+  reconnecting = false,
 }: Props) {
   const queryClient = useQueryClient();
   const { session } = useAuth();
@@ -238,7 +241,16 @@ export function ScanStationPanel({
           ) : null}
           {holdsClaim ? (
             <p className="text-muted-foreground text-sm sm:col-span-2">
-              You hold the claim. Interactive scans open the add form on this tab.
+              {reconnecting ? (
+                <>
+                  Reconnecting to scanner… Scans may be missed until this clears.
+                </>
+              ) : (
+                <>
+                  You hold the claim. Interactive scans open the add form on this
+                  tab.
+                </>
+              )}
             </p>
           ) : null}
         </div>

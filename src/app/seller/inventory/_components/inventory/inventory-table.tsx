@@ -65,7 +65,7 @@ export function InventoryTable({
   const [holdsClaim, setHoldsClaim] = useState(false);
   const queryClient = useQueryClient();
 
-  useScanEvents(
+  const { reconnecting } = useScanEvents(
     scanStationId,
     (event) => {
       if (event.type === "claim_lost") {
@@ -234,6 +234,7 @@ export function InventoryTable({
           selectedStationId={scanStationId}
           onSelectStation={setScanStationId}
           onHoldsClaimChange={setHoldsClaim}
+          reconnecting={reconnecting}
         />
       </div>
       <DataTable
