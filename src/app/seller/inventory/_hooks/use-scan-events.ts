@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { scanStationEventsPath, type ScanEvent } from "@/app/seller/lib/api/scan-station";
+import {
+  scanStationEventsPath,
+  type ScanEvent,
+  type ScanEventScope,
+} from "@/app/seller/lib/api/scan-station";
 
 /**
  * Subscribe to station SSE through the auth proxy (fetch stream, not EventSource).
+ * scope=user: interactive (claim holder only). scope=station: bulk queue watchers.
  */
 export function useScanEvents(
   stationId: string | null,
   onEvent: (event: ScanEvent) => void,
   enabled = true,
+  scope: ScanEventScope = "user",
 ) {
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
@@ -21,7 +27,7 @@ export function useScanEvents(
     let cancelled = false;
 
     async function run() {
-      const path = scanStationEventsPath(stationId!);
+      const path = scanStationEventsPath(stationId!, scope);
       try {
         const res = await fetch(`/api/proxy${path}`, {
           method: "GET",
@@ -37,14 +43,9 @@ export function useScanEvents(
         while (!cancelled) {
           const { done, value } = await reader.read();
           if (done) break;
-          console.log(10000, "reader", done, value);
           buffer += decoder.decode(value, { stream: true });
-          console.log(1111, buffer)
           const chunks = buffer.split("\n\n");
-          console.log(2222, chunks)
           buffer = chunks.pop() ?? "";
-          console.log(3333, buffer)
-          console.log(4444, chunks)
           for (const chunk of chunks) {
             const dataLine = chunk
               .split("\n")
@@ -52,8 +53,7 @@ export function useScanEvents(
             if (!dataLine) continue;
             try {
               const payload = JSON.parse(dataLine.slice(6)) as ScanEvent;
-              console.log(33333333, "reader", payload, "done", done, "value", value);
-              if (payload?.isbn) {
+              if (payload?.type === "claim_lost" || payload?.isbn) {
                 onEventRef.current(payload);
               }
             } catch {
@@ -63,7 +63,6 @@ export function useScanEvents(
         }
       } catch (err) {
         if (controller.signal.aborted || cancelled) return;
-        // brief backoff then effect cleanup/remount handles reconnect via deps
         console.warn("scan SSE disconnected", err);
       }
     }
@@ -73,5 +72,5 @@ export function useScanEvents(
       cancelled = true;
       controller.abort();
     };
-  }, [stationId, enabled]);
+  }, [stationId, enabled, scope]);
 }

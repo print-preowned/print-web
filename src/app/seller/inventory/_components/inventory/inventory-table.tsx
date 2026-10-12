@@ -15,7 +15,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
-import { sellerInventoryKeys } from "@/lib/api/query-keys";
+import { scanStationKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { formatPrice } from "@/lib/format-price";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -62,13 +62,26 @@ export function InventoryTable({
   const [adding, setAdding] = useState(false);
   const [scanStationId, setScanStationId] = useState<string | null>(null);
   const [scannedIsbn, setScannedIsbn] = useState<string | null>(null);
-
-  useScanEvents(scanStationId, (event) => {
-    if (event.type !== "scan") return;
-    setScannedIsbn(event.isbn);
-    setAdding(true);
-  });
+  const [holdsClaim, setHoldsClaim] = useState(false);
   const queryClient = useQueryClient();
+
+  useScanEvents(
+    scanStationId,
+    (event) => {
+      if (event.type === "claim_lost") {
+        if (event.reason === "claimed") {
+          toast.message("Another user claimed this station");
+        }
+        void queryClient.invalidateQueries({ queryKey: scanStationKeys.all });
+        return;
+      }
+      if (event.type !== "scan" || !event.isbn) return;
+      setScannedIsbn(event.isbn);
+      setAdding(true);
+    },
+    Boolean(scanStationId && holdsClaim),
+    "user",
+  );
 
   const deleteMutation = useApiMutation<unknown>({
     onSuccess: () => {
@@ -220,6 +233,7 @@ export function InventoryTable({
         <ScanStationPanel
           selectedStationId={scanStationId}
           onSelectStation={setScanStationId}
+          onHoldsClaimChange={setHoldsClaim}
         />
       </div>
       <DataTable

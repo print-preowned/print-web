@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/auth/context";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { scanStationKeys } from "@/lib/api/query-keys";
@@ -23,35 +24,55 @@ import {
   createScanStation,
   deleteScanStation,
   listScanStations,
+  releaseScanStationClaim,
   rotateScanStationToken,
   type ScanStation,
+  type ScanStationListResponse,
+  type ScanStationMutationResponse,
 } from "@/app/seller/lib/api/scan-station";
 
 type Props = {
   selectedStationId: string | null;
   onSelectStation: (stationId: string | null) => void;
+  onHoldsClaimChange?: (holdsClaim: boolean) => void;
 };
 
-export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) {
+export function ScanStationPanel({
+  selectedStationId,
+  onSelectStation,
+  onHoldsClaimChange,
+}: Props) {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
   const [label, setLabel] = useState("Counter 1");
   const [revealedUrl, setRevealedUrl] = useState<string | null>(null);
-  const { mutateAsync, isPending } = useApiMutation<ScanStation>();
+  const { mutateAsync, isPending } = useApiMutation<ScanStationMutationResponse>();
 
-  const stationsQuery = useApiQuery<ScanStation[]>(
+  const { data: stationsData, isSuccess, isLoading } = useApiQuery<ScanStationListResponse>(
     scanStationKeys.all,
     listScanStations(),
   );
-  const stations = stationsQuery.data ?? [];
+  const stations = stationsData?.data ?? [];
+  const selectedStation = useMemo(
+    () => stations.find((row) => row.id === selectedStationId) ?? null,
+    [stations, selectedStationId],
+  );
+  const holdsClaim =
+    Boolean(session?.id) &&
+    selectedStation?.claimed_by_user_id === session?.id;
 
   useEffect(() => {
-    if (!stationsQuery.isSuccess) return;
+    onHoldsClaimChange?.(holdsClaim);
+  }, [holdsClaim, onHoldsClaimChange]);
+
+  useEffect(() => {
+    if (!isSuccess) return;
     if (selectedStationId && !stations.some((row) => row.id === selectedStationId)) {
       onSelectStation(stations[0]?.id ?? null);
     } else if (!selectedStationId && stations[0]) {
       onSelectStation(stations[0].id);
     }
-  }, [stationsQuery.isSuccess, stations, selectedStationId, onSelectStation]);
+  }, [isSuccess, stations, selectedStationId, onSelectStation]);
 
   async function invalidateStations() {
     await queryClient.invalidateQueries({ queryKey: scanStationKeys.all });
@@ -64,7 +85,7 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
       return;
     }
     try {
-      const created = await mutateAsync(createScanStation(trimmed));
+      const created = (await mutateAsync(createScanStation(trimmed))).data;
       setRevealedUrl(created.webhook_url ?? null);
       toast.success("Scanner station created — copy the webhook URL now");
       await invalidateStations();
@@ -76,7 +97,7 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
 
   async function rotate(stationId: string) {
     try {
-      const rotated = await mutateAsync(rotateScanStationToken(stationId));
+      const rotated = (await mutateAsync(rotateScanStationToken(stationId))).data;
       setRevealedUrl(rotated.webhook_url ?? null);
       toast.success("New webhook URL issued — update the scanner");
       await invalidateStations();
@@ -88,7 +109,17 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
   async function claim(stationId: string) {
     try {
       await mutateAsync(claimScanStation(stationId));
-      toast.success("Station claimed for this session");
+      toast.success("Station claimed — interactive scans go to you");
+      await invalidateStations();
+    } catch {
+      // toasted
+    }
+  }
+
+  async function releaseClaim(stationId: string) {
+    try {
+      await mutateAsync(releaseScanStationClaim(stationId));
+      toast.success("Station claim released");
       await invalidateStations();
     } catch {
       // toasted
@@ -121,7 +152,7 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
         <div>
           <h3 className="text-sm font-medium">Barcode scanner</h3>
           <p className="text-muted-foreground text-sm">
-            One webhook URL per station. Paste it into the scanner; scans fill the ISBN field here.
+            One webhook URL per station. Claim the desk so interactive scans only reach you.
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -129,7 +160,7 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
         </Button>
       </div>
 
-      {stationsQuery.isLoading ? (
+      {isLoading ? (
         <LoaderCircle className="size-4 animate-spin" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
@@ -155,15 +186,27 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
           <div className="flex flex-wrap gap-2">
             {selectedStationId ? (
               <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void claim(selectedStationId)}
-                  disabled={isPending}
-                >
-                  Claim
-                </Button>
+                {holdsClaim ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void releaseClaim(selectedStationId)}
+                    disabled={isPending}
+                  >
+                    Release claim
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void claim(selectedStationId)}
+                    disabled={isPending}
+                  >
+                    Claim
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="outline"
@@ -186,6 +229,18 @@ export function ScanStationPanel({ selectedStationId, onSelectStation }: Props) 
               </>
             ) : null}
           </div>
+          {selectedStation && !holdsClaim ? (
+            <p className="text-muted-foreground text-sm sm:col-span-2">
+              {selectedStation.claimed_by_user_id
+                ? "Claimed by someone else — claim to take interactive scans."
+                : "Claim this station before scanning into the add form."}
+            </p>
+          ) : null}
+          {holdsClaim ? (
+            <p className="text-muted-foreground text-sm sm:col-span-2">
+              You hold the claim. Interactive scans open the add form on this tab.
+            </p>
+          ) : null}
         </div>
       )}
 

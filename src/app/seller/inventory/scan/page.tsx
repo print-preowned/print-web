@@ -71,9 +71,9 @@ export default function BulkScanPage() {
   useScanEvents(
     stationId,
     (event) => {
-      if (event.type !== "session_item") return;
+      if (event.type !== "session_item" || !event.isbn) return;
       setSession((prev) => {
-        if (!prev) return prev;
+        if (!prev || !event.isbn) return prev;
         const isbns = prev.isbns.includes(event.isbn)
           ? prev.isbns
           : [...prev.isbns, event.isbn];
@@ -87,6 +87,7 @@ export default function BulkScanPage() {
       setImportResults(null);
     },
     Boolean(stationId && session),
+    "station",
   );
 
   async function start() {
@@ -156,7 +157,7 @@ export default function BulkScanPage() {
     if (!stationId) return;
     void refreshSession(stationId);
   }, [stationId, refreshSession]);
-console.log(11111, session)
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
       <div className="flex items-center gap-3">

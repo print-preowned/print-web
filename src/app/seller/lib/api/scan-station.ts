@@ -13,6 +13,18 @@ export type ScanStation = {
   token?: string;
 };
 
+export type ScanStationListResponse = {
+  status_code: number;
+  message: string;
+  data: ScanStation[];
+};
+
+export type ScanStationMutationResponse = {
+  status_code: number;
+  message: string;
+  data: ScanStation;
+};
+
 export type ScanSession = {
   id: string;
   station_id: string;
@@ -34,13 +46,14 @@ export type ScanSessionImportResult = {
 };
 
 export type ScanEvent = {
-  type: "scan" | "session_item";
-  isbn: string;
+  type: "scan" | "session_item" | "claim_lost";
+  isbn?: string;
   station_id: string;
-  seller_id: string;
+  seller_id?: string;
   session_id?: string;
   added?: boolean;
   count?: number;
+  reason?: "claimed" | "released";
 };
 
 export function listScanStations() {
@@ -65,6 +78,13 @@ export function rotateScanStationToken(stationId: string) {
 export function claimScanStation(stationId: string) {
   return {
     endpoint: `/scan-stations/${stationId}/claim`,
+    method: "POST" as const,
+  };
+}
+
+export function releaseScanStationClaim(stationId: string) {
+  return {
+    endpoint: `/scan-stations/${stationId}/release-claim`,
     method: "POST" as const,
   };
 }
@@ -130,6 +150,11 @@ export function resolveInventoryIsbn(isbn: string) {
   };
 }
 
-export function scanStationEventsPath(stationId: string) {
-  return generateUrl(`/scan-stations/${stationId}/events`);
+export type ScanEventScope = "user" | "station";
+
+export function scanStationEventsPath(
+  stationId: string,
+  scope: ScanEventScope = "user",
+) {
+  return generateUrl(`/scan-stations/${stationId}/events`, { scope });
 }
