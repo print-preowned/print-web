@@ -3,6 +3,7 @@ import { buildRelativeUrl } from "@/lib/api/core";
 export { formatPrice } from "@/lib/format-price";
 import { ReadParams, buildQueryParams } from "@/lib/api/types";
 import type { WorkTitle } from "@/lib/api/work-title";
+import type { BaseResponse } from "@/lib/model";
 
 export type CatalogWork = {
   id: string;
@@ -229,12 +230,6 @@ export type OrderItemCreatePayload = {
   quantity: number;
   unit_price: number;
   discount_applied?: number | null;
-};
-
-export type BaseResponse<T> = {
-  status_code: number;
-  message: string;
-  data: T;
 };
 
 export function readOrderById(id: string) {

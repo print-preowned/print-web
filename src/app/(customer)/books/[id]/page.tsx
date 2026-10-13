@@ -3,22 +3,20 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import {
-  BaseResponse,
   CatalogWork,
   PublicWorkOfferSummary,
   readOffers,
   readWorkById,
 } from "@customer/api";
+import type { BaseResponse } from "@/lib/model";
 import { catalogWorkLines } from "../catalog-lines";
 import { firstImage } from "@/lib/cover";
 import { BookGenreTag } from "../book-genre-tag";
 import { Marketplace } from "./marketplace";
 
-type WorkResponse = { data?: CatalogWork };
-
 async function getWork(id: string): Promise<CatalogWork | null> {
   try {
-    const res = await apiFetch<WorkResponse>(readWorkById(id));
+    const res = await apiFetch<BaseResponse<CatalogWork>>(readWorkById(id));
     return res.data ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;

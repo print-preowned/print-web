@@ -13,18 +13,6 @@ export type ScanStation = {
   token?: string;
 };
 
-export type ScanStationListResponse = {
-  status_code: number;
-  message: string;
-  data: ScanStation[];
-};
-
-export type ScanStationMutationResponse = {
-  status_code: number;
-  message: string;
-  data: ScanStation;
-};
-
 export type ScanSession = {
   id: string;
   station_id: string;

@@ -5,14 +5,11 @@ import { CatalogWork, readWorks } from "@customer/api";
 import { BookListingCard } from "./books/book-listing-card";
 import { CatalogSearchForm } from "./books/catalog-search-form";
 import { GenreFilterChips } from "./books/genre-filter-chips";
-
-type WorksResponse = {
-  data?: CatalogWork[];
-};
+import type { BaseResponse } from "@/lib/model";
 
 async function getRecentWorks(): Promise<CatalogWork[]> {
   try {
-    const res = await apiFetch<WorksResponse>(
+    const res = await apiFetch<BaseResponse<CatalogWork[]>>(
       readWorks({ page: 1, size: 12 }),
     );
     return res.data ?? [];

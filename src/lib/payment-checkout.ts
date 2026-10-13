@@ -2,11 +2,11 @@ import { SELLER_PAYMENTS_UNAVAILABLE } from "@/lib/payment-errors";
 import { apiFetch } from "@/lib/api";
 import {
   readOrderById,
-  type BaseResponse,
   type OrderDetail,
   type OrderPaymentStatus,
   type PaymentInitiateResponse,
 } from "@customer/api";
+import type { BaseResponse } from "@/lib/model";
 
 function buildPublicAppUrl(path: string): string {
   let baseUrl = "";

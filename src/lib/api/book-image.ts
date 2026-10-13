@@ -1,10 +1,5 @@
 import { apiFetch, generateUrl } from "@/lib/api";
-
-type BaseResponse<T> = {
-  status_code: number;
-  message: string;
-  data: T;
-};
+import type { BaseResponse } from "@/lib/model";
 
 export type BookUploadUrl = {
   upload_url: string;

@@ -27,9 +27,8 @@ import {
   releaseScanStationClaim,
   rotateScanStationToken,
   type ScanStation,
-  type ScanStationListResponse,
-  type ScanStationMutationResponse,
 } from "@/app/seller/lib/api/scan-station";
+import type { BaseResponse } from "@/lib/model";
 
 type Props = {
   selectedStationId: string | null;
@@ -49,9 +48,9 @@ export function ScanStationPanel({
   const { session } = useAuth();
   const [label, setLabel] = useState("Counter 1");
   const [revealedUrl, setRevealedUrl] = useState<string | null>(null);
-  const { mutateAsync, isPending } = useApiMutation<ScanStationMutationResponse>();
+  const { mutateAsync, isPending } = useApiMutation<BaseResponse<ScanStation>>();
 
-  const { data: stationsData, isSuccess, isLoading } = useApiQuery<ScanStationListResponse>(
+  const { data: stationsData, isSuccess, isLoading } = useApiQuery<BaseResponse<ScanStation[]>>(
     scanStationKeys.all,
     listScanStations(),
   );

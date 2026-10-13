@@ -25,6 +25,7 @@ import {
   transferSuperAdmin,
 } from "@/lib/api/platform";
 import { apiFetch } from "@/lib/api";
+import type { BaseResponse } from "@/lib/model";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -48,7 +49,7 @@ export default function AdminAccountPage() {
   const { data: usersResponse, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["platform-users-transfer-targets"],
     queryFn: () =>
-      apiFetch<{ data: PlatformUser[] }>(readPlatformUsers({ page: 1, size: 100 })),
+      apiFetch<BaseResponse<PlatformUser[]>>(readPlatformUsers({ page: 1, size: 100 })),
     enabled: me?.is_super_admin === true && transferOpen,
   });
   const transferTargets = useMemo(

@@ -29,6 +29,7 @@ import {
 import type { HttpMethod } from "@/lib/api";
 import { apiFetch } from "@/lib/api";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
+import type { BaseResponse } from "@/lib/model";
 import {
   userAddressFormSchema,
   type UserAddressFormValues,
@@ -167,7 +168,7 @@ function InlineAddressForm({
   const mutation = useMutation({
     mutationFn: async (values: UserAddressFormValues) => {
       const { endpoint, method, body } = createUserAddress(toPayload(values));
-      return apiFetch<{ data: UserAddress }>(endpoint, {
+      return apiFetch<BaseResponse<UserAddress>>(endpoint, {
         method: method as HttpMethod,
         body,
       });

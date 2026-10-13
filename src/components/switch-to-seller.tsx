@@ -16,12 +16,11 @@ import { useAuth } from "@/lib/auth/context";
 import { apiFetch } from "@/lib/api";
 import { readSellers, type Seller } from "@/lib/api/seller";
 import { cn } from "@/lib/utils";
+import type { BaseResponse } from "@/lib/model";
 import { toast } from "sonner";
 
 async function loadMemberships(): Promise<Seller[]> {
-  const response = await apiFetch<{ data?: Seller[] }>(
-    readSellers(),
-  );
+  const response = await apiFetch<BaseResponse<Seller[]>>(readSellers());
   return response.data ?? [];
 }
 

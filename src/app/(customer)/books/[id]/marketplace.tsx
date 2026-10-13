@@ -22,13 +22,12 @@ import {
 import { addToCart, type CartLine } from "@customer/cart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { BaseResponse } from "@/lib/model";
 
 type Props = {
   workId: string;
   offers: PublicWorkOfferSummary[];
 };
-
-type SellerOfferResponse = { data?: PublicSellerOffer };
 
 function OfferAddToCart({
   variants,
@@ -351,7 +350,7 @@ export function Marketplace({ workId, offers }: Props) {
     queryKey: ["customer-offer", selectedSellerId],
     queryFn: async () => {
       if (!selectedSellerId) return null;
-      const res = await apiFetch<SellerOfferResponse>(
+      const res = await apiFetch<BaseResponse<PublicSellerOffer>>(
         readSellerOffers(workId, selectedSellerId),
       );
       return res.data ?? null;

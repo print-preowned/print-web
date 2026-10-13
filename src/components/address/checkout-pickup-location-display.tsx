@@ -15,11 +15,8 @@ import {
   type SellerAddress,
 } from "@/lib/api/address";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
+import type { BaseResponse } from "@/lib/model";
 import { useEffect } from "react";
-
-type PickupLocationResponse = {
-  data: SellerAddress;
-};
 
 const pickupFetchOptions = { silentStatuses: [404] };
 
@@ -33,7 +30,7 @@ export function CheckoutPickupLocationDisplay({
   onLocationLoaded,
 }: CheckoutPickupLocationDisplayProps) {
   const url = readSellerPickupLocation(sellerId);
-  const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
+  const { data, isLoading, error } = useApiQuery<BaseResponse<SellerAddress> | null>(
     [url],
     url,
     {
@@ -112,7 +109,7 @@ export function CheckoutPickupLocationDisplay({
 export function usePickupAvailable(sellerId: string | null | undefined) {
   const enabled = Boolean(sellerId);
   const url = enabled ? readSellerPickupLocation(sellerId!) : "";
-  const { data, isLoading, error } = useApiQuery<PickupLocationResponse | null>(
+  const { data, isLoading, error } = useApiQuery<BaseResponse<SellerAddress> | null>(
     enabled ? [url] : [],
     url,
     {

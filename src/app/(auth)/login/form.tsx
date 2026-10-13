@@ -12,6 +12,7 @@ import { readSellers, type Seller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { Session } from "@/lib/auth/token";
 import { type Login, login, platformLogin } from "@/lib/api/auth";
+import type { BaseResponse } from "@/lib/model";
 
 function platformRedirect(session: Session) {
   return session.passwordChangeRequired
@@ -76,9 +77,7 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
     }
 
     try {
-      const memberships = await apiFetch<{ data?: Seller[] }>(
-        readSellers(),
-      );
+      const memberships = await apiFetch<BaseResponse<Seller[]>>(readSellers());
       const sellers = memberships.data ?? [];
       if (sellers.length === 1) {
         const switched = await apiFetch("/api/auth/context-switch", {

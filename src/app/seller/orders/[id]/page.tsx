@@ -24,12 +24,7 @@ import {
 import { usePrivilege } from "@/lib/auth/context";
 import { canUpdateOrderStatus, getSellerPaymentBlockedMessage, getSellerPaymentStatusBadgeLabel, nextOrderStatuses } from "@/lib/order-status";
 import { useUpdateSellerOrderStatus } from "@/lib/hooks/use-update-seller-order-status";
-
-type OrderDetailResponse = {
-  status_code: number;
-  message: string;
-  data: SellerOrderDetail;
-};
+import type { BaseResponse } from "@/lib/model";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString(undefined, {
@@ -94,7 +89,7 @@ export default function OrderDetailPage() {
   const hasReadOrder = usePrivilege("READ_ORDER");
   const hasUpdateOrder = usePrivilege("UPDATE_ORDER");
 
-  const query = useQuery<OrderDetailResponse>({
+  const query = useQuery<BaseResponse<SellerOrderDetail>>({
     queryKey: ["seller-order", orderId],
     queryFn: () => apiFetch(readSellerOrderById(orderId)),
     enabled: hasReadOrder && Boolean(orderId),

@@ -13,13 +13,7 @@ import {
   OrderFulfillmentStatus,
   updateSellerOrderStatus,
 } from "@/lib/api/order";
-import { PaginatedResponse } from "@/lib/model";
-
-type OrderDetailResponse = {
-  status_code: number;
-  message: string;
-  data: SellerOrderDetail;
-};
+import { type BaseResponse, PaginatedResponse } from "@/lib/model";
 
 type UpdateSellerOrderStatusInput = {
   orderId: string;
@@ -27,7 +21,7 @@ type UpdateSellerOrderStatusInput = {
 };
 
 type MutationContext = {
-  previousDetail?: OrderDetailResponse;
+  previousDetail?: BaseResponse<SellerOrderDetail>;
   previousLists: Array<[QueryKey, PaginatedResponse<SellerOrderSummary> | undefined]>;
 };
 
@@ -46,7 +40,7 @@ export function useUpdateSellerOrderStatus() {
       await queryClient.cancelQueries({ queryKey: ["seller-order", orderId] });
       await queryClient.cancelQueries({ queryKey: ["seller-orders"] });
 
-      const previousDetail = queryClient.getQueryData<OrderDetailResponse>([
+      const previousDetail = queryClient.getQueryData<BaseResponse<SellerOrderDetail>>([
         "seller-order",
         orderId,
       ]);
@@ -55,7 +49,7 @@ export function useUpdateSellerOrderStatus() {
       >({ queryKey: ["seller-orders"] });
 
       if (previousDetail?.data) {
-        queryClient.setQueryData<OrderDetailResponse>(
+        queryClient.setQueryData<BaseResponse<SellerOrderDetail>>(
           ["seller-order", orderId],
           {
             ...previousDetail,

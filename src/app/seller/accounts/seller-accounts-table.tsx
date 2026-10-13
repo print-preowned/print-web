@@ -14,6 +14,7 @@ import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
 import { apiFetch } from "@/lib/api";
 import { useAuth, useSellerId } from "@/lib/auth/context";
 import { useSwitchContext } from "@/components/context-switcher";
+import type { PaginatedResponse } from "@/lib/model";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -28,9 +29,7 @@ export function SellerAccountsTable() {
   const query = useQuery({
     queryKey: ["sellers", page],
     queryFn: () =>
-      apiFetch<{ data?: Seller[]; pagination?: { total_pages?: number } }>(
-        readSellers(),
-      ),
+      apiFetch<PaginatedResponse<Seller>>(readSellers()),
   });
 
   const deleteMutation = useMutation({

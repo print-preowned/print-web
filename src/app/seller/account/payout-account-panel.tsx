@@ -31,12 +31,7 @@ import {
 import { usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { getStatusDisplay } from "@/lib/status-display";
-
-type BankListResponse = { data: Bank[] };
-type CurrentPayoutResponse = { data: PayoutAccount };
-type ResolveResponse = {
-  data: { bank_code: string; account_number: string; account_name: string };
-};
+import type { BaseResponse } from "@/lib/model";
 
 export function PayoutAccountPanel() {
   const queryClient = useQueryClient();
@@ -50,7 +45,7 @@ export function PayoutAccountPanel() {
   const [accountNumber, setAccountNumber] = useState("");
   const [resolvedName, setResolvedName] = useState<string | null>(null);
 
-  const { data: currentData, isLoading: currentLoading } = useApiQuery<CurrentPayoutResponse | null>(
+  const { data: currentData, isLoading: currentLoading } = useApiQuery<BaseResponse<PayoutAccount> | null>(
     [currentKey],
     currentKey,
     {
@@ -60,7 +55,7 @@ export function PayoutAccountPanel() {
     },
   );
 
-  const { data: banksData, isLoading: banksLoading } = useApiQuery<BankListResponse>(
+  const { data: banksData, isLoading: banksLoading } = useApiQuery<BaseResponse<Bank[]>>(
     [banksKey],
     banksKey,
     { enabled: canRead && canManage },
@@ -103,7 +98,9 @@ export function PayoutAccountPanel() {
         bank_code: bankCode,
         account_number: digits,
       });
-      return apiFetch(endpoint, { method: method as HttpMethod, body }) as Promise<ResolveResponse>;
+      return apiFetch(endpoint, { method: method as HttpMethod, body }) as Promise<
+        BaseResponse<{ bank_code: string; account_number: string; account_name: string }>
+      >;
     },
     onSuccess: (response) => {
       setResolvedName(response.data.account_name);

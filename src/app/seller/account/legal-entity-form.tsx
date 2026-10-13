@@ -37,6 +37,7 @@ import {
 import { useIsOwner, usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { getStatusDisplay } from "@/lib/status-display";
+import type { BaseResponse } from "@/lib/model";
 
 const schema = z
   .object({
@@ -66,7 +67,6 @@ const schema = z
   });
 
 type FormValues = z.infer<typeof schema>;
-type LegalEntityResponse = { data: LegalEntity };
 
 export function LegalEntityForm() {
   const queryClient = useQueryClient();
@@ -74,7 +74,7 @@ export function LegalEntityForm() {
   const isOwner = useIsOwner();
   const currentKey = readCurrentLegalEntity();
 
-  const { data, isLoading } = useApiQuery<LegalEntityResponse | null>(
+  const { data, isLoading } = useApiQuery<BaseResponse<LegalEntity> | null>(
     [currentKey],
     currentKey,
     {

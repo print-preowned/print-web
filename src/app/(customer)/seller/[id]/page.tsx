@@ -8,12 +8,11 @@ import {
   readPublicSellerProfile,
 } from "@customer/api";
 import { SellerInventory } from "./seller-inventory";
-
-type SellerProfileResponse = { data?: PublicSellerProfile };
+import type { BaseResponse } from "@/lib/model";
 
 async function getSellerProfile(id: string): Promise<PublicSellerProfile | null> {
   try {
-    const res = await apiFetch<SellerProfileResponse>(readPublicSellerProfile(id));
+    const res = await apiFetch<BaseResponse<PublicSellerProfile>>(readPublicSellerProfile(id));
     return res.data ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;

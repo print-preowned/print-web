@@ -1,4 +1,5 @@
 import { apiFetch, generateUrl } from ".";
+import type { BaseResponse } from "@/lib/model";
 
 export interface PlatformUser {
   id: string;
@@ -49,12 +50,6 @@ export interface CreatePlatformPrivilegeSetRequest {
 export interface UpdatePlatformPrivilegeSetRequest {
   name?: string;
   status?: string;
-}
-
-export interface BaseResponse<T> {
-  status_code: number;
-  message: string;
-  data: T;
 }
 
 export interface PlatformInvite {
@@ -292,14 +287,8 @@ export interface SuperAdminTransferRequest {
   target_platform_user_id: string;
 }
 
-export interface PlatformUserMeResponse {
-  status_code: number;
-  message: string;
-  data: PlatformUser;
-}
-
 export async function readPlatformUserMe() {
-  return apiFetch<PlatformUserMeResponse>("/admin/users/me", { method: "GET" });
+  return apiFetch<BaseResponse<PlatformUser>>("/admin/users/me", { method: "GET" });
 }
 
 export function transferSuperAdmin(payload: SuperAdminTransferRequest) {

@@ -32,7 +32,7 @@ import {
   type ScanStation,
 } from "@/app/seller/lib/api/scan-station";
 import { useScanEvents } from "../_hooks/use-scan-events";
-import { BaseResponse } from "@/app/(customer)/lib/api";
+import type { BaseResponse } from "@/lib/model";
 
 type RowOffer = {
   price: string;
@@ -77,7 +77,7 @@ export default function BulkScanPage() {
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
 
-  const { data: stationsData, isSuccess } = useApiQuery<{ data: ScanStation[] }>(
+  const { data: stationsData, isSuccess } = useApiQuery<BaseResponse<ScanStation[]>>(
     scanStationKeys.all,
     listScanStations(),
   );

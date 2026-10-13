@@ -8,13 +8,13 @@ import {
   getCustomerOrderStatusCopy,
 } from "@/lib/customer-order-display";
 import {
-  type BaseResponse,
   type OrderDetail,
   type OrderDispute,
   type OrderItem,
   readOrderById,
   readOrderDisputes,
 } from "@customer/api";
+import type { BaseResponse } from "@/lib/model";
 import { serverApiFetch } from "@/lib/api/server";
 import { getAuthTokenFromRequest } from "@/lib/auth/server-cookie";
 import { FulfillmentAddressPanel } from "@/components/address/fulfillment-address-panel";

@@ -1,4 +1,5 @@
 import { User } from "./user";
+import type { BaseResponse } from "@/lib/model";
 
 export interface Login {
   email: string;
@@ -12,10 +13,7 @@ export interface Signup {
   password: string;
 }
 
-export interface LoginResponse {
-  status_code: number;
-  message: string;
-  data: User;
+export type LoginResponse = BaseResponse<User> & {
   token: string;
 }
 
