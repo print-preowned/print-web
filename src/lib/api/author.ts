@@ -32,6 +32,8 @@ export type Author = {
   nameSource: string;
   normalizedName: string;
   about: string;
+  birthDate?: string | null;
+  deathDate?: string | null;
   image?: string | null;
   followers?: number | null;
   status: string;
@@ -53,6 +55,8 @@ export function createAuthor(payload: {
   name: AuthorNameInput;
   about: string;
   image: string;
+  birthDate?: string | null;
+  deathDate?: string | null;
   status?: string;
 }) {
   return {
@@ -64,7 +68,7 @@ export function createAuthor(payload: {
 
 export function updateAuthor(
   id: string,
-  payload: Partial<Pick<Author, "kind" | "about" | "image" | "status">> & {
+  payload: Partial<Pick<Author, "kind" | "about" | "birthDate" | "deathDate" | "image" | "status">> & {
     name?: AuthorNameInput;
   },
 ) {

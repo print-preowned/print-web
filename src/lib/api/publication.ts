@@ -36,7 +36,6 @@ export type Publication = {
   identifiers?: { scheme: string; value: string }[];
   normalizedTitle?: string | null;
   publishedDate?: string | null;
-  publishedDatePrecision?: "YEAR" | "MONTH" | "DAY" | null;
   publishingStatus?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   countryOfPublication?: string | null;
   publisher?: { id: string; name: string } | null;
@@ -69,7 +68,6 @@ export type PublicationCreatePayload = {
   edition?: string | null;
   edition_number?: number | null;
   published_date?: string | null;
-  published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
   country_of_publication?: string | null;
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   publisher_id?: string | null;
@@ -93,7 +91,6 @@ export type PublicationUpdatePayload = {
   edition?: string | null;
   edition_number?: number | null;
   published_date?: string | null;
-  published_date_precision?: "YEAR" | "MONTH" | "DAY" | null;
   country_of_publication?: string | null;
   publishing_status?: "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING" | null;
   publisher_id?: string | null;

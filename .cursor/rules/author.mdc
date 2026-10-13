@@ -29,7 +29,9 @@ alwaysApply: true
           - name_variants: [{value, kind, language, source}]
           - normalized_name
           - bio
-          - status: [CANONICAL, PROVISIONAL, MERGED, DEPRECATED]
+      - birth_date
+      - death_date
+      - status: [CANONICAL, PROVISIONAL, MERGED, DEPRECATED]
           - created_by_seller_id    #nullable
           - created_at
           - updated_at
