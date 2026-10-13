@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -227,20 +226,12 @@ export default function BulkScanPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
-      <div className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/seller/inventory">
-            <ArrowLeft className="size-4" />
-            Inventory
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-xl font-semibold">Bulk scan session</h1>
-          <p className="text-muted-foreground text-sm">
-            Start a session so the station webhook queues ISBNs instead of driving the
-            single-offer form.
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold">Bulk scan session</h1>
+        <p className="text-muted-foreground text-sm">
+          Start a session so the station webhook queues ISBNs instead of driving the
+          single-offer form.
+        </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">

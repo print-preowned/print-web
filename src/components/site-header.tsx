@@ -5,14 +5,23 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { useTheme } from "next-themes";
 import { IconInnerShadowTop } from "@tabler/icons-react";
 import { Moon, Sun } from "lucide-react";
-import { resolveHeaderTitleFromPathname } from "@/lib/site-header-titles";
+import { Fragment } from "react";
+import { resolveHeaderBreadcrumbs } from "@/lib/site-header-titles";
 
-export function SiteHeader({ title }: { title?: string }) {
+export function SiteHeader() {
   const pathname = usePathname() ?? "";
-  const resolvedTitle = title ?? resolveHeaderTitleFromPathname(pathname);
+  const crumbs = resolveHeaderBreadcrumbs(pathname);
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
 
@@ -31,7 +40,34 @@ export function SiteHeader({ title }: { title?: string }) {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-semibold">{resolvedTitle}</h1>
+        <Breadcrumb>
+          <BreadcrumbList>
+            {crumbs.map((crumb, index) => {
+              const isLast = index === crumbs.length - 1;
+              return (
+                <Fragment key={`${crumb.href ?? crumb.label}-${index}`}>
+                  {index > 0 ? <BreadcrumbSeparator /> : null}
+                  <BreadcrumbItem>
+                    {isLast || !crumb.href ? (
+                      <BreadcrumbPage className="text-base font-medium">
+                        {crumb.label}
+                      </BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link
+                          href={crumb.href}
+                          className="text-primary text-base font-medium underline underline-offset-2"
+                        >
+                          {crumb.label}
+                        </Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="ml-auto flex items-center gap-2">
           <Button
             variant="ghost"

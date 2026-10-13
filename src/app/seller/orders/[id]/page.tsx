@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -123,29 +120,12 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/seller/orders">
-            <ArrowLeft className="size-4" />
-            Back to orders
-          </Link>
-        </Button>
-        <p className="text-sm text-muted-foreground">Order not found.</p>
-      </div>
+      <p className="text-sm text-muted-foreground">Order not found.</p>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/seller/orders">
-            <ArrowLeft className="size-4" />
-            Back to orders
-          </Link>
-        </Button>
-      </div>
-
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
