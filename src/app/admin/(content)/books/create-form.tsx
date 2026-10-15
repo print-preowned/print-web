@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +15,19 @@ import {
   CreateBookFormSchema,
   schema as createBookFormSchema,
 } from "@/components/books/create-book-form-schema";
+import { CatalogFormShell } from "@/components/admin/catalog-form-shell";
+import { FormSection } from "@/components/admin/form-section";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { createBook, type Book } from "@/lib/api/book";
 import { previewWorkTitle } from "@/lib/api/work-title";
-import { createPublication, PublicationCreatePayload } from "@/lib/api/publication";
+import {
+  createPublication,
+  formatProductForm,
+  PublicationCreatePayload,
+} from "@/lib/api/publication";
+import { readAuthors, type Author } from "@/lib/api/author";
 import { apiFetch } from "@/lib/api";
+import { PaginatedResponse } from "@/lib/api/user";
 import {
   EMPTY_PUBLICATION_DRAFT,
   isbnFieldError,
@@ -65,6 +73,22 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     () => displayTitle.trim() || "Same as work",
     [displayTitle],
   );
+
+  const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
+    queryKey: ["authors", { page: 1, size: 100 }],
+    queryFn: () => apiFetch(readAuthors({ page: 1, size: 100 })),
+  });
+  const authorNames = useMemo(() => {
+    const byId = new Map(
+      (authorsData?.data ?? []).map((author) => [
+        author.id,
+        author.name.displayNameFlat,
+      ]),
+    );
+    return selectedAuthorIds
+      .map((id) => byId.get(id))
+      .filter((name): name is string => Boolean(name));
+  }, [authorsData?.data, selectedAuthorIds]);
 
   const image = useImageUpload({
     onValueChange: (value) =>
@@ -138,77 +162,128 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
   });
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-medium">Work</h3>
-          <p className="text-muted-foreground text-xs">
-            Canonical title, cover, and who it’s by. Shared across every edition.
-          </p>
-        </div>
-        <CreateBookFormFields
-          title={workTitle}
-          onTitleChange={(value) =>
-            setValue("title", value, { shouldValidate: true, shouldDirty: true })
-          }
-          titlePrefix={titlePrefix}
-          onTitlePrefixChange={(value) =>
-            setValue("titlePrefix", value, { shouldDirty: true })
-          }
-          subtitle={subtitle}
-          onSubtitleChange={(value) =>
-            setValue("subtitle", value, { shouldDirty: true })
-          }
-          description={watch("description")}
-          onDescriptionChange={(value) =>
-            setValue("description", value, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }
-          imagePreview={image.preview}
-          onFileSelect={image.onFileSelect}
-          onImageClear={image.clear}
-          imageInputRef={image.inputRef}
-          titleError={errors.title?.message}
-          descriptionError={errors.description?.message}
+    <form onSubmit={onSubmit}>
+      <CatalogFormShell
+        summaryLeading={
+          image.preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image.preview}
+              alt=""
+              className="h-28 w-20 rounded object-cover"
+            />
+          ) : null
+        }
+        summaryRows={[
+          {
+            label: "Title",
+            value: displayTitle.trim() || "—",
+          },
+          {
+            label: "Authors",
+            value:
+              authorNames.length > 0
+                ? authorNames.join(", ")
+                : selectedAuthorIds.length
+                  ? `${selectedAuthorIds.length} selected`
+                  : "—",
+          },
+          {
+            label: "Genres",
+            value: selectedGenreIds.length
+              ? `${selectedGenreIds.length} selected`
+              : "—",
+          },
+          {
+            label: "ISBN",
+            value: publication.isbn13.trim() || "—",
+          },
+          {
+            label: "Product form",
+            value: formatProductForm(publication.product_form),
+          },
+          {
+            label: "Language",
+            value: publication.language.trim() || "—",
+          },
+          {
+            label: "Published",
+            value: publication.published_date.trim() || "—",
+          },
+        ]}
+        actions={
+          <>
+            <Button type="submit" disabled={createMutation.isPending} className="w-full">
+              {createMutation.isPending ? "Creating…" : "Create book"}
+            </Button>
+            {onCancel ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={createMutation.isPending}
+                onClick={onCancel}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            ) : null}
+          </>
+        }
+      >
+        <FormSection
+          title="Work"
+          description="Canonical title, cover, and who it’s by. Shared across every edition."
         >
-          <BookAuthorGenreFields
-            selectedAuthorIds={selectedAuthorIds}
-            onSelectedAuthorIdsChange={setSelectedAuthorIds}
-            selectedGenreIds={selectedGenreIds}
-            onSelectedGenreIdsChange={setSelectedGenreIds}
+          <CreateBookFormFields
+            title={workTitle}
+            onTitleChange={(value) =>
+              setValue("title", value, { shouldValidate: true, shouldDirty: true })
+            }
+            titlePrefix={titlePrefix}
+            onTitlePrefixChange={(value) =>
+              setValue("titlePrefix", value, { shouldDirty: true })
+            }
+            subtitle={subtitle}
+            onSubtitleChange={(value) =>
+              setValue("subtitle", value, { shouldDirty: true })
+            }
+            description={watch("description")}
+            onDescriptionChange={(value) =>
+              setValue("description", value, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+            imagePreview={image.preview}
+            onFileSelect={image.onFileSelect}
+            onImageClear={image.clear}
+            imageInputRef={image.inputRef}
+            titleError={errors.title?.message}
+            descriptionError={errors.description?.message}
+          >
+            <BookAuthorGenreFields
+              selectedAuthorIds={selectedAuthorIds}
+              onSelectedAuthorIdsChange={setSelectedAuthorIds}
+              selectedGenreIds={selectedGenreIds}
+              onSelectedGenreIdsChange={setSelectedGenreIds}
+            />
+          </CreateBookFormFields>
+        </FormSection>
+
+        <FormSection
+          title="First publication"
+          description="The ISBN and product form sellers will offer. Add more editions after saving."
+        >
+          <PublicationFields
+            draft={publication}
+            onChange={setPublication}
+            workTitle={publicationPlaceholder}
+            isbnError={isbnError}
+            onIsbnErrorChange={setIsbnError}
+            idPrefix="create-publication"
           />
-        </CreateBookFormFields>
-      </section>
-
-      <section className="space-y-3 border-t pt-4">
-        <div>
-          <h3 className="text-sm font-medium">First publication</h3>
-          <p className="text-muted-foreground text-xs">
-            The ISBN and product form sellers will offer. Add more editions after saving.
-          </p>
-        </div>
-        <PublicationFields
-          draft={publication}
-          onChange={setPublication}
-          workTitle={publicationPlaceholder}
-          isbnError={isbnError}
-          onIsbnErrorChange={setIsbnError}
-          idPrefix="create-publication"
-        />
-      </section>
-
-      <div className="flex justify-end gap-2">
-        {onCancel ? (
-          <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={onCancel}>
-            Cancel
-          </Button>
-        ) : null}
-        <Button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "Creating…" : "Create book"}
-        </Button>
-      </div>
+        </FormSection>
+      </CatalogFormShell>
     </form>
   );
 }

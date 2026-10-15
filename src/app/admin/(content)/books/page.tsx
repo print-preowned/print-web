@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { DataTable } from "@/components/data-table";
-import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { AdminBookForm } from "@/app/admin/(content)/books/update-form";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Book, deleteBook, readBooks, createBook } from "@/lib/api/book";
@@ -36,7 +34,6 @@ type BookCSVRow = {
 
 export default function AdminBooksPage() {
   const queryClient = useQueryClient();
-  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
 
   const {
@@ -133,21 +130,8 @@ export default function AdminBooksPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem
-              onClick={() =>
-                openDrawer({
-                  title: "Edit Book",
-                  description: "Update book details",
-                  children: (
-                    <AdminBookForm
-                      book={row.original}
-                      onSuccess={closeDrawer}
-                    />
-                  ),
-                })
-              }
-            >
-              Edit
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/books/${row.original.id}/edit`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -279,7 +263,6 @@ export default function AdminBooksPage() {
           isLoading={isLoading}
         />
       )}
-      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </>
   );
 }

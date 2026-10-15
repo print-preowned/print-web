@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -11,8 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
-import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { AdminAuthorForm } from "@/app/admin/(content)/authors/form";
 import { useQueryClient } from "@tanstack/react-query";
 import { readAuthors, Author, createAuthor } from "@/lib/api/author";
 import usePagination from "@/lib/pagination/usePagination";
@@ -34,7 +33,6 @@ type AuthorCSVRow = {
 
 export default function AdminAuthorsPage() {
   const queryClient = useQueryClient();
-  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -115,21 +113,8 @@ export default function AdminAuthorsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem
-              onClick={() =>
-                openDrawer({
-                  title: "Edit Author",
-                  description: "Update author details",
-                  children: (
-                    <AdminAuthorForm
-                      author={row.original}
-                      onSuccess={closeDrawer}
-                    />
-                  ),
-                })
-              }
-            >
-              Edit
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/authors/${row.original.id}/edit`}>Edit</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -161,17 +146,11 @@ export default function AdminAuthorsPage() {
             </Select>
           </div>
           <div className="flex gap-2 mb-4">
-            <Button
-              onClick={() =>
-                openDrawer({
-                  title: "Create Author",
-                  description: "Add a new author",
-                  children: <AdminAuthorForm onSuccess={closeDrawer} />,
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Author
+            <Button asChild>
+              <Link href="/admin/authors/create">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Author
+              </Link>
             </Button>
             <BulkUpload<AuthorCSVRow>
               title="Bulk Upload Authors"
@@ -254,7 +233,6 @@ export default function AdminAuthorsPage() {
           isLoading={isLoading}
         />
       )}
-      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

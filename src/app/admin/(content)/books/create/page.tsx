@@ -8,7 +8,7 @@ export default function AdminCreateBookPage() {
   const back = () => router.push("/admin/books");
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Create book</h1>
         <p className="text-muted-foreground text-sm">

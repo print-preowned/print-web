@@ -27,6 +27,7 @@ const PATH_LABELS: Record<string, string> = {
   "/admin/books": "Books",
   "/admin/books/create": "Create book",
   "/admin/authors": "Authors",
+  "/admin/authors/create": "Create author",
   "/admin/genres": "Genres",
   "/admin/publishers": "Publishers",
   "/admin/series": "Series",
@@ -47,21 +48,27 @@ function normalizePathname(pathname: string): string {
 /**
  * Walk cumulative segments under /seller or /admin (skipping the app root).
  * Known paths use PATH_LABELS; unknown segments are treated as resource ids.
+ * Trailing `/edit` is omitted so the dynamic id is the current crumb
+ * (Books → {id}).
  */
 export function resolveHeaderBreadcrumbs(pathname: string): HeaderCrumb[] {
   const path = normalizePathname(pathname);
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 0) return [{ label: "" }];
 
+  const omitTrailingEdit =
+    parts.length >= 2 && parts[parts.length - 1] === "edit";
+  const walkParts = omitTrailingEdit ? parts.slice(0, -1) : parts;
+
   const crumbs: HeaderCrumb[] = [];
   let cumulative = "";
 
-  for (let i = 0; i < parts.length; i++) {
-    cumulative += `/${parts[i]}`;
+  for (let i = 0; i < walkParts.length; i++) {
+    cumulative += `/${walkParts[i]}`;
     if (APP_ROOTS.has(cumulative)) continue;
 
-    const label = PATH_LABELS[cumulative] ?? parts[i]!;
-    const isLast = i === parts.length - 1;
+    const label = PATH_LABELS[cumulative] ?? walkParts[i]!;
+    const isLast = i === walkParts.length - 1;
     crumbs.push(isLast ? { label } : { label, href: cumulative });
   }
 
