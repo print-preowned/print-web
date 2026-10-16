@@ -60,7 +60,6 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
       title: "",
       titlePrefix: "",
       subtitle: "",
-      image: "",
       description: "",
     },
   });
@@ -90,10 +89,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
       .filter((name): name is string => Boolean(name));
   }, [authorsData?.data, selectedAuthorIds]);
 
-  const image = useImageUpload({
-    onValueChange: (value) =>
-      setValue("image", value, { shouldValidate: true, shouldDirty: true }),
-  });
+  const imageUpload = useImageUpload();
 
   const createMutation = useMutation({
     mutationFn: async (values: CreateBookFormValues) => {
@@ -101,7 +97,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         title: values.title,
         titlePrefix: values.titlePrefix || undefined,
         subtitle: values.subtitle || undefined,
-        images: values.image ? [values.image] : [],
+        images: values.images,
         description: values.description,
         authorIds: values.authorIds,
         genreIds: values.genreIds,
@@ -153,7 +149,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
       title: data.title.trim(),
       titlePrefix: data.titlePrefix?.trim(),
       subtitle: data.subtitle?.trim(),
-      image: await image.resolveValue(data.image),
+      images: await imageUpload.resolveValues(),
       description: data.description.trim(),
       authorIds: selectedAuthorIds,
       genreIds: selectedGenreIds,
@@ -165,10 +161,10 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     <form onSubmit={onSubmit}>
       <CatalogFormShell
         summaryLeading={
-          image.preview ? (
+          imageUpload.previews[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={image.preview}
+              src={imageUpload.previews[0]}
               alt=""
               className="h-28 w-20 rounded object-cover"
             />
@@ -232,7 +228,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
       >
         <FormSection
           title="Work"
-          description="Canonical title, cover, and who it’s by. Shared across every edition."
+          description="Canonical title, images, and who it’s by. Shared across every edition."
         >
           <CreateBookFormFields
             title={workTitle}
@@ -254,10 +250,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
                 shouldDirty: true,
               })
             }
-            imagePreview={image.preview}
-            onFileSelect={image.onFileSelect}
-            onImageClear={image.clear}
-            imageInputRef={image.inputRef}
+            imageUpload={imageUpload}
             titleError={errors.title?.message}
             descriptionError={errors.description?.message}
           >

@@ -1,69 +1,127 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { uploadBookCoverToStaging } from "@/lib/api/book-image";
 
 export const DEFAULT_IMAGE_PLACEHOLDER = "https://placehold.co/400";
 
-function revokeBlobUrl(url: string | null) {
-  if (url?.startsWith("blob:")) {
+function revokeBlobUrl(url: string) {
+  if (url.startsWith("blob:")) {
     URL.revokeObjectURL(url);
   }
 }
 
+export type ImageUploadItem = {
+  id: string;
+  preview: string;
+  file?: File;
+  url?: string;
+};
+
 export type UseImageUploadOptions = {
-  initialPreview?: string | null;
-  onValueChange?: (value: string) => void;
+  initialPreviews?: string[];
   fallback?: string;
 };
 
 export function useImageUpload({
-  initialPreview = null,
-  onValueChange,
+  initialPreviews = [],
   fallback = DEFAULT_IMAGE_PLACEHOLDER,
 }: UseImageUploadOptions = {}) {
-  const [preview, setPreview] = useState<string | null>(initialPreview);
-  const [file, setFile] = useState<File | null>(null);
+  const idPrefix = useId();
+  const nextId = useRef(0);
+  const makeId = () => `${idPrefix}-${nextId.current++}`;
+
+  const [items, setItems] = useState<ImageUploadItem[]>(() =>
+    initialPreviews.map((url) => ({
+      id: `${idPrefix}-init-${url}`,
+      preview: url,
+      url,
+    })),
+  );
   const inputRef = useRef<HTMLInputElement>(null);
+  const initialKey = initialPreviews.join("\0");
+
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   useEffect(() => {
-    setPreview(initialPreview);
-    setFile(null);
+    const next = initialPreviews.map((url) => ({
+      id: makeId(),
+      preview: url,
+      url,
+    }));
+    setItems((prev) => {
+      prev.forEach((item) => {
+        if (item.file) revokeBlobUrl(item.preview);
+      });
+      return next;
+    });
     if (inputRef.current) inputRef.current.value = "";
-  }, [initialPreview]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reseed when source URLs change
+  }, [initialKey]);
 
   useEffect(() => {
-    return () => revokeBlobUrl(preview);
-  }, [preview]);
+    return () => {
+      itemsRef.current.forEach((item) => {
+        if (item.file) revokeBlobUrl(item.preview);
+      });
+    };
+  }, []);
 
-  const onFileSelect = (selected: File) => {
-    revokeBlobUrl(preview);
-    setFile(selected);
-    setPreview(URL.createObjectURL(selected));
-    onValueChange?.("");
+  const onFilesSelect = (selected: File[]) => {
+    if (!selected.length) return;
+    const added: ImageUploadItem[] = selected.map((file) => ({
+      id: makeId(),
+      preview: URL.createObjectURL(file),
+      file,
+    }));
+    setItems((prev) => {
+      const next = [...prev, ...added];
+      return next;
+    });
+  };
+
+  const removeAt = (index: number) => {
+    setItems((prev) => {
+      const target = prev[index];
+      if (target?.file) revokeBlobUrl(target.preview);
+      const next = prev.filter((_, i) => i !== index);
+      return next;
+    });
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   const clear = () => {
-    revokeBlobUrl(preview);
-    setFile(null);
-    setPreview(null);
+    setItems((prev) => {
+      prev.forEach((item) => {
+        if (item.file) revokeBlobUrl(item.preview);
+      });
+      return [];
+    });
     if (inputRef.current) inputRef.current.value = "";
-    onValueChange?.("");
   };
 
-  const resolveValue = async (existingValue = ""): Promise<string> => {
-    if (file) {
-      return uploadBookCoverToStaging(file);
+  const resolveValues = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const item of items) {
+      if (item.file) {
+        urls.push(await uploadBookCoverToStaging(item.file));
+      } else if (item.url) {
+        urls.push(item.url);
+      }
     }
-    if (existingValue) return existingValue;
-    return fallback;
+    if (!urls.length) return [fallback];
+    return urls;
   };
+
 
   return {
-    preview,
+    items,
+    previews: items.map((item) => item.preview),
     inputRef,
-    onFileSelect,
+    onFilesSelect,
+    removeAt,
     clear,
-    resolveValue,
+    resolveValues,
   };
 }

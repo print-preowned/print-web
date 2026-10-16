@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SearchInput } from "@/components/ui/search-input";
 import { DataTable } from "@/components/data-table";
+import { BottomDetailsPanel } from "@/components/bottom-details-panel";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Book, deleteBook, readBooks, createBook } from "@/lib/api/book";
@@ -32,9 +34,60 @@ type BookCSVRow = {
   status?: string;
 };
 
+function BookDetails({ book }: { book: Book }) {
+  const cover = firstImage(book.images);
+  const authors = book.authors ?? [];
+  const genres = book.genres ?? [];
+
+  return (
+    <div className="grid gap-4 pb-4 sm:grid-cols-[auto_1fr]">
+      {cover ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={cover}
+          alt=""
+          className="h-32 w-24 rounded border object-cover"
+        />
+      ) : null}
+      <div className="flex min-w-0 flex-col gap-2 text-sm">
+        <div>
+          <span className="text-muted-foreground">Title</span>
+          <p className="font-medium">{book.title.displayTitle}</p>
+        </div>
+        {authors.length ? (
+          <div>
+            <span className="text-muted-foreground">Authors</span>
+            <p>{authors.map((author) => author.name).join(", ")}</p>
+          </div>
+        ) : null}
+        {genres.length ? (
+          <div>
+            <span className="text-muted-foreground">Genres</span>
+            <p>{genres.map((genre) => genre.name).join(", ")}</p>
+          </div>
+        ) : null}
+        <div>
+          <span className="text-muted-foreground">Status</span>
+          <p>
+            <StatusBadge status={book.status} />
+          </p>
+        </div>
+        {book.description ? (
+          <div>
+            <span className="text-muted-foreground">Description</span>
+            <p className="line-clamp-4">{book.description}</p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminBooksPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [detailsPanelHeightPx, setDetailsPanelHeightPx] = useState(0);
 
   const {
     data: books,
@@ -48,26 +101,89 @@ export default function AdminBooksPage() {
     initialPageSize: 15,
   });
 
-  // Debounce search and reset to first page when search changes
   useEffect(() => {
     const timer = setTimeout(() => {
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      setSelectedIds(new Set());
     }, 500);
     return () => clearTimeout(timer);
   }, [search, setPagination]);
+
+  const singleSelected = useMemo(() => {
+    const selected = books.filter((book) => selectedIds.has(book.id));
+    return selected.length === 1 ? selected[0] : null;
+  }, [books, selectedIds]);
+
+  const toggleRow = useCallback(
+    (id: string) => {
+      const next = new Set(selectedIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setSelectedIds(next);
+    },
+    [selectedIds],
+  );
+
+  const toggleAllOnPage = useCallback(
+    (booksOnPage: Book[]) => {
+      const next = new Set(selectedIds);
+      const pageIds = booksOnPage.map((book) => book.id);
+      const allSelected =
+        booksOnPage.length > 0 && booksOnPage.every((book) => next.has(book.id));
+      if (allSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      setSelectedIds(next);
+    },
+    [selectedIds],
+  );
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { endpoint } = deleteBook(id);
       return apiFetch(endpoint, { method: "DELETE" });
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
+      setSelectedIds((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success("Book deleted successfully");
     },
   });
 
   const columns: ColumnDef<Book & { id: string }>[] = [
+    {
+      id: "select",
+      header: ({ table }) => {
+        const booksOnPage = table.getRowModel().rows.map((row) => row.original);
+        const selectedOnPageCount = booksOnPage.reduce(
+          (count, book) => count + (selectedIds.has(book.id) ? 1 : 0),
+          0,
+        );
+        const pageCount = booksOnPage.length;
+        const allSelected = pageCount > 0 && selectedOnPageCount === pageCount;
+        const someSelected = selectedOnPageCount > 0;
+        return (
+          <Checkbox
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={() => toggleAllOnPage(booksOnPage)}
+            aria-label="Select all on page"
+          />
+        );
+      },
+      cell: ({ row }) => (
+        <Checkbox
+          checked={selectedIds.has(row.original.id)}
+          onCheckedChange={() => toggleRow(row.original.id)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "title",
       header: "Title",
@@ -150,12 +266,19 @@ export default function AdminBooksPage() {
   ];
 
   return (
-    <>
-      <div className="space-y-4 mb-6">
+    <div className="relative min-h-full">
+      <div
+        className="space-y-4 mb-6"
+        style={
+          detailsPanelHeightPx > 0
+            ? { paddingBottom: detailsPanelHeightPx }
+            : undefined
+        }
+      >
         <div className="flex gap-8 justify-between">
           <div className="flex gap-4">
             <SearchInput
-              wrapperClassName="flex-1" 
+              wrapperClassName="flex-1"
               placeholder="Search books..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -194,7 +317,7 @@ export default function AdminBooksPage() {
                   return obj as BookCSVRow;
                 });
               }}
-              validateItem={(item, index) => {
+              validateItem={(item) => {
                 if (!item.title?.trim()) {
                   return { valid: false, error: "Title is required" };
                 }
@@ -245,24 +368,33 @@ export default function AdminBooksPage() {
             />
           </div>
         </div>
+
+        {!books.length && isLoading ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : (
+          <DataTable
+            columns={columns}
+            meta={{
+              onDelete: (id: string) => deleteMutation.mutate(id),
+            }}
+            data={books}
+            totalPages={totalPages}
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            onPaginationChange={setPagination}
+            isLoading={isLoading}
+          />
+        )}
       </div>
 
-      {!books.length && isLoading ? (
-        <div className="text-center py-8">Loading...</div>
-      ) : (
-        <DataTable
-          columns={columns}
-          meta={{
-            onDelete: (id: string) => deleteMutation.mutate(id),
-          }}
-          data={books}
-          totalPages={totalPages}
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          onPaginationChange={setPagination}
-          isLoading={isLoading}
-        />
-      )}
-    </>
+      <BottomDetailsPanel
+        open={singleSelected != null}
+        ariaLabel="Book details"
+        title=""
+        onHeightChange={setDetailsPanelHeightPx}
+      >
+        {singleSelected ? <BookDetails book={singleSelected} /> : null}
+      </BottomDetailsPanel>
+    </div>
   );
 }

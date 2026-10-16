@@ -17,7 +17,6 @@ import { CatalogFormShell } from "@/components/admin/catalog-form-shell";
 import { FormSection } from "@/components/admin/form-section";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { updateBook, Book } from "@/lib/api/book";
-import { firstImage } from "@/lib/cover";
 import { previewWorkTitle } from "@/lib/api/work-title";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -64,15 +63,12 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
       title: book?.title?.titleWithoutPrefix ?? "",
       titlePrefix: book?.title?.titlePrefix ?? "",
       subtitle: book?.title?.subtitle ?? "",
-      image: firstImage(book?.images) ?? "",
       description: book?.description ?? "",
     },
   });
 
-  const image = useImageUpload({
-    initialPreview: firstImage(book?.images) ?? null,
-    onValueChange: (value) =>
-      setValue("image", value, { shouldValidate: true, shouldDirty: true }),
+  const imageUpload = useImageUpload({
+    initialPreviews: book.images ?? [],
   });
 
   useEffect(() => {
@@ -89,7 +85,6 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
       title: book.title.titleWithoutPrefix,
       titlePrefix: book.title.titlePrefix ?? "",
       subtitle: book.title.subtitle ?? "",
-      image: firstImage(book.images) ?? "",
       description: book.description,
     });
   }, [book, resetForm]);
@@ -100,7 +95,7 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
         title: values.title,
         titlePrefix: values.titlePrefix ?? "",
         subtitle: values.subtitle ?? "",
-        images: values.image ? [values.image] : [],
+        images: values.images,
         description: values.description,
         authorIds: values.authorIds,
         genreIds: values.genreIds,
@@ -125,7 +120,7 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
       title: data.title.trim(),
       titlePrefix: data.titlePrefix?.trim(),
       subtitle: data.subtitle?.trim(),
-      image: await image.resolveValue(data.image),
+      images: await imageUpload.resolveValues(),
       description: data.description.trim(),
       authorIds: selectedAuthorIds,
       genreIds: selectedGenreIds,
@@ -153,10 +148,10 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
       <form id={FORM_ID} onSubmit={onSubmit}>
         <CatalogFormShell
           summaryLeading={
-            image.preview ? (
+            imageUpload.previews[0] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={image.preview}
+                src={imageUpload.previews[0]}
                 alt=""
                 className="h-28 w-20 rounded object-cover"
               />
@@ -193,7 +188,7 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
         >
           <FormSection
             title="Work"
-            description="Canonical title, cover, and who it’s by. Shared across every edition."
+            description="Canonical title, images, and who it’s by. Shared across every edition."
           >
             <CreateBookFormFields
               title={watch("title")}
@@ -215,10 +210,7 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
                   shouldDirty: true,
                 })
               }
-              imagePreview={image.preview}
-              onFileSelect={image.onFileSelect}
-              onImageClear={image.clear}
-              imageInputRef={image.inputRef}
+              imageUpload={imageUpload}
               titleError={errors.title?.message}
               descriptionError={errors.description?.message}
             >

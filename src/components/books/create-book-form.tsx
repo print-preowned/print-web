@@ -15,11 +15,16 @@ export type CreateBookFormValues = {
   title: string;
   titlePrefix?: string;
   subtitle?: string;
-  image: string;
+  images: string[];
   description: string;
   authorIds: string[];
   genreIds: string[];
 };
+
+type ImageUploadControls = Pick<
+  ReturnType<typeof useImageUpload>,
+  "previews" | "inputRef" | "onFilesSelect" | "removeAt"
+>;
 
 export type CreateBookFormFieldsProps = {
   title: string;
@@ -30,10 +35,7 @@ export type CreateBookFormFieldsProps = {
   onSubtitleChange?: (value: string) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
-  imagePreview?: string | null;
-  onFileSelect: (file: File) => void;
-  onImageClear: () => void;
-  imageInputRef?: React.RefObject<HTMLInputElement | null>;
+  imageUpload: ImageUploadControls;
   titleError?: string;
   descriptionError?: string;
   className?: string;
@@ -49,10 +51,7 @@ export function CreateBookFormFields({
   onSubtitleChange,
   description,
   onDescriptionChange,
-  imagePreview = null,
-  onFileSelect,
-  onImageClear,
-  imageInputRef,
+  imageUpload,
   titleError,
   descriptionError,
   className,
@@ -103,18 +102,18 @@ export function CreateBookFormFields({
       ) : null}
 
       <ImageDropzone
-        id="book-cover"
-        preview={imagePreview}
-        inputRef={imageInputRef}
-        onFileSelect={onFileSelect}
-        onClear={onImageClear}
+        id="book-images"
+        previews={imageUpload.previews}
+        inputRef={imageUpload.inputRef}
+        onFilesSelect={imageUpload.onFilesSelect}
+        onRemoveAt={imageUpload.removeAt}
       />
 
       <div className="space-y-2">
-        <Label htmlFor="book-synopsis">Synopsis</Label>
+        <Label htmlFor="book-description">Description</Label>
         <Textarea
-          id="book-synopsis"
-          placeholder="Synopsis"
+          id="book-description"
+          placeholder="Description"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           rows={2}
@@ -156,7 +155,7 @@ export function CreateBookForm({
   const [description, setDescription] = useState("");
   const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
-  const image = useImageUpload();
+  const imageUpload = useImageUpload();
 
   useEffect(() => {
     setTitle(defaultTitle);
@@ -167,14 +166,14 @@ export function CreateBookForm({
     setDescription("");
     setSelectedAuthorIds([]);
     setSelectedGenreIds([]);
-    image.clear();
+    imageUpload.clear();
   };
 
   const handleSubmit = async () => {
     const trimmedTitle = title.trim();
     await onSubmit({
       title: trimmedTitle,
-      image: await image.resolveValue(),
+      images: await imageUpload.resolveValues(),
       description: description.trim(),
       authorIds: selectedAuthorIds,
       genreIds: selectedGenreIds,
@@ -189,10 +188,7 @@ export function CreateBookForm({
         onTitleChange={setTitle}
         description={description}
         onDescriptionChange={setDescription}
-        imagePreview={image.preview}
-        onFileSelect={image.onFileSelect}
-        onImageClear={image.clear}
-        imageInputRef={image.inputRef}
+        imageUpload={imageUpload}
       >
         <BookAuthorGenreFields
           selectedAuthorIds={selectedAuthorIds}
