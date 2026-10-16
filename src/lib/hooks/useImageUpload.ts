@@ -20,7 +20,7 @@ export type ImageUploadItem = {
 
 export type UseImageUploadOptions = {
   initialPreviews?: string[];
-  fallback?: string;
+  fallback?: string | null;
 };
 
 export function useImageUpload({
@@ -110,7 +110,7 @@ export function useImageUpload({
         urls.push(item.url);
       }
     }
-    if (!urls.length) return [fallback];
+    if (!urls.length && fallback) return [fallback];
     return urls;
   };
 

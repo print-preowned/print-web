@@ -90,9 +90,11 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
   }, [authorsData?.data, selectedAuthorIds]);
 
   const imageUpload = useImageUpload();
+  const publicationImageUpload = useImageUpload({ fallback: null });
 
   const createMutation = useMutation({
     mutationFn: async (values: CreateBookFormValues) => {
+      const publicationImages = await publicationImageUpload.resolveValues();
       const request = createBook({
         title: values.title,
         titlePrefix: values.titlePrefix || undefined,
@@ -107,7 +109,11 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
         body: request.body,
       });
       const publicationRequest = createPublication(
-        publicationFieldsFromDraft(publication, book.title.displayTitle, book.id) as PublicationCreatePayload,
+        publicationFieldsFromDraft(
+          { ...publication, images: publicationImages },
+          book.title.displayTitle,
+          book.id,
+        ) as PublicationCreatePayload,
       );
       try {
         await apiFetch(publicationRequest.endpoint, {
@@ -270,6 +276,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
           <PublicationFields
             draft={publication}
             onChange={setPublication}
+            imageUpload={publicationImageUpload}
             workTitle={publicationPlaceholder}
             isbnError={isbnError}
             onIsbnErrorChange={setIsbnError}

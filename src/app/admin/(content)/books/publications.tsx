@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { publicationKeys } from "@/lib/api/query-keys";
@@ -68,6 +69,11 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [isbnError, setIsbnError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const publicationImageUpload = useImageUpload({
+    initialPreviews: draft.images,
+    fallback: null,
+  });
 
   const publications = publicationsQuery.data ?? [];
   const isEditing = editingId != null;
@@ -108,10 +114,15 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
       return;
     }
 
+    setIsSaving(true);
     try {
+      const publicationDraft = {
+        ...draft,
+        images: await publicationImageUpload.resolveValues(),
+      };
       if (isEditing) {
         const request = updatePublication(editingId, {
-          ...publicationFieldsFromDraft(draft, workTitle),
+          ...publicationFieldsFromDraft(publicationDraft, workTitle),
           is_verified: draft.is_verified,
         });
         await write.mutateAsync({
@@ -122,7 +133,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
         toast.success("Publication updated");
       } else {
         const request = createPublication(
-          publicationFieldsFromDraft(draft, workTitle, workId) as PublicationCreatePayload,
+          publicationFieldsFromDraft(publicationDraft, workTitle, workId) as PublicationCreatePayload,
         );
         await write.mutateAsync({
           endpoint: request.endpoint,
@@ -135,6 +146,8 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
       closeForm();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save publication");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -224,6 +237,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
             key={editingId ?? "new"}
             draft={draft}
             onChange={setDraft}
+            imageUpload={publicationImageUpload}
             workTitle={workTitle}
             isbnError={isbnError}
             onIsbnErrorChange={setIsbnError}
@@ -231,10 +245,10 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
             idPrefix={isEditing ? "edit-publication" : "add-publication"}
           />
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" disabled={write.isPending} onClick={closeForm}>
+            <Button type="button" variant="outline" disabled={write.isPending || isSaving} onClick={closeForm}>
               Cancel
             </Button>
-            <Button type="submit" disabled={write.isPending}>
+            <Button type="submit" disabled={write.isPending || isSaving}>
               {isEditing ? "Save publication" : "Add publication"}
             </Button>
           </div>

@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
+import { ImageDropzone } from "@/components/image-dropzone";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { apiFetch } from "@/lib/api";
 import { PRODUCT_FORMS } from "@/lib/api/publication";
 import { readSeriesListUrl, type Series } from "@/lib/api/series";
@@ -20,6 +22,10 @@ import {
 type Props = {
   draft: PublicationDraft;
   onChange: (draft: PublicationDraft) => void;
+  imageUpload: Pick<
+    ReturnType<typeof useImageUpload>,
+    "previews" | "inputRef" | "onFilesSelect" | "removeAt"
+  >;
   workTitle?: string;
   isbnError?: string | null;
   onIsbnErrorChange?: (error: string | null) => void;
@@ -30,6 +36,7 @@ type Props = {
 export function PublicationFields({
   draft,
   onChange,
+  imageUpload,
   workTitle = "",
   isbnError,
   onIsbnErrorChange,
@@ -139,6 +146,15 @@ export function PublicationFields({
           </p>
         </div>
       </div>
+
+      <ImageDropzone
+        id={`${idPrefix}-images`}
+        label="Edition images"
+        previews={imageUpload.previews}
+        inputRef={imageUpload.inputRef}
+        onFilesSelect={imageUpload.onFilesSelect}
+        onRemoveAt={imageUpload.removeAt}
+      />
 
       <button
         type="button"

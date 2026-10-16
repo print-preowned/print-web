@@ -17,6 +17,7 @@ export { formatProductForm };
 export type PublishingStatus = "ACTIVE" | "OUT_OF_PRINT" | "FORTHCOMING";
 
 export type PublicationDraft = {
+  images: string[];
   isbn13: string;
   title: string;
   language: string;
@@ -42,6 +43,7 @@ export type PublicationDraft = {
 };
 
 export const EMPTY_PUBLICATION_DRAFT: PublicationDraft = {
+  images: [],
   isbn13: "",
   title: "",
   language: "",
@@ -105,6 +107,7 @@ export function draftFromPublication(publication: Publication): PublicationDraft
   const publishingStatus = publication.publishingStatus;
   const form = publication.productForm ?? publication.binding;
   return {
+    images: publication.images ?? [],
     isbn13: publication.isbn13 ?? "",
     title: publication.title ?? "",
     language: publication.language ?? "",
@@ -147,6 +150,7 @@ export function publicationFieldsFromDraft(
   const title = draft.title.trim();
   return {
     ...(workId ? { work_id: workId } : {}),
+    images: draft.images,
     isbn13: isbn || null,
     title: !title || title === workTitle.trim() ? null : title,
     language: draft.language.trim() || null,

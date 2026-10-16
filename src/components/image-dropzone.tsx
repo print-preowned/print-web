@@ -168,7 +168,7 @@ export function ImageDropzone({
 
         <div
           className={cn(
-            "items-center justify-center text-muted-foreground",
+            "items-center self-center justify-center text-muted-foreground",
             previews.length == 0 && "hidden md:flex",
           )}
           aria-hidden="true"
