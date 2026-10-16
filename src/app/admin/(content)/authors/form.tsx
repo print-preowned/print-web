@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { CatalogFormShell } from "@/components/admin/catalog-form-shell";
 import { FormSection } from "@/components/admin/form-section";
 import { StatusBadge } from "@/components/status-badge";
+import { ProfileImageUpload } from "@/components/profile-image-upload";
+import { uploadAuthorPortrait } from "@/lib/api/profile-image";
 
 type AuthorFormProps = {
   author?: Author;
@@ -101,6 +103,8 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!author;
   const [showParts, setShowParts] = useState(() => hasOptionalNameParts(author));
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [pendingProfileImage, setPendingProfileImage] = useState<File | null>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<AuthorFormValues>({
     defaultValues: {
@@ -150,10 +154,22 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
         image: data.image || "",
         status: data.status,
       });
-      return apiFetch<{ id: string }>(request.endpoint, {
+      const created = await apiFetch<{ id: string }>(request.endpoint, {
         method: request.method,
         body: request.body,
       });
+      if (pendingProfileImage) {
+        try {
+          const image = await uploadAuthorPortrait(pendingProfileImage, created.id);
+          const update = updateAuthor(created.id, { image });
+          await apiFetch(update.endpoint, { method: update.method, body: update.body });
+        } catch (error) {
+          throw new Error(
+            `Author created, but the profile picture could not be saved: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+        }
+      }
+      return created;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
@@ -161,6 +177,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
+      queryClient.invalidateQueries({ queryKey: ["authors"] });
       toast.error(error.message || "Failed to create author");
     },
   });
@@ -198,7 +215,8 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
     }
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading =
+    createMutation.isPending || updateMutation.isPending || isImageUploading;
 
   return (
     <form
@@ -317,10 +335,17 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
 
         <FormSection title="Profile" description="Optional bio and image.">
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="image">Image URL</Label>
-              <Input id="image" type="url" {...register("image")} />
-            </div>
+            <ProfileImageUpload
+              id="author-image"
+              label="Portrait"
+              entityId={author?.id}
+              onUpload={uploadAuthorPortrait}
+              value={values.image}
+              onChange={(image) => setValue("image", image, { shouldDirty: true })}
+              onPendingFileChange={setPendingProfileImage}
+              onUploadingChange={setIsImageUploading}
+              disabled={isLoading}
+            />
             <div className="flex flex-col gap-3">
               <Label htmlFor="about">About</Label>
               <Textarea id="about" rows={5} {...register("about")} />
