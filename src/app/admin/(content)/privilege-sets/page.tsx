@@ -2,14 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
-import { AdminPrivilegeSetForm } from "@/app/admin/(content)/privilege-sets/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   deletePlatformPrivilegeSet,
   PlatformPrivilegeSet,
   readPlatformPrivilegeSetsUrl,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, EllipsisVertical } from "lucide-react";
@@ -22,10 +20,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/status-badge";
+import Link from "next/link";
 
 export default function AdminPrivilegeSetsPage() {
   const queryClient = useQueryClient();
-  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
 
   const {
     data: privilegeSets,
@@ -71,7 +69,7 @@ export default function AdminPrivilegeSetsPage() {
       header: "Created",
       cell: ({ row }) => (
         <span className="text-muted-foreground text-xs">
-          {new Date(row.original.created_at).toLocaleDateString()}
+          {new Date(row.original.createdAt).toLocaleDateString()}
         </span>
       ),
     },
@@ -91,21 +89,10 @@ export default function AdminPrivilegeSetsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem
-              onClick={() =>
-                openDrawer({
-                  title: "Edit privilege set",
-                  description: "Update name, status, and assigned privileges",
-                  children: (
-                    <AdminPrivilegeSetForm
-                      privilegeSet={row.original}
-                      onSuccess={closeDrawer}
-                    />
-                  ),
-                })
-              }
-            >
-              Edit
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/privilege-sets/${row.original.id}/edit`}>
+                Edit
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -139,17 +126,11 @@ export default function AdminPrivilegeSetsPage() {
             invites. Super Admin is managed separately via account transfer.
           </p>
         </div>
-        <Button
-          onClick={() =>
-            openDrawer({
-              title: "Create privilege set",
-              description: "Define a new role and its platform privileges",
-              children: <AdminPrivilegeSetForm onSuccess={closeDrawer} />,
-            })
-          }
-        >
+        <Button asChild>
+          <Link href="/admin/privilege-sets/create">
           <Plus className="mr-2 h-4 w-4" />
           Create privilege set
+          </Link>
         </Button>
       </div>
 
@@ -167,7 +148,6 @@ export default function AdminPrivilegeSetsPage() {
         />
       )}
 
-      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </div>
   );
 }

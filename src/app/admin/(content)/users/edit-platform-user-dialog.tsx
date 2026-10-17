@@ -21,7 +21,7 @@ import {
   PlatformUser,
   readPlatformPrivilegeSets,
   updatePlatformUser,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -35,7 +35,7 @@ interface EditPlatformUserDialogProps {
 }
 
 interface EditFormValues {
-  platform_privilege_set_id: string;
+  platformPrivilegeSetId: string;
 }
 
 export function EditPlatformUserDialog({
@@ -55,7 +55,7 @@ export function EditPlatformUserDialog({
   useEffect(() => {
     if (platformUser && open) {
       reset({
-        platform_privilege_set_id: platformUser.platform_privilege_set_id,
+        platformPrivilegeSetId: platformUser.platformPrivilegeSetId,
       });
     }
   }, [platformUser, open, reset]);
@@ -63,7 +63,7 @@ export function EditPlatformUserDialog({
   const onSubmit = async (data: EditFormValues) => {
     if (!platformUser) return;
 
-    if (data.platform_privilege_set_id === platformUser.platform_privilege_set_id) {
+    if (data.platformPrivilegeSetId === platformUser.platformPrivilegeSetId) {
       toast.info("No changes to save");
       onOpenChange(false);
       return;
@@ -71,14 +71,14 @@ export function EditPlatformUserDialog({
 
     try {
       const request = updatePlatformUser(platformUser.id, {
-        platform_privilege_set_id: data.platform_privilege_set_id,
+        platformPrivilegeSetId: data.platformPrivilegeSetId,
       });
       await apiFetch(request.endpoint, {
         method: request.method,
         body: request.body,
       });
       toast.success(
-        `Role updated for ${platformUser.user_email ?? platformUser.user_name ?? "user"}`,
+        `Role updated for ${platformUser.userEmail ?? platformUser.userName ?? "user"}`,
       );
       queryClient.invalidateQueries({ queryKey: ["platform-users"] });
       onOpenChange(false);
@@ -88,8 +88,8 @@ export function EditPlatformUserDialog({
   };
 
   const displayName =
-    platformUser?.user_name?.trim() ||
-    platformUser?.user_email ||
+    platformUser?.userName?.trim() ||
+    platformUser?.userEmail ||
     "this user";
 
   const selectableSets = privilegeSetsData?.data ?? [];
@@ -106,9 +106,9 @@ export function EditPlatformUserDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="platform_privilege_set_id">Platform privilege set</Label>
+            <Label htmlFor="platformPrivilegeSetId">Platform privilege set</Label>
             <Controller
-              name="platform_privilege_set_id"
+              name="platformPrivilegeSetId"
               control={control}
               rules={{ required: true }}
               render={({ field }) => (

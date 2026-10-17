@@ -23,7 +23,7 @@ import {
   readPlatformUserMe,
   readPlatformUsers,
   transferSuperAdmin,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import type { BaseResponse } from "@/lib/model";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -50,12 +50,12 @@ export default function AdminAccountPage() {
     queryKey: ["platform-users-transfer-targets"],
     queryFn: () =>
       apiFetch<BaseResponse<PlatformUser[]>>(readPlatformUsers({ page: 1, size: 100 })),
-    enabled: me?.is_super_admin === true && transferOpen,
+    enabled: me?.isSuperAdmin === true && transferOpen,
   });
   const transferTargets = useMemo(
     () =>
       (usersResponse?.data ?? []).filter(
-        (user) => user.id !== me?.id && !user.is_super_admin,
+        (user) => user.id !== me?.id && !user.isSuperAdmin,
       ),
     [usersResponse?.data, me?.id],
   );
@@ -69,7 +69,7 @@ export default function AdminAccountPage() {
     setIsTransferring(true);
     try {
       const request = transferSuperAdmin({
-        target_platform_user_id: targetPlatformUserId,
+        targetPlatformUserId: targetPlatformUserId,
       });
       await apiFetch(request.endpoint, {
         method: request.method,
@@ -109,15 +109,15 @@ export default function AdminAccountPage() {
         <dl className="grid gap-3 text-sm">
           <div>
             <dt className="font-medium text-muted-foreground">Name</dt>
-            <dd>{me.user_name?.trim() || "—"}</dd>
+            <dd>{me.userName?.trim() || "—"}</dd>
           </div>
           <div>
             <dt className="font-medium text-muted-foreground">Email</dt>
-            <dd>{me.user_email || "—"}</dd>
+            <dd>{me.userEmail || "—"}</dd>
           </div>
           <div>
             <dt className="font-medium text-muted-foreground">Role</dt>
-            <dd>{me.platform_privilege_set_name || "—"}</dd>
+            <dd>{me.platformPrivilegeSetName || "—"}</dd>
           </div>
           <div>
             <dt className="font-medium text-muted-foreground">Status</dt>
@@ -126,7 +126,7 @@ export default function AdminAccountPage() {
         </dl>
       </section>
 
-      {me.is_super_admin && (
+      {me.isSuperAdmin && (
         <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 space-y-4">
           <div>
             <h2 className="text-lg font-medium text-destructive">Transfer super admin</h2>
@@ -170,9 +170,9 @@ export default function AdminAccountPage() {
               <SelectContent>
                 {transferTargets.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
-                    {user.user_name?.trim() || user.user_email || user.id}
-                    {user.platform_privilege_set_name
-                      ? ` (${user.platform_privilege_set_name})`
+                    {user.userName?.trim() || user.userEmail || user.id}
+                    {user.platformPrivilegeSetName
+                      ? ` (${user.platformPrivilegeSetName})`
                       : ""}
                   </SelectItem>
                 ))}

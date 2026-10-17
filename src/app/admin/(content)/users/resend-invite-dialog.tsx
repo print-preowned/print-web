@@ -22,7 +22,7 @@ import {
   PlatformInvite,
   readPlatformPrivilegeSets,
   resendPlatformInvite,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -36,7 +36,7 @@ interface ResendInviteDialogProps {
 }
 
 interface ResendFormValues {
-  platform_privilege_set_id: string;
+  platformPrivilegeSetId: string;
 }
 
 export function ResendInviteDialog({
@@ -56,7 +56,7 @@ export function ResendInviteDialog({
   useEffect(() => {
     if (invite && open) {
       reset({
-        platform_privilege_set_id: invite.platform_privilege_set_id,
+        platformPrivilegeSetId: invite.platformPrivilegeSetId || "",
       });
     }
   }, [invite, open, reset]);
@@ -66,7 +66,7 @@ export function ResendInviteDialog({
 
     try {
       const request = resendPlatformInvite(invite.id, {
-        platform_privilege_set_id: data.platform_privilege_set_id,
+        platformPrivilegeSetId: data.platformPrivilegeSetId,
       });
       const res = await apiFetch<CreateInviteResponse>(request.endpoint, {
         method: request.method,
@@ -92,9 +92,9 @@ export function ResendInviteDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="platform_privilege_set_id">Platform privilege set</Label>
+            <Label htmlFor="platformPrivilegeSetId">Platform privilege set</Label>
             <Controller
-              name="platform_privilege_set_id"
+              name="platformPrivilegeSetId"
               control={control}
               rules={{ required: true }}
               render={({ field }) => (

@@ -1,27 +1,27 @@
-import { apiFetch, generateUrl } from ".";
-import type { BaseResponse } from "@/lib/model";
+import { apiFetch, generateUrl } from "@/lib/api";
+import type { BaseResponse, PaginatedResponse } from "@/lib/model";
 
 export interface PlatformUser {
   id: string;
-  user_id: string;
-  platform_privilege_set_id: string;
+  userId: string;
+  platformPrivilegeSetId: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   /** Populated when reading platform users list */
-  user_email?: string;
-  user_name?: string;
-  platform_privilege_set_name?: string;
+  userEmail?: string;
+  userName?: string;
+  platformPrivilegeSetName?: string;
   /** True when this user holds the singleton Super Admin privilege set */
-  is_super_admin?: boolean;
+  isSuperAdmin?: boolean;
 }
 
 export interface PlatformPrivilegeSet {
   id: string;
   name: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PlatformPrivilege {
@@ -29,71 +29,57 @@ export interface PlatformPrivilege {
   code: string;
   description?: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PlatformPrivilegeSetPrivilege {
   id: string;
-  privilege_set_id: string;
-  privilege_code: string;
+  privilegeSetId: string;
+  privilegeCode: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePlatformPrivilegeSetRequest {
   name: string;
-  status?: string;
 }
 
 export interface UpdatePlatformPrivilegeSetRequest {
   name?: string;
-  status?: string;
 }
 
 export interface PlatformInvite {
   id: string;
   email: string;
-  platform_privilege_set_id: string;
-  expires_at: string;
+  platformPrivilegeSetId: string;
+  expiresAt: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "REVOKED";
-  invited_by: string;
-  created_at: string;
-  accepted_at?: string;
+  invitedBy: string;
+  createdAt: string;
+  acceptedAt?: string;
   /** Populated when reading platform invites list */
-  platform_privilege_set_name?: string;
-}
-
-export interface PaginatedResponse<T> {
-  status_code: number;
-  message: string;
-  data: T[];
-  pagination: {
-    page: number;
-    size: number;
-    total_pages: number;
-    total_results: number;
-  };
+  platformPrivilegeSetName?: string;
 }
 
 export interface CreateInviteRequest {
   email: string;
-  platform_privilege_set_id: string;
+  platformPrivilegeSetId: string;
 }
 
 export interface CreateInviteResponse {
-  invite_id: string;
-  expires_at: string;
+  inviteId: string;
+  expiresAt: string;
   message: string;
 }
 
 export interface ResendInviteRequest {
-  platform_privilege_set_id?: string;
+  platformPrivilegeSetId?: string;
 }
 
 export interface UpdatePlatformUserRequest {
-  platform_privilege_set_id?: string;
+  platformPrivilegeSetId?: string;
   status?: string;
 }
 
@@ -106,9 +92,9 @@ export interface ValidateInviteResponse {
 export interface AcceptInviteRequest {
   token: string;
   password: string;
-  first_name: string;
-  last_name: string;
-  middle_name?: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
 }
 
 export interface RejectInviteRequest {
@@ -142,6 +128,13 @@ export function readPlatformPrivilegeSetsUrl(params?: {
   if (params?.page != null) query.page = params.page;
   if (params?.size != null) query.size = params.size;
   return generateUrl("/admin/privilege-sets", query);
+}
+
+export function readPlatformPrivilegeSet(id: string) {
+  return apiFetch<BaseResponse<PlatformPrivilegeSet>>(
+    `/admin/privilege-sets/${encodeURIComponent(id)}`,
+    { method: "GET" },
+  );
 }
 
 export function createPlatformPrivilegeSet(payload: CreatePlatformPrivilegeSetRequest) {
@@ -188,8 +181,8 @@ export async function readPrivilegeSetPrivileges(privilegeSetId: string) {
 }
 
 export function createPrivilegeSetPrivilege(payload: {
-  privilege_set_id: string;
-  privilege_code: string;
+  privilegeSetId: string;
+  privilegeCode: string;
   status?: string;
 }) {
   return {
@@ -284,7 +277,7 @@ export function updatePlatformUser(id: string, payload: UpdatePlatformUserReques
 }
 
 export interface SuperAdminTransferRequest {
-  target_platform_user_id: string;
+  targetPlatformUserId: string;
 }
 
 export async function readPlatformUserMe() {

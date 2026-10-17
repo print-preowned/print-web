@@ -1,17 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   createPlatformPrivilegeSet,
@@ -22,10 +15,11 @@ import {
   readPlatformPrivileges,
   readPrivilegeSetPrivileges,
   updatePlatformPrivilegeSet,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { useDrawerFooter } from "@/components/form-drawer";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 type PrivilegeSetFormProps = {
   privilegeSet?: PlatformPrivilegeSet;
@@ -43,14 +37,14 @@ async function syncPrivilegeMappings(
 ) {
   const existingResponse = await readPrivilegeSetPrivileges(privilegeSetId);
   const existing = existingResponse.data ?? [];
-  const existingCodes = new Set(existing.map((mapping) => mapping.privilege_code));
+  const existingCodes = new Set(existing.map((mapping) => mapping.privilegeCode));
   const selectedSet = new Set(selectedCodes);
 
   for (const code of selectedCodes) {
     if (!existingCodes.has(code)) {
       const request = createPrivilegeSetPrivilege({
-        privilege_set_id: privilegeSetId,
-        privilege_code: code,
+        privilegeSetId: privilegeSetId,
+        privilegeCode: code,
       });
       await apiFetch(request.endpoint, {
         method: request.method,
@@ -60,7 +54,7 @@ async function syncPrivilegeMappings(
   }
 
   for (const mapping of existing) {
-    if (!selectedSet.has(mapping.privilege_code)) {
+    if (!selectedSet.has(mapping.privilegeCode)) {
       const request = deletePrivilegeSetPrivilege(mapping.id);
       await apiFetch(request.endpoint, { method: request.method });
     }
@@ -69,8 +63,9 @@ async function syncPrivilegeMappings(
 
 export function AdminPrivilegeSetForm({
   privilegeSet,
-  onSuccess,
 }: PrivilegeSetFormProps) {
+  const router = useRouter();
+  const back = () => router.push("/admin/privilege-sets");
   const queryClient = useQueryClient();
   const isEditing = !!privilegeSet;
   const [selectedPrivileges, setSelectedPrivileges] = useState<string[]>([]);
@@ -81,7 +76,6 @@ export function AdminPrivilegeSetForm({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<FormValues>({
     defaultValues: {
       name: privilegeSet?.name ?? "",
@@ -93,6 +87,7 @@ export function AdminPrivilegeSetForm({
     queryKey: ["platform-privileges"],
     queryFn: () => readPlatformPrivileges({ page: 1, size: 100 }),
   });
+  const privileges = privilegesData?.data || []
 
   const { data: mappingsData, isLoading: isLoadingMappings } = useQuery({
     queryKey: ["privilege-set-privileges", privilegeSet?.id],
@@ -110,20 +105,12 @@ export function AdminPrivilegeSetForm({
   useEffect(() => {
     if (mappingsData?.data) {
       setSelectedPrivileges(
-        mappingsData.data.map((mapping) => mapping.privilege_code),
+        mappingsData.data.map((mapping) => mapping.privilegeCode),
       );
     } else if (!isEditing) {
       setSelectedPrivileges([]);
     }
   }, [mappingsData, isEditing]);
-
-  const activePrivileges = useMemo(
-    () =>
-      (privilegesData?.data ?? []).filter(
-        (privilege) => privilege.status === "ACTIVE",
-      ),
-    [privilegesData],
-  );
 
   const togglePrivilege = (code: string, checked: boolean) => {
     setSelectedPrivileges((current) =>
@@ -139,7 +126,6 @@ export function AdminPrivilegeSetForm({
       if (isEditing) {
         const request = updatePlatformPrivilegeSet(privilegeSet.id, {
           name: data.name,
-          status: data.status,
         });
         await apiFetch(request.endpoint, {
           method: request.method,
@@ -150,7 +136,6 @@ export function AdminPrivilegeSetForm({
       } else {
         const request = createPlatformPrivilegeSet({
           name: data.name,
-          status: data.status,
         });
         await apiFetch(request.endpoint, {
           method: request.method,
@@ -159,7 +144,7 @@ export function AdminPrivilegeSetForm({
 
         const setsResponse = await readPlatformPrivilegeSets({
           page: 1,
-          size: 100,
+          size: 50,
         });
         const created = setsResponse.data.find((set) => set.name === data.name);
         if (!created) {
@@ -171,7 +156,7 @@ export function AdminPrivilegeSetForm({
       }
 
       queryClient.invalidateQueries({ queryKey: ["platform-privilege-sets"] });
-      onSuccess?.();
+      back();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save privilege set",
@@ -182,13 +167,6 @@ export function AdminPrivilegeSetForm({
   };
 
   const isLoading = isSaving || isLoadingPrivileges || (isEditing && isLoadingMappings);
-
-  useDrawerFooter({
-    formId: "admin-privilege-set-form",
-    submitLabel: isEditing ? "Update privilege set" : "Create privilege set",
-    loadingLabel: isEditing ? "Updating..." : "Creating...",
-    isLoading,
-  });
 
   return (
     <form
@@ -208,22 +186,6 @@ export function AdminPrivilegeSetForm({
       </div>
 
       <div className="flex flex-col gap-3">
-        <Label htmlFor="status">Status</Label>
-        <Select
-          value={watch("status") || "ACTIVE"}
-          onValueChange={(value) => setValue("status", value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="INACTIVE">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-col gap-3">
         <Label>Platform privileges</Label>
         <p className="text-muted-foreground text-sm">
           Select which platform privileges this set grants. Users assigned this
@@ -231,13 +193,13 @@ export function AdminPrivilegeSetForm({
         </p>
         {isLoadingPrivileges || (isEditing && isLoadingMappings) ? (
           <p className="text-muted-foreground text-sm">Loading privileges…</p>
-        ) : activePrivileges.length === 0 ? (
+        ) : privileges.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             No platform privileges available.
           </p>
         ) : (
           <div className="max-h-72 space-y-3 overflow-y-auto rounded-md border p-3">
-            {activePrivileges.map((privilege) => {
+            {privileges.map((privilege) => {
               const checked = selectedPrivileges.includes(privilege.code);
               return (
                 <label
@@ -267,6 +229,18 @@ export function AdminPrivilegeSetForm({
             })}
           </div>
         )}
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button type="submit" disabled={isLoading || privileges.length === 0}>
+          {isSaving
+            ? isEditing
+              ? "Updating…"
+              : "Creating…"
+            : isEditing
+              ? "Save changes"
+              : "Create privilege set"}
+        </Button>
       </div>
     </form>
   );

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
-import { rejectPlatformInvite } from "@/lib/api/platform";
+import { rejectPlatformInvite } from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useState } from "react";

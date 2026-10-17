@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { acceptPlatformInvite } from "@/lib/api/platform";
+import { acceptPlatformInvite } from "@/app/admin/lib/api/platform";
 import { FieldValues, useForm } from "react-hook-form";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";

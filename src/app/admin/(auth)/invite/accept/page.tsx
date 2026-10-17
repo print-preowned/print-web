@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AcceptInviteForm } from "./form";
-import { validatePlatformInvite } from "@/lib/api/platform";
+import { validatePlatformInvite } from "@/app/admin/lib/api/platform";
 import { useSearchParams } from "next/navigation";
 
 function AcceptInviteContent() {

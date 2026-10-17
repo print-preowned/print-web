@@ -10,7 +10,7 @@ import {
   readPlatformInvites,
   deletePlatformUser,
   revokePlatformInvite,
-} from "@/lib/api/platform";
+} from "@/app/admin/lib/api/platform";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import usePagination, {
@@ -99,30 +99,30 @@ function PlatformUsersTable() {
 
   const columns: ColumnDef<PlatformUser & { id: string }>[] = [
     {
-      accessorKey: "user_name",
+      accessorKey: "userName",
       header: "Name",
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm">
-          {row.original.user_name ?? "—"}
+          {row.original.userName ?? "—"}
         </span>
       ),
     },
     {
-      accessorKey: "user_email",
+      accessorKey: "userEmail",
       header: "Email",
       cell: ({ row }) => (
         <span className="font-medium">
-          {row.original.user_email ?? row.original.user_id}
+          {row.original.userEmail ?? row.original.userId}
         </span>
       ),
     },
     {
-      accessorKey: "platform_privilege_set_name",
+      accessorKey: "platformPrivilegeSetName",
       header: "Role",
       cell: ({ row }) => (
         <span className="text-sm">
-          {row.original.platform_privilege_set_name ??
-            row.original.platform_privilege_set_id}
+          {row.original.platformPrivilegeSetName ??
+            row.original.platformPrivilegeSetId}
         </span>
       ),
     },
@@ -132,11 +132,11 @@ function PlatformUsersTable() {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created",
       cell: ({ row }) => (
         <span className="text-muted-foreground text-xs">
-          {new Date(row.original.created_at).toLocaleDateString()}
+          {new Date(row.original.createdAt).toLocaleDateString()}
         </span>
       ),
     },
@@ -156,22 +156,22 @@ function PlatformUsersTable() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            {!row.original.is_super_admin && (
+            {!row.original.isSuperAdmin && (
               <DropdownMenuItem onClick={() => setEditUser(row.original)}>
                 Edit role
               </DropdownMenuItem>
             )}
-            {!row.original.is_super_admin && <DropdownMenuSeparator />}
+            {!row.original.isSuperAdmin && <DropdownMenuSeparator />}
             <DropdownMenuItem
               variant="destructive"
-              disabled={row.original.is_super_admin}
+              disabled={row.original.isSuperAdmin}
               title={
-                row.original.is_super_admin
+                row.original.isSuperAdmin
                   ? "Cannot remove the super admin"
                   : undefined
               }
               onClick={() => {
-                if (row.original.is_super_admin) return;
+                if (row.original.isSuperAdmin) return;
                 if (
                   confirm(
                     "Remove this user's platform access? They will no longer be able to sign in to the admin.",
@@ -256,12 +256,12 @@ function PendingInvitesTable({
       ),
     },
     {
-      accessorKey: "platform_privilege_set_name",
+      accessorKey: "platformPrivilegeSetName",
       header: "Role",
       cell: ({ row }) => (
         <span className="text-sm">
-          {row.original.platform_privilege_set_name ??
-            row.original.platform_privilege_set_id}
+          {row.original.platformPrivilegeSetName ??
+            row.original.platformPrivilegeSetId}
         </span>
       ),
     },
@@ -271,20 +271,20 @@ function PendingInvitesTable({
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
-      accessorKey: "expires_at",
+      accessorKey: "expiresAt",
       header: "Expires",
       cell: ({ row }) => (
         <span className="text-muted-foreground text-xs">
-          {new Date(row.original.expires_at).toLocaleDateString()}
+          {new Date(row.original.expiresAt).toLocaleDateString()}
         </span>
       ),
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created",
       cell: ({ row }) => (
         <span className="text-muted-foreground text-xs">
-          {new Date(row.original.created_at).toLocaleDateString()}
+          {new Date(row.original.createdAt).toLocaleDateString()}
         </span>
       ),
     },
