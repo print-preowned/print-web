@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { AuthorForm, schema } from "./form";
 import { Author, readAuthors, updateAuthor } from "@/lib/api/author";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { usePrivilege } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { PaginatedResponse } from "@/lib/model";
@@ -54,7 +54,7 @@ export function AuthorsTable() {
     },
     onError: (error: Error) => {
       // Server will return 403/401 if unauthorized
-      toast.error(error.message || "Failed to update author");
+      apiErrorToast(error, "Failed to update author");
     },
   });
 

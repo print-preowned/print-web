@@ -26,7 +26,7 @@ import {
   PublicationCreatePayload,
 } from "@/lib/api/publication";
 import { readAuthors, type Author } from "@/lib/api/author";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { PaginatedResponse } from "@/lib/api/user";
 import {
   EMPTY_PUBLICATION_DRAFT,
@@ -136,7 +136,7 @@ export function AdminCreateBookForm({ onSuccess, onCancel }: Props) {
     },
     onError: (error: Error) => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
-      toast.error(error.message || "Failed to create book");
+      apiErrorToast(error, "Failed to create book");
     },
   });
 

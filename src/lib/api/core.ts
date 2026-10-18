@@ -14,12 +14,25 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type QueryParams = Record<string, string | number | undefined | null>;
 
 /** Thrown by apiFetch and serverApiFetch. `status` is absent for network and parse failures. */
+export type ApiErrorOptions = {
+  status?: number;
+  reason?: RequestFailure["reason"];
+  retryAfter?: string;
+  bannerHandled?: boolean;
+};
+
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status?: number
-  ) {
+  readonly status?: number;
+  readonly reason?: RequestFailure["reason"];
+  readonly retryAfter?: string;
+  readonly bannerHandled: boolean;
+
+  constructor(message: string, options: ApiErrorOptions = {}) {
     super(message);
+    this.status = options.status;
+    this.reason = options.reason;
+    this.retryAfter = options.retryAfter;
+    this.bannerHandled = options.bannerHandled ?? false;
     this.name = "ApiError";
     Object.setPrototypeOf(this, ApiError.prototype);
   }
@@ -34,6 +47,7 @@ export type RequestFailure = {
   /** Absent when the request never produced a response. */
   status?: number;
   message: string;
+  retryAfter?: string;
 };
 
 export type RequestResult<T> =
@@ -166,6 +180,7 @@ export async function requestJson<T>(
       reason: "http",
       status: res.status,
       message: await readErrorMessage(res),
+      retryAfter: res.headers.get("Retry-After") ?? undefined,
     };
   }
 

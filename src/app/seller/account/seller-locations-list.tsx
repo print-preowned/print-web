@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { HttpMethod } from "@/lib/api";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   deleteSellerAddress,
   formatAddressLine,
@@ -200,7 +200,7 @@ export function SellerLocationsList() {
       toast.success("Location deleted");
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to delete location");
+      apiErrorToast(err, "Failed to delete location");
     },
   });
 

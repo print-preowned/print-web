@@ -11,7 +11,7 @@ import {
   deletePlatformUser,
   revokePlatformInvite,
 } from "@/app/admin/lib/api/platform";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import usePagination, {
   UsePaginationResult,
@@ -93,7 +93,7 @@ function PlatformUsersTable() {
       toast.success("Platform user removed");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to remove platform user");
+      apiErrorToast(error, "Failed to remove platform user");
     },
   });
 
@@ -243,7 +243,7 @@ function PendingInvitesTable({
       toast.success("Invitation revoked");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to revoke invitation");
+      apiErrorToast(error, "Failed to revoke invitation");
     },
   });
 

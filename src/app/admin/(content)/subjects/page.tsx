@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { deleteSubject, readSubjectsListUrl, type Subject } from "@/lib/api/subject";
 import usePagination from "@/lib/pagination/usePagination";
 
@@ -74,7 +74,7 @@ export default function AdminSubjectsPage() {
       toast.success("Subject deleted");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete subject");
+      apiErrorToast(error, "Failed to delete subject");
     },
   });
 

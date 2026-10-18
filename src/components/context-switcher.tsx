@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth, useSellerId } from "@/lib/auth/context";
+import { apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -60,7 +61,7 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
         toast.error(response.detail ?? "Failed to switch context");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to switch context");
+      apiErrorToast(error, "Failed to switch context");
     } finally {
       setIsSwitching(false);
     }

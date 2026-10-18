@@ -38,7 +38,7 @@ import {
   type UserAddressCreatePayload,
 } from "@/lib/api/address";
 import type { HttpMethod } from "@/lib/api";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import {
   userAddressFormSchema,
@@ -246,7 +246,7 @@ function AddressForm({
       onCancel();
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to save address");
+      apiErrorToast(err, "Failed to save address");
     },
   });
 

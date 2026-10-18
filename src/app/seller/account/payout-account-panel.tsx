@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HttpMethod } from "@/lib/api";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createPayoutAccount,
   maskAccountNumber,
@@ -108,7 +108,7 @@ export function PayoutAccountPanel() {
     },
     onError: (err: Error) => {
       setResolvedName(null);
-      toast.error(err.message ?? "Could not verify account");
+      apiErrorToast(err, "Could not verify account");
     },
   });
 
@@ -134,7 +134,7 @@ export function PayoutAccountPanel() {
       toast.success("Payout account saved");
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to save payout account");
+      apiErrorToast(err, "Failed to save payout account");
     },
   });
 

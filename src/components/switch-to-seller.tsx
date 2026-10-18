@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSwitchContext } from "@/components/context-switcher";
 import { useAuth } from "@/lib/auth/context";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { readSellers, type Seller } from "@/lib/api/seller";
 import { cn } from "@/lib/utils";
 import type { BaseResponse } from "@/lib/model";
@@ -62,7 +62,7 @@ export function SwitchToSeller({ children }: { children: (startSwitch: () => voi
       setSellers(list);
       setOpen(true);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load storefronts");
+      apiErrorToast(error, "Failed to load storefronts");
     } finally {
       setLoading(false);
     }

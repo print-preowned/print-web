@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { deletePublisher, readPublishersListUrl, type Publisher } from "@/lib/api/publisher";
 import usePagination from "@/lib/pagination/usePagination";
 
@@ -75,7 +75,7 @@ export default function AdminPublishersPage() {
       toast.success("Publisher deleted");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete publisher");
+      apiErrorToast(error, "Failed to delete publisher");
     },
   });
 

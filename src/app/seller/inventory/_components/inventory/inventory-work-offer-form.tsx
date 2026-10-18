@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
+import { apiErrorToast } from "@/lib/api";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { publicationKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { cn } from "@/lib/utils";
@@ -127,7 +128,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
           void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
           onSuccess?.();
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Failed to add to inventory");
+          apiErrorToast(error, "Failed to add to inventory");
         }
       })}
     >

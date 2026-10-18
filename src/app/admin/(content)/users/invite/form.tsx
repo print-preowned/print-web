@@ -18,7 +18,7 @@ import {
 } from "@/app/admin/lib/api/platform";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -67,7 +67,7 @@ export function InviteForm() {
       router.push("/admin/users");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create invite");
+      apiErrorToast(error, "Failed to create invite");
     },
   });
 

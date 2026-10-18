@@ -18,7 +18,7 @@ import { FormSection } from "@/components/admin/form-section";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { updateBook, Book } from "@/lib/api/book";
 import { previewWorkTitle } from "@/lib/api/work-title";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AdminWorkPublications } from "./publications";
@@ -111,7 +111,7 @@ export function AdminBookForm({ book, onSuccess, onCancel }: BookFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update book");
+      apiErrorToast(error, "Failed to update book");
     },
   });
 

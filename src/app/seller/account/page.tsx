@@ -2,7 +2,7 @@
 
 import { useSellerId, useIsOwner } from "@/lib/auth/context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { Seller, readSellerById, updateSeller } from "@/lib/api/seller";
 import type { HttpMethod } from "@/lib/api";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ export default function SellerAccountPage() {
       toast.success("Storefront details updated");
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to update storefront");
+      apiErrorToast(err, "Failed to update storefront");
     },
   });
 

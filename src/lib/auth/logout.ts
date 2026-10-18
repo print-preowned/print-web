@@ -2,7 +2,8 @@
  * Logout utility
  * Clears auth via server (HttpOnly cookie); client never touches the token.
  *
- * MDC-CS: 401/403 on API calls → force logout (see apiFetch).
+ * MDC-CS: 401 on API calls → force logout (see apiFetch). 403 responses stay
+ * in the current context and are shown as a dismissible access banner.
  */
 
 export const AUTH_FORCE_LOGOUT_EVENT = "print:auth-force-logout";

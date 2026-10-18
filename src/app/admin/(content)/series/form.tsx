@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
 import { useDrawerFooter } from "@/components/form-drawer";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { readPublishersListUrl, type Publisher } from "@/lib/api/publisher";
 import { createSeries, updateSeries, type Series } from "@/lib/api/series";
 import { PaginatedResponse } from "@/lib/api/user";
@@ -79,7 +79,7 @@ export function AdminSeriesForm({ series, onSuccess }: SeriesFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create series");
+      apiErrorToast(error, "Failed to create series");
     },
   });
 
@@ -102,7 +102,7 @@ export function AdminSeriesForm({ series, onSuccess }: SeriesFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update series");
+      apiErrorToast(error, "Failed to update series");
     },
   });
 

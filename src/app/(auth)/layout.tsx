@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
+import { ApiStatusBanner } from "@/components/api-status-banner";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const methods = useForm();
@@ -16,6 +17,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         PRINT
       </a>
       <FormProvider {...methods}>
+        <ApiStatusBanner />
         {children}
       </FormProvider>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">

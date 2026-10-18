@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createSubject,
   updateSubject,
@@ -64,7 +64,7 @@ export function AdminSubjectForm({ subject, onSuccess }: SubjectFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create subject");
+      apiErrorToast(error, "Failed to create subject");
     },
   });
 
@@ -83,7 +83,7 @@ export function AdminSubjectForm({ subject, onSuccess }: SubjectFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update subject");
+      apiErrorToast(error, "Failed to update subject");
     },
   });
 

@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { ApiStatusBanner } from "@/components/api-status-banner";
 import { IconBuildingStore, IconChartBar, IconDashboard, IconFolder, IconListDetails, IconUsers } from "@tabler/icons-react";
 
 const sidebarData = {
@@ -70,6 +71,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
           <div className="@container/main flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
             <div className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto">
               <div className="container mx-auto flex w-full flex-col gap-4 px-8 py-4 md:gap-6 md:py-6">
+                <ApiStatusBanner />
                 {children}
               </div>
             </div>

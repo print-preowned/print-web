@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { SellerForm } from "./seller-form";
 import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { useAuth, useSellerId } from "@/lib/auth/context";
 import { useSwitchContext } from "@/components/context-switcher";
 import type { PaginatedResponse } from "@/lib/model";
@@ -47,7 +47,7 @@ export function SellerAccountsTable() {
       query.refetch();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete storefront");
+      apiErrorToast(error, "Failed to delete storefront");
     },
   });
 

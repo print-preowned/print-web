@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAuthor, updateAuthor, Author, AuthorNameInput } from "@/lib/api/author";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
  import { Button } from "@/components/ui/button";
 import { CatalogFormShell } from "@/components/admin/catalog-form-shell";
@@ -178,7 +178,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
     },
     onError: (error: Error) => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      toast.error(error.message || "Failed to create author");
+      apiErrorToast(error, "Failed to create author");
     },
   });
 
@@ -203,7 +203,7 @@ export function AdminAuthorForm({ author, onSuccess }: AuthorFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update author");
+      apiErrorToast(error, "Failed to update author");
     },
   });
 

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HttpMethod } from "@/lib/api";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createLegalEntity,
   readCurrentLegalEntity,
@@ -137,7 +137,7 @@ export function LegalEntityForm() {
       toast.success("Legal profile saved");
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to save legal profile");
+      apiErrorToast(err, "Failed to save legal profile");
     },
   });
 

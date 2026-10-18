@@ -54,7 +54,11 @@ export async function serverApiFetch<T>(
   ) {
     return null as T;
   }
-  throw new ApiError(result.message, result.status);
+  throw new ApiError(result.message, {
+    status: result.status,
+    reason: result.reason,
+    retryAfter: result.retryAfter,
+  });
 }
 
 export async function backendFetch<T>(

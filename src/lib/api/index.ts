@@ -16,8 +16,22 @@ import {
   type RequestFailure,
 } from "./core";
 
+export const API_STATUS_BANNER_EVENT = "app:api-status-banner";
+
 export { ApiError, generateUrl } from "./core";
 export type { HttpMethod, QueryParams };
+
+export function apiErrorToast(error: unknown, fallback: string): void {
+  if (
+    error instanceof ApiError &&
+    error.bannerHandled
+  ) {
+    return;
+  }
+  toast.error(error instanceof Error ? error.message || fallback : fallback);
+}
+
+export const showApiErrorToast = apiErrorToast;
 
 export type ApiFetchOptions = {
   method?: HttpMethod;
@@ -80,17 +94,50 @@ async function reportFailure<T>(
     const { forceLogout } = await import("../auth/logout");
     toast.error("Your session has expired. Please log in again.");
     await forceLogout();
-    throw new ApiError("Session expired", 401);
+    throw new ApiError("Session expired", { status: 401 });
   }
 
   if (silent) {
     return null as T;
   }
 
+  const bannerStatus =
+    failure.status === 403 ||
+    failure.status === 429 ||
+    [502, 503, 504].includes(failure.status ?? 0);
+  if (isClient && (bannerStatus || failure.reason === "network")) {
+    const detail = {
+      status: failure.status,
+      retryAfter: failure.retryAfter,
+      reason: failure.reason,
+      handled: false,
+    };
+    const event = new CustomEvent(API_STATUS_BANNER_EVENT, {
+      detail,
+    });
+    window.dispatchEvent(event);
+    throw new ApiError(
+      failure.message,
+      {
+        status: failure.status,
+        reason: failure.reason,
+        retryAfter: failure.retryAfter,
+        bannerHandled: detail.handled,
+      },
+    );
+  }
+
   if (isClient) {
     toast.error(clientMessage(failure));
   }
-  throw new ApiError(failure.message, failure.status);
+  throw new ApiError(
+    failure.message,
+    {
+      status: failure.status,
+      reason: failure.reason,
+      retryAfter: failure.retryAfter,
+    },
+  );
 }
 
 function clientMessage(failure: RequestFailure): string {

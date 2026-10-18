@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { HttpMethod } from "@/lib/api";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createSellerAddress,
   readSellerAddresses,
@@ -112,7 +112,7 @@ export function SellerLocationForm({
       onCancel();
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to save location");
+      apiErrorToast(err, "Failed to save location");
     },
   });
 

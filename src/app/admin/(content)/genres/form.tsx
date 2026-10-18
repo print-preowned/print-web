@@ -17,7 +17,7 @@ import {
 import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
 import { createGenre, readGenresListUrl, updateGenre, Genre } from "@/lib/api/genre";
 import { PaginatedResponse } from "@/lib/api/user";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { useDrawerFooter } from "@/components/form-drawer";
 
@@ -89,7 +89,7 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create genre");
+      apiErrorToast(error, "Failed to create genre");
     },
   });
 
@@ -113,7 +113,7 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update genre");
+      apiErrorToast(error, "Failed to update genre");
     },
   });
 

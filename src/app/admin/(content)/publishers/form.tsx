@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
 import { useDrawerFooter } from "@/components/form-drawer";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createPublisher,
   readPublishersListUrl,
@@ -85,7 +85,7 @@ export function AdminPublisherForm({ publisher, onSuccess }: PublisherFormProps)
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create publisher");
+      apiErrorToast(error, "Failed to create publisher");
     },
   });
 
@@ -108,7 +108,7 @@ export function AdminPublisherForm({ publisher, onSuccess }: PublisherFormProps)
       onSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update publisher");
+      apiErrorToast(error, "Failed to update publisher");
     },
   });
 

@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { useAuth } from "@/lib/auth/context";
+import { apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -86,7 +87,7 @@ export function SellerForm({
       router.refresh();
     },
     onError: (error: Error) => {
-      toast.error(error.message || (isEdit ? "Failed to update storefront" : "Failed to create storefront"));
+      apiErrorToast(error, isEdit ? "Failed to update storefront" : "Failed to create storefront");
     },
   });
 

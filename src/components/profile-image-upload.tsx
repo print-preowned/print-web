@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Camera, LoaderCircle, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { apiErrorToast } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/jp2"]);
@@ -73,7 +74,7 @@ export function ProfileImageUpload({
       clearLocalPreview();
     } catch (error) {
       clearLocalPreview();
-      toast.error(error instanceof Error ? error.message : "Failed to upload profile image");
+      apiErrorToast(error, "Failed to upload profile image");
     } finally {
       setIsUploading(false);
       onUploadingChange?.(false);

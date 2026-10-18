@@ -15,7 +15,7 @@ import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { AdminGenreForm } from "@/app/admin/(content)/genres/form";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { readGenresListUrl, Genre, deleteGenre } from "@/lib/api/genre";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, EllipsisVertical } from "lucide-react";
 import usePagination from "@/lib/pagination/usePagination";
@@ -88,7 +88,7 @@ export default function AdminGenresPage() {
       toast.success("Genre deleted successfully");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete genre");
+      apiErrorToast(error, "Failed to delete genre");
     },
   });
 

@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { deleteSeries, readSeriesListUrl, type Series } from "@/lib/api/series";
 import usePagination from "@/lib/pagination/usePagination";
 
@@ -75,7 +75,7 @@ export default function AdminSeriesPage() {
       toast.success("Series deleted");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete series");
+      apiErrorToast(error, "Failed to delete series");
     },
   });
 

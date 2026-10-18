@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
+import { apiErrorToast } from "@/lib/api";
 import { sellerInventoryKeys } from "@/lib/api/query-keys";
 import {
   updateSellerInventory,
@@ -34,7 +35,7 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
       void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
       onSuccess?.();
     },
-    onError: (error: Error) => toast.error(error.message || "Failed to update offer"),
+    onError: (error: Error) => apiErrorToast(error, "Failed to update offer"),
   });
 
   return (

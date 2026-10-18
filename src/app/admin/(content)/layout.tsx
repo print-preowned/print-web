@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { ApiStatusBanner } from "@/components/api-status-banner";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   IconBuilding,
@@ -82,6 +83,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="container flex flex-col gap-4 py-4 px-8 mx-auto md:gap-6 md:py-6">
+              <ApiStatusBanner />
               {children}
             </div>
           </div>

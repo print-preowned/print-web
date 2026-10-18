@@ -8,7 +8,7 @@ import {
   PlatformPrivilegeSet,
   readPlatformPrivilegeSetsUrl,
 } from "@/app/admin/lib/api/platform";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, EllipsisVertical } from "lucide-react";
 import usePagination from "@/lib/pagination/usePagination";
@@ -47,7 +47,7 @@ export default function AdminPrivilegeSetsPage() {
       toast.success("Privilege set deleted");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete privilege set");
+      apiErrorToast(error, "Failed to delete privilege set");
     },
   });
 

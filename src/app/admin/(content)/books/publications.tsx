@@ -9,7 +9,7 @@ import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { publicationKeys } from "@/lib/api/query-keys";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
   createPublication,
   deletePublication,
@@ -145,7 +145,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
       await queryClient.invalidateQueries({ queryKey });
       closeForm();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save publication");
+      apiErrorToast(error, "Failed to save publication");
     } finally {
       setIsSaving(false);
     }
@@ -162,7 +162,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
       if (editingId === publication.id) closeForm();
       await queryClient.invalidateQueries({ queryKey });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete publication");
+      apiErrorToast(error, "Failed to delete publication");
     }
   }
 
