@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,14 +45,12 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
   }, [session, isLoading, sessionExpired, router]);
 
   const handleLogin = async (data: FieldValues) => {
-    let response: { data?: unknown } | undefined;
-
     try {
       // Next /api/auth/* handlers mint the HttpOnly cookie. `/auth/login` via
       // the proxy would reach FastAPI and drop Set-Cookie.
       const payload: Login = { email: data.email, password: data.password };
       const { endpoint, method, body } = isPlatform ? platformLogin(payload) : login(payload);
-      response = await apiFetch<{ data?: unknown }>(`/api/${endpoint}`, {
+      await apiFetch<{ data?: unknown }>(`/api/${endpoint}`, {
         method,
         body,
       });
@@ -61,9 +59,6 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
       return;
     }
 
-    if (response.data) {
-      localStorage.setItem("user", JSON.stringify(response.data));
-    }
     const nextSession = await refreshSession();
 
     if (isPlatform) {

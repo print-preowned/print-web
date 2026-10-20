@@ -1,83 +1,80 @@
-"use client";
-
-import { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { ApiStatusBanner } from "@/components/api-status-banner";
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  IconBuilding,
-  IconChartBar,
-  IconBookmark,
-  IconLibrary,
-  IconListDetails,
-  IconShieldLock,
-  IconTags,
-  IconUsers,
-} from "@tabler/icons-react";
+import { getUserProfileCookie } from "@/lib/auth/server-cookie";
 
 const sidebarData = {
-  user: {
-    name: "Admin",
-    email: "admin@example.com",
-    avatar: "/avatars/admin.jpg",
-  },
   navMain: [
     {
       title: "Books",
       url: "/admin/books",
-      icon: IconListDetails,
+      icon: "books",
     },
     {
       title: "Authors",
       url: "/admin/authors",
-      icon: IconChartBar,
+      icon: "ballpen",
     },
     {
       title: "Genres",
       url: "/admin/genres",
-      icon: IconTags,
+      icon: "tags",
     },
     {
       title: "Publishers",
       url: "/admin/publishers",
-      icon: IconBuilding,
+      icon: "building",
     },
     {
       title: "Series",
       url: "/admin/series",
-      icon: IconLibrary,
+      icon: "library",
     },
     {
       title: "Subjects",
       url: "/admin/subjects",
-      icon: IconBookmark,
+      icon: "bookmark",
     },
     {
       title: "Users",
       url: "/admin/users",
-      icon: IconUsers,
+      icon: "users",
     },
     {
       title: "Privilege sets",
       url: "/admin/privilege-sets",
-      icon: IconShieldLock,
+      icon: "shieldLock",
     },
   ],
   accountHref: "/admin/account",
 };
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const profile = await getUserProfileCookie();
+  const sidebarDataWithUser = {
+    ...sidebarData,
+    user: {
+      name: `${profile?.firstName?.trim()} ${profile?.lastName?.trim()}` || "Admin",
+      email: profile?.email || "",
+      avatar: "",
+    },
+  };
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
           "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
-      <AppSidebar data={sidebarData} />
+      <AppSidebar data={sidebarDataWithUser} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

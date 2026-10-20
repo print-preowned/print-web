@@ -6,3 +6,6 @@
 
 /** Single source of truth for the auth token cookie name */
 export const AUTH_COOKIE_NAME = "authToken";
+
+/** Non-authoritative display profile shared with server and client rendering. */
+export const PROFILE_COOKIE_NAME = "userProfile";

@@ -37,9 +37,6 @@ export function RegisterForm() {
       }
 
       reset();
-      if (response.data) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
       await refreshSession();
       toast.success("Account created. You're signed in.");
       router.push("/");

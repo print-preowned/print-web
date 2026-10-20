@@ -7,7 +7,6 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
 
  import { useSwitchContext } from "@/components/context-switcher"
 import { useAuth } from "@/lib/auth/context"
@@ -51,24 +50,7 @@ export function NavUser({
   const { context } = useAuth()
   const { handleSwitchContext: handleSwitchToCustomer, isSwitching: isSwitchingToCustomer } =
     useSwitchContext({ targetContext: "CUSTOMER" })
-  const [userData, setUserData] = useState<{ name: string; email: string; avatar: string }>(user)
-
-  useEffect(() => {
-    // Load user data from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser)
-        setUserData({
-          name: parsed.name || parsed.first_name || "User",
-          email: parsed.email || user.email,
-          avatar: parsed.avatar || user.avatar,
-        })
-      } catch (e) {
-        // Keep default user data
-      }
-    }
-  }, [user])
+  const userData = user
 
   return (
     <SidebarMenu>
@@ -80,7 +62,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={userData.avatar} alt={userData.name} />
+                {userData.avatar ? <AvatarImage src={userData.avatar} alt={userData.name} /> : null}
                 <AvatarFallback className="rounded-lg">
                   {userData.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -103,7 +85,7 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={userData.avatar} alt={userData.name} />
+                  {userData.avatar ? <AvatarImage src={userData.avatar} alt={userData.name} /> : null}
                   <AvatarFallback className="rounded-lg">
                     {userData.name.charAt(0).toUpperCase()}
                   </AvatarFallback>

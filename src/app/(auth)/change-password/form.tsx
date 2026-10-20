@@ -42,17 +42,6 @@ export function ChangePasswordForm({
         return;
       }
 
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser) as { status?: string };
-          user.status = "ACTIVE";
-          localStorage.setItem("user", JSON.stringify(user));
-        } catch {
-          // ignore parse errors
-        }
-      }
-
       await refreshSession();
 
       toast.success(

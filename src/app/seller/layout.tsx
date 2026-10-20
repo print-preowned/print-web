@@ -1,54 +1,57 @@
-"use client";
-
-import { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { ApiStatusBanner } from "@/components/api-status-banner";
-import { IconBuildingStore, IconChartBar, IconDashboard, IconFolder, IconListDetails, IconUsers } from "@tabler/icons-react";
+import { getUserProfileCookie } from "@/lib/auth/server-cookie";
 
 const sidebarData = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
       url: "/seller/dashboard",
-      icon: IconDashboard,
+      icon: "dashboard",
     },
     {
       title: "Inventory",
       url: "/seller/inventory",
-      icon: IconListDetails,
+      icon: "listDetails",
     },
     {
       title: "Authors",
       url: "/seller/authors",
-      icon: IconChartBar,
+      icon: "chartBar",
     },
     {
       title: "Orders",
       url: "/seller/orders",
-      icon: IconFolder,
+      icon: "folder",
     },
     {
       title: "Users",
       url: "/seller/users",
-      icon: IconUsers,
+      icon: "users",
     },
     {
       title: "Accounts",
       url: "/seller/accounts",
-      icon: IconBuildingStore,
+      icon: "buildingStore",
     },
   ],
   accountHref: "/seller/account",
 };
 
-export default function SellerLayout({ children }: { children: ReactNode }) {
+export default async function SellerLayout({ children }: { children: ReactNode }) {
+  const profile = await getUserProfileCookie();
+  const sidebarDataWithUser = {
+    ...sidebarData,
+    user: {
+      name: `${profile?.firstName?.trim()} ${profile?.lastName?.trim()}` || "Seller",
+      email: profile?.email || "",
+      avatar: "",
+    },
+  };
+
   return (
     <SidebarProvider
       className="flex h-svh flex-col overflow-hidden"
@@ -56,7 +59,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
           "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       <SiteHeader />
@@ -64,7 +67,7 @@ export default function SellerLayout({ children }: { children: ReactNode }) {
       {/* Main row: only this region scrolls (inset), not the header */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <AppSidebar
-          data={sidebarData}
+          data={sidebarDataWithUser}
           className="inset-y-auto top-(--header-height) h-[calc(100svh-var(--header-height))]"
         />
         <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">

@@ -5,7 +5,8 @@
 
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME } from "../cookies";
+import { AUTH_COOKIE_NAME, PROFILE_COOKIE_NAME } from "../cookies";
+import { User } from "../api/user";
 
 export { AUTH_COOKIE_NAME };
 
@@ -25,7 +26,7 @@ function isSecureCookieContext(request?: Request): boolean {
   return false;
 }
 
-export function getAuthCookieOptions(request?: Request) {
+function getAuthCookieOptions(request?: Request) {
   return {
     httpOnly: true,
     secure: isSecureCookieContext(request),
@@ -42,6 +43,16 @@ export function getAuthCookieClearOptions(request?: Request) {
   };
 }
 
+function getProfileCookieOptions(request?: Request) {
+  return {
+    httpOnly: false,
+    secure: isSecureCookieContext(request),
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: MAX_AGE_SECONDS,
+  };
+}
+
 export function applyAuthCookie(
   response: NextResponse,
   token: string,
@@ -51,12 +62,44 @@ export function applyAuthCookie(
   return response;
 }
 
+export function applyUserProfileCookie(
+  response: NextResponse,
+  profile: unknown,
+  request?: Request,
+): NextResponse {
+  const value = JSON.stringify(profile);
+  if (value.length <= 3500) {
+    response.cookies.set(PROFILE_COOKIE_NAME, value, getProfileCookieOptions(request));
+  } else {
+    response.cookies.set(PROFILE_COOKIE_NAME, "", {
+      ...getProfileCookieOptions(request),
+      maxAge: 0,
+    });
+  }
+  return response;
+}
+
 export function applyClearAuthCookie(
   response: NextResponse,
   request?: Request,
 ): NextResponse {
   response.cookies.set(AUTH_COOKIE_NAME, "", getAuthCookieClearOptions(request));
+  response.cookies.set(PROFILE_COOKIE_NAME, "", {
+    ...getProfileCookieOptions(request),
+    maxAge: 0,
+  });
   return response;
+}
+
+export async function getUserProfileCookie(): Promise<User | null> {
+  const store = await cookies();
+  const value = store.get(PROFILE_COOKIE_NAME)?.value;
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
 }
 
 export async function setAuthCookie(token: string, request?: Request) {

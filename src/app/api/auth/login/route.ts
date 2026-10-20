@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
-import { applyAuthCookie } from "@/lib/auth/server-cookie";
+import {
+  applyAuthCookie,
+  applyUserProfileCookie,
+} from "@/lib/auth/server-cookie";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +21,7 @@ export async function POST(request: NextRequest) {
       message: res.message,
       data: res.data,
     });
+    applyUserProfileCookie(response, res.data, request);
     return applyAuthCookie(response, res.token, request);
   } catch (err) {
     if (err instanceof Response) return err;

@@ -104,7 +104,7 @@ export function SwitchToSeller({ children }: { children: (startSwitch: () => voi
 
             <ul className="divide-y divide-border/70 border border-border/80">
               {sellers.map((seller) => {
-                const owned = session?.id === seller.user_id;
+                const owned = session?.id === seller.userId;
                 const entering = pendingId === seller.id;
                 return (
                   <li key={seller.id}>

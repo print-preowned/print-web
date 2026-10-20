@@ -18,7 +18,6 @@ function redirectToLogin() {
 export async function forceLogout(): Promise<void> {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(AUTH_FORCE_LOGOUT_EVENT));
-  localStorage.removeItem("user");
   try {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
   } catch {

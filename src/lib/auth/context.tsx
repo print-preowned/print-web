@@ -12,6 +12,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { AUTH_FORCE_LOGOUT_EVENT } from "./logout";
+import { clearUserProfileCookie } from "./profile-cookie";
 import { Session, TokenContext } from "./token";
 
 interface AuthContextValue {
@@ -60,7 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const onForceLogout = () => setSessionState(null);
+    const onForceLogout = () => {
+      setSessionState(null);
+      clearUserProfileCookie();
+    }
     window.addEventListener(AUTH_FORCE_LOGOUT_EVENT, onForceLogout);
     return () => window.removeEventListener(AUTH_FORCE_LOGOUT_EVENT, onForceLogout);
   }, []);
@@ -71,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearAuth = () => {
     setSessionState(null);
-    localStorage.removeItem("user");
+    clearUserProfileCookie();
     fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
   };
 

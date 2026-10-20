@@ -2,8 +2,20 @@
 
 import * as React from "react";
 import {
-  IconProps,
   Icon,
+  IconBallpen,
+  IconBookmark,
+  IconBooks,
+  IconBuilding,
+  IconBuildingStore,
+  IconChartBar,
+  IconDashboard,
+  IconFolder,
+  IconLibrary,
+  IconListDetails,
+  IconShieldLock,
+  IconTags,
+  IconUsers,
 } from "@tabler/icons-react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
@@ -14,12 +26,25 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+
+const NAV_ICONS: Record<string, Icon> = {
+  ballpen: IconBallpen,
+  bookmark: IconBookmark,
+  books: IconBooks,
+  building: IconBuilding,
+  buildingStore: IconBuildingStore,
+  chartBar: IconChartBar,
+  dashboard: IconDashboard,
+  folder: IconFolder,
+  library: IconLibrary,
+  listDetails: IconListDetails,
+  shieldLock: IconShieldLock,
+  tags: IconTags,
+  users: IconUsers,
+};
 
 
 type Props = React.ComponentProps<typeof Sidebar> & {
@@ -32,16 +57,18 @@ type Props = React.ComponentProps<typeof Sidebar> & {
     navMain: {
       title: string;
       url: string;
-      icon: React.ForwardRefExoticComponent<
-        IconProps & React.RefAttributes<Icon>
-      >;
+      icon: keyof typeof NAV_ICONS;
     }[];
     accountHref: string
   };
 };
 
 export function AppSidebar({ data, ...props }: Props) {
-  const { user, navMain, accountHref } = data;
+  const { user, accountHref } = data;
+  const navMain = data.navMain.map((item) => ({
+    ...item,
+    icon: NAV_ICONS[item.icon],
+  }));
   const { state, toggleSidebar } = useSidebar();
 
   return (
@@ -65,7 +92,10 @@ export function AppSidebar({ data, ...props }: Props) {
         <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} accountHref={accountHref} />
+        <NavUser
+          user={user}
+          accountHref={accountHref}
+        />
       </SidebarFooter>
     </Sidebar>
   );
