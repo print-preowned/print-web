@@ -154,10 +154,10 @@ export function BulkUpload<T extends Record<string, unknown>>({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={() => setOpen(!open)}>
       <DialogTrigger>
         {children ?? (
-          <Button variant="outline">
+          <Button variant="outline" >
             <Upload className="mr-2 h-4 w-4" />
             Bulk Upload
           </Button>

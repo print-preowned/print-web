@@ -44,11 +44,8 @@ import {
   userAddressFormSchema,
   type UserAddressFormValues,
 } from "@/lib/address/nigeria";
+import { PaginatedResponse } from "@/lib/model";
 
-type PaginatedUserAddresses = {
-  data: UserAddress[];
-  pagination?: { total_results: number };
-};
 
 function emptyFormValues(): UserAddressFormValues {
   return {
@@ -316,7 +313,7 @@ export default function AddressesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<UserAddress | null>(null);
 
-  const { data, isLoading, error } = useApiQuery<PaginatedUserAddresses>(
+  const { data, isLoading, error } = useApiQuery<PaginatedResponse<UserAddress>>(
     listKey,
     readUserAddresses(),
   );
@@ -330,8 +327,8 @@ export default function AddressesPage() {
     },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: listKey });
-      const previous = queryClient.getQueryData<PaginatedUserAddresses>(listKey);
-      queryClient.setQueryData<PaginatedUserAddresses>(listKey, (current) => {
+      const previous = queryClient.getQueryData<PaginatedResponse<UserAddress>>(listKey);
+      queryClient.setQueryData<PaginatedResponse<UserAddress>>(listKey, (current) => {
         if (!current?.data) return current;
         return {
           ...current,

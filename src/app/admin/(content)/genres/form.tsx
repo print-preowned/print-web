@@ -7,13 +7,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AutocompleteSelect, mergeAutocompleteOptions } from "@/components/autocomplete";
 import { createGenre, readGenresListUrl, updateGenre, Genre } from "@/lib/api/genre";
 import { PaginatedResponse } from "@/lib/api/user";
@@ -29,7 +22,6 @@ type GenreFormProps = {
 type GenreFormValues = {
   name: string;
   description: string;
-  status: string;
 };
 
 export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
@@ -41,7 +33,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
     defaultValues: {
       name: genre?.name ?? "",
       description: genre?.description ?? "",
-      status: genre?.status ?? "ACTIVE",
     },
   });
 
@@ -66,7 +57,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
     if (genre) {
       setValue("name", genre.name);
       setValue("description", genre.description || "");
-      setValue("status", genre.status);
     }
   }, [genre, setValue]);
 
@@ -76,7 +66,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
         name: data.name,
         description: data.description || null,
         parent_id: parentId,
-        status: data.status,
       });
       return apiFetch(request.endpoint, {
         method: request.method,
@@ -99,7 +88,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
         name: data.name,
         description: data.description || null,
         parent_id: parentId,
-        status: data.status,
       });
       return apiFetch(request.endpoint, {
         method: request.method,
@@ -171,22 +159,6 @@ export function AdminGenreForm({ genre, onSuccess }: GenreFormProps) {
         showClear
         noResultsMessage="No genres match your search"
       />
-
-      <div className="flex flex-col gap-3">
-        <Label htmlFor="status">Status</Label>
-        <Select
-          value={watch("status") || genre?.status || "ACTIVE"}
-          onValueChange={(value) => setValue("status", value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="INACTIVE">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
     </form>
   );
 }

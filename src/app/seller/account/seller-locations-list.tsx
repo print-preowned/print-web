@@ -33,11 +33,8 @@ import {
 import { usePrivilege } from "@/lib/auth/context";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { SellerLocationForm } from "./seller-location-form";
+import { PaginatedResponse } from "@/lib/model";
 
-type PaginatedSellerAddresses = {
-  data: SellerAddress[];
-  pagination?: { total_results: number };
-};
 
 function LocationListSkeleton() {
   return (
@@ -151,7 +148,7 @@ export function SellerLocationsList() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SellerAddress | null>(null);
 
-  const { data, isLoading, error } = useApiQuery<PaginatedSellerAddresses>(
+  const { data, isLoading, error } = useApiQuery<PaginatedResponse<SellerAddress>>(
     listKey,
     readSellerAddresses({ page: 1, size: 20 }),
     { enabled: canRead },
@@ -166,8 +163,8 @@ export function SellerLocationsList() {
     },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: listKey });
-      const previous = queryClient.getQueryData<PaginatedSellerAddresses>(listKey);
-      queryClient.setQueryData<PaginatedSellerAddresses>(listKey, (current) => {
+      const previous = queryClient.getQueryData<PaginatedResponse<SellerAddress>>(listKey);
+      queryClient.setQueryData<PaginatedResponse<SellerAddress>>(listKey, (current) => {
         if (!current?.data) return current;
         return {
           ...current,

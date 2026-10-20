@@ -24,7 +24,7 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
   const password = watch("password");
 
   const handleAccept = async (data: FieldValues) => {
-    if (data.password !== data.confirm_password) {
+    if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
@@ -34,9 +34,9 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
       const payload = {
         token: token,
         password: data.password as string,
-        first_name: data.first_name as string,
-        last_name: data.last_name as string,
-        middle_name: data.middle_name as string | undefined,
+        firstName: data.firstName as string,
+        lastName: data.lastName as string,
+        middleName: data.middleName as string | undefined,
       };
 
       const request = acceptPlatformInvite(payload);
@@ -72,36 +72,36 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
           </div>
         )}
         <div className="grid gap-3">
-          <Label htmlFor="first_name">First Name</Label>
+          <Label htmlFor="firstName">First Name</Label>
           <Input
-            id="first_name"
+            id="firstName"
             type="text"
             placeholder="John"
-            {...register("first_name", { required: "First name is required" })}
+            {...register("firstName", { required: "First name is required" })}
           />
-          {errors.first_name && (
-            <p className="text-sm text-red-500">{errors.first_name.message as string}</p>
+          {errors.firstName && (
+            <p className="text-sm text-red-500">{errors.firstName.message as string}</p>
           )}
         </div>
         <div className="grid gap-3">
-          <Label htmlFor="last_name">Last Name</Label>
+          <Label htmlFor="lastName">Last Name</Label>
           <Input
-            id="last_name"
+            id="lastName"
             type="text"
             placeholder="Doe"
-            {...register("last_name", { required: "Last name is required" })}
+            {...register("lastName", { required: "Last name is required" })}
           />
-          {errors.last_name && (
-            <p className="text-sm text-red-500">{errors.last_name.message as string}</p>
+          {errors.lastName && (
+            <p className="text-sm text-red-500">{errors.lastName.message as string}</p>
           )}
         </div>
         <div className="grid gap-3">
-          <Label htmlFor="middle_name">Middle Name (Optional)</Label>
+          <Label htmlFor="middleName">Middle Name (Optional)</Label>
           <Input
-            id="middle_name"
+            id="middleName"
             type="text"
             placeholder="Michael"
-            {...register("middle_name")}
+            {...register("middleName")}
           />
         </div>
         <div className="grid gap-3">
@@ -123,19 +123,19 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
           )}
         </div>
         <div className="grid gap-3">
-          <Label htmlFor="confirm_password">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
-            id="confirm_password"
+            id="confirmPassword"
             type="password"
             placeholder="Confirm your password"
-            {...register("confirm_password", {
+            {...register("confirmPassword", {
               required: "Please confirm your password",
               validate: (value) =>
                 value === password || "Passwords do not match",
             })}
           />
-          {errors.confirm_password && (
-            <p className="text-sm text-red-500">{errors.confirm_password.message as string}</p>
+          {errors.confirmPassword && (
+            <p className="text-sm text-red-500">{errors.confirmPassword.message as string}</p>
           )}
         </div>
         <Button type="submit" className="w-full" disabled={isSubmitting}>

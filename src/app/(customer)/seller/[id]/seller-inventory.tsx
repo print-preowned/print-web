@@ -106,7 +106,7 @@ export function SellerInventory({ sellerId }: SellerInventoryProps) {
 
   const canGoPrev = pagination.pageIndex > 0;
   const canGoNext = pagination.pageIndex + 1 < totalPages;
-  const totalResults = response?.pagination?.total_results ?? 0;
+  const totalResults = response?.pagination?.totalResults ?? 0;
   const showSearch = debouncedSearch.length > 0 || totalResults > 20;
 
   return (

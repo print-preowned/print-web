@@ -28,7 +28,7 @@ export default function usePagination<T>({
   });
 
   const data = reduceInfiniteData<T>(query.data);
-  const totalPages = query.data?.pages[0].pagination?.total_pages || 0;
+  const totalPages = query.data?.pages[0].pagination?.totalPages || 0;
   const currentPage = query.data?.pages[0].pagination?.page || 1;
 
   return { ...query, queryKey, makePath, data, totalPages, currentPage };

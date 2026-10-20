@@ -36,7 +36,7 @@ export function OrdersTable() {
   });
 
   const data = query.data?.data ?? [];
-  const totalPages = query.data?.pagination?.total_pages ?? 1;
+  const totalPages = query.data?.pagination?.totalPages ?? 1;
 
   const columns: ColumnDef<SellerOrderSummary>[] = [
     {

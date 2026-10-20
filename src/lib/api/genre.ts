@@ -7,7 +7,6 @@ export type Genre = {
   description?: string | null;
   parentId?: string | null;
   parentName?: string | null;
-  status: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -26,7 +25,6 @@ export function createGenre(payload: {
   name: string;
   description?: string | null;
   parent_id?: string | null;
-  status?: string;
 }) {
   return {
     endpoint: "/genres",
@@ -41,7 +39,6 @@ export function updateGenre(
     name: string;
     description?: string | null;
     parent_id?: string | null;
-    status?: string;
   }>,
 ) {
   return {

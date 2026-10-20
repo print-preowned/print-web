@@ -163,7 +163,7 @@ export function OrderHistoryList() {
   });
 
   const orders = query.data?.data ?? [];
-  const totalPages = query.data?.pagination?.total_pages ?? 1;
+  const totalPages = query.data?.pagination?.totalPages ?? 1;
 
   if (query.isLoading) {
     return <OrderHistorySkeleton />;

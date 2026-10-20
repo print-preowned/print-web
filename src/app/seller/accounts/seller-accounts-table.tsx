@@ -52,7 +52,7 @@ export function SellerAccountsTable() {
   });
 
   const data = query.data?.data || [];
-  const totalPages = query.data?.pagination?.total_pages ?? 1;
+  const totalPages = query.data?.pagination?.totalPages ?? 1;
 
   const handleFormSuccess = () => {
     closeDrawer();
@@ -94,7 +94,7 @@ export function SellerAccountsTable() {
     {
       id: "actions",
       cell: ({ row }) => {
-        const isRowOwner = session?.id === row.original.user_id;
+        const isRowOwner = session?.id === row.original.userId;
         const isCurrent = row.original.id === currentSellerId;
         return (
           <DropdownMenu>

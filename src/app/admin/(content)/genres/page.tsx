@@ -3,13 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
 import { AdminGenreForm } from "@/app/admin/(content)/genres/form";
@@ -26,24 +19,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { StatusBadge } from "@/components/status-badge";
-import { BulkUpload } from "@/components/bulk-upload";
-import { parseCSV } from "@/lib/utils/csv";
-import { createGenre } from "@/lib/api/genre";
-
-type GenreCSVRow = {
-  name: string;
-  description?: string;
-  status?: string;
-};
-
 
 
 export default function AdminGenresPage() {
   const queryClient = useQueryClient();
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
@@ -58,25 +39,24 @@ export default function AdminGenresPage() {
     setPagination,
     totalPages,
   } = usePagination<Genre>({
-    queryKey: ["genres", debouncedSearch, statusFilter],
-    getUrl: ({ page, size, search: s, status }) =>
+    queryKey: ["genres", debouncedSearch],
+    getUrl: ({ page, size, search: s }) =>
       readGenresListUrl({
         page,
         size,
         filter: {
           search: (s as string) || undefined,
-          status: status !== "all" ? (status as string) : undefined,
         },
       }),
     initialPageSize: 10,
-    params: { search: debouncedSearch, status: statusFilter },
+    params: { search: debouncedSearch },
   });
 
   const genres = serverGenres || [];
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -108,11 +88,6 @@ export default function AdminGenresPage() {
           {row.original.description || "-"}
         </span>
       ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "createdAt",
@@ -180,16 +155,6 @@ export default function AdminGenresPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <div className="flex gap-2 mb-4">
             <Button
@@ -204,62 +169,6 @@ export default function AdminGenresPage() {
               <Plus className="mr-2 h-4 w-4" />
               Create Genre
             </Button>
-            <BulkUpload<GenreCSVRow>
-              title="Bulk Upload Genres"
-              description="Upload multiple genres from a CSV file. Each row should contain: name, description (optional), and optional status."
-              sampleHeaders={["name", "description", "status"]}
-              sampleRow={["Fiction", "Literary works of imagination", "ACTIVE"]}
-              parseCSV={(csvText) => {
-                const rows = parseCSV(csvText);
-                if (rows.length < 2) throw new Error("CSV must have header row and at least one data row");
-                const headers = rows[0].map(h => h.trim().toLowerCase());
-                return rows.slice(1).map(row => {
-                  const obj: Record<string, string> = {};
-                  headers.forEach((header, idx) => {
-                    obj[header] = row[idx]?.trim() || "";
-                  });
-                  return obj as GenreCSVRow;
-                });
-              }}
-              validateItem={(item, index) => {
-                if (!item.name?.trim()) {
-                  return { valid: false, error: "Name is required" };
-                }
-                return { valid: true };
-              }}
-              onUpload={async (items) => {
-                let success = 0;
-                let failed = 0;
-                const errors: string[] = [];
-                
-                for (let i = 0; i < items.length; i++) {
-                  try {
-                    const item = items[i];
-                    const request = await createGenre({
-                      name: item.name,
-                      description: item.description || null,
-                      status: item.status || "ACTIVE",
-                    });
-                    
-                    await apiFetch(request.endpoint, {
-                      method: request.method,
-                      body: request.body,
-                    });
-                    
-                    success++;
-                  } catch (error) {
-                    failed++;
-                    errors.push(`Row ${i + 2}: ${error instanceof Error ? error.message : "Unknown error"}`);
-                  }
-                }
-                
-                if (success > 0) {
-                  queryClient.invalidateQueries({ queryKey: ["genres"] });
-                }
-                
-                return { success, failed, errors };
-              }}
-            />
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { PaginatedResponse } from "@/lib/api/user";
+import { PaginatedResponse } from "@/lib/model";
 
 export interface UsePaginationOptions<T> {
   /** Base query key (e.g. ["books"]). Pagination and params are appended for the request. */
@@ -21,7 +21,7 @@ export interface UsePaginationOptions<T> {
 export interface UsePaginationResult<T> {
   /** Current page items. */
   data: T[];
-  /** Full API response (for total_pages, etc.). */
+  /** Full API response (for totalPages, etc.). */
   response: PaginatedResponse<T> | undefined;
   /** Loading state. */
   isLoading: boolean;
@@ -64,7 +64,7 @@ export default function usePagination<T>({
   });
 
   const data = response?.data ?? [];
-  const totalPages = response?.pagination?.total_pages ?? 1;
+  const totalPages = response?.pagination?.totalPages ?? 1;
 
   return {
     data,

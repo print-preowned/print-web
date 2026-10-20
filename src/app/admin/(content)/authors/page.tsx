@@ -152,69 +152,6 @@ export default function AdminAuthorsPage() {
                 Create Author
               </Link>
             </Button>
-            <BulkUpload<AuthorCSVRow>
-              title="Bulk Upload Authors"
-              description="Upload multiple authors from a CSV file. Each row should contain: given_names (optional), family_name, about, image (optional), and optional status."
-              sampleHeaders={["given_names", "family_name", "about", "image", "status"]}
-              sampleRow={["Chinua", "Achebe", "Award-winning fiction author", "https://example.com/image.jpg", "CANONICAL"]}
-              parseCSV={(csvText) => {
-                const rows = parseCSV(csvText);
-                if (rows.length < 2) throw new Error("CSV must have header row and at least one data row");
-                const headers = rows[0].map(h => h.trim().toLowerCase());
-                return rows.slice(1).map(row => {
-                  const obj: Record<string, string> = {};
-                  headers.forEach((header, idx) => {
-                    obj[header] = row[idx]?.trim() || "";
-                  });
-                  return obj as AuthorCSVRow;
-                });
-              }}
-              validateItem={(item) => {
-                if (!item.family_name?.trim() && !item.given_names?.trim()) {
-                  return { valid: false, error: "Family name is required" };
-                }
-                if (!item.about?.trim()) {
-                  return { valid: false, error: "About is required" };
-                }
-                return { valid: true };
-              }}
-              onUpload={async (items) => {
-                let success = 0;
-                let failed = 0;
-                const errors: string[] = [];
-                
-                for (let i = 0; i < items.length; i++) {
-                  try {
-                    const item = items[i];
-                    const request = createAuthor({
-                      name: {
-                        keyNames: (item.family_name || item.given_names || "").trim(),
-                        namesBeforeKey: item.family_name ? item.given_names?.trim() || null : null,
-                      },
-                      about: item.about,
-                      image: item.image || "",
-                      status: item.status === "ACTIVE" ? "CANONICAL" : item.status || "CANONICAL",
-                    });
-                    
-                    await apiFetch(request.endpoint, {
-                      method: request.method as "POST",
-                      body: request.body,
-                    });
-                    
-                    success++;
-                  } catch (error) {
-                    failed++;
-                    errors.push(`Row ${i + 2}: ${error instanceof Error ? error.message : "Unknown error"}`);
-                  }
-                }
-                
-                if (success > 0) {
-                  queryClient.invalidateQueries({ queryKey: ["authors"] });
-                }
-                
-                return { success, failed, errors };
-              }}
-            />
           </div>
         </div>
       </div>

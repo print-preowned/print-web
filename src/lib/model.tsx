@@ -11,7 +11,7 @@ export type PaginatedResponse<T> = {
   pagination?: {
     page: number;
     size: number;
-    total_pages: number;
-    total_results: number;
+    totalPages: number;
+    totalResults: number;
   } | null;
 };

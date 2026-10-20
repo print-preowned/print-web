@@ -2,14 +2,14 @@ import { generateUrl } from ".";
 
 export type Seller = {
   id: string;
-  user_id: string;
-  legal_entity_id?: string;
+  userId: string;
+  legalEntityId?: string;
   name: string;
   description?: string | null;
   logo?: string | null;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function readSellers() {
@@ -27,7 +27,7 @@ export function createSeller(payload: {
 
 export function updateSeller(
   id: string,
-  payload: Partial<Omit<Seller, "id" | "user_id" | "created_at" | "updated_at">>,
+  payload: Partial<Omit<Seller, "id" | "userId" | "createdAt" | "updatedAt">>,
 ): { endpoint: string; method: "PATCH"; body: typeof payload } {
   return { endpoint: `/sellers/${id}`, method: "PATCH", body: payload };
 }
