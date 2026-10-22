@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json();
-    const targetContext = body?.target_context as string | undefined;
+    const targetContext = body?.targetContext as string | undefined;
     const sellerId = body?.seller_id as string | undefined;
 
     let path: string;
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "Invalid target_context" }, { status: 400 });
     }
 
-    const res = await backendFetch<{ status_code: number; message: string; token: string }>(
+    const res = await backendFetch<{ statusCode: number; message: string; token: string }>(
       path,
       { method: "POST", body: {}, token },
     );
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "No token in response" }, { status: 500 });
     }
     const response = NextResponse.json({
-      status_code: res.status_code,
+      statusCode: res.statusCode,
       message: res.message,
     });
     return applyAuthCookie(response, res.token, request);

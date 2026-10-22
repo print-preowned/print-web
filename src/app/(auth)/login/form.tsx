@@ -47,7 +47,7 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
   const handleLogin = async (data: FieldValues) => {
     try {
       // Next /api/auth/* handlers mint the HttpOnly cookie. `/auth/login` via
-      // the proxy would reach FastAPI and drop Set-Cookie.
+      // the proxy would reach the server and drop Set-Cookie.
       const payload: Login = { email: data.email, password: data.password };
       const { endpoint, method, body } = isPlatform ? platformLogin(payload) : login(payload);
       await apiFetch<{ data?: unknown }>(`/api/${endpoint}`, {

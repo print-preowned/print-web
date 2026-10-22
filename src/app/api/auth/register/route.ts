@@ -8,7 +8,7 @@ import {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const res = await backendFetch<{ status_code: number; message: string; data: unknown; token: string }>(
+    const res = await backendFetch<{ statusCode: number; message: string; data: unknown; token: string }>(
       "/auth/signup",
       { method: "POST", body }
     );
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "No token in response" }, { status: 500 });
     }
     const response = NextResponse.json({
-      status_code: res.status_code,
+      statusCode: res.statusCode,
       message: res.message,
       data: res.data,
     });

@@ -30,7 +30,7 @@ export function platformLogin(payload: Login) {
 }
 
 export interface ContextSwitchResponse {
-  status_code: number;
+  statusCode: number;
   message: string;
   token: string;
 }

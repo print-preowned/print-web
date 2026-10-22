@@ -1,11 +1,11 @@
 export type BaseResponse<T> = {
-  status_code: number;
+  statusCode: number;
   message: string;
   data: T;
 };
 
 export type PaginatedResponse<T> = {
-  status_code: number;
+  statusCode: number;
   message: string;
   data: T[];
   pagination?: {
