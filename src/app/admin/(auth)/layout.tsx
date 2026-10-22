@@ -17,7 +17,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         PRINT
       </a>
       <FormProvider {...methods}>
-        <ApiStatusBanner />
+        <div className="w-full max-w-sm">
+          <ApiStatusBanner />
+        </div>
         {children}
       </FormProvider>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
