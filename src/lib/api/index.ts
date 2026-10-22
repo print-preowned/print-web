@@ -89,12 +89,19 @@ async function reportFailure<T>(
 ): Promise<T> {
   const silent =
     failure.status !== undefined && silentStatuses?.includes(failure.status);
-
+  
   if (failure.status === 401 && isClient && !silent) {
-    const { forceLogout } = await import("../auth/logout");
-    toast.error("Your session has expired. Please log in again.");
-    await forceLogout();
-    throw new ApiError("Session expired", { status: 401 });
+    const isSessionExpired = !window.location.pathname.includes("/login");
+
+    if (isSessionExpired) {
+      const { forceLogout } = await import("../auth/logout");
+      toast.error("Your session has expired. Please log in again.");
+      await forceLogout();
+      throw new ApiError(failure.message, { status: 401 });
+    }
+
+    toast.error("Invalid credentials");
+    throw new ApiError(failure.message, { status: 401 });
   }
 
   if (silent) {
