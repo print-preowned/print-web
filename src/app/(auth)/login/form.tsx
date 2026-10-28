@@ -78,7 +78,7 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
         const switched = await apiFetch("/api/auth/context-switch", {
           method: "POST",
           body: {
-            target_context: "SELLER",
+            targetContext: "SELLER",
             seller_id: sellers[0].id,
           },
           silentStatuses: [400, 401, 403, 422],

@@ -266,9 +266,9 @@ export function InventoryOnboardForm({
         : {
             title: values.title.trim() || undefined,
             description: values.description.trim() || undefined,
+            language: values.language.trim() || undefined,
+            product_form: values.product_form,
           }),
-      language: values.language.trim() || undefined,
-      product_form: values.product_form,
       offer: {
         price: values.offer.price,
         stock: parsedStock,

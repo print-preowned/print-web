@@ -30,8 +30,8 @@ export function useSwitchContext({ targetContext }: { targetContext: "CUSTOMER" 
 
     setIsSwitching(true);
     try {
-      const body: { target_context: string; seller_id?: string } = {
-        target_context: targetContext,
+      const body: { targetContext: string; seller_id?: string } = {
+        targetContext: targetContext,
       };
       if (targetContext === "SELLER") {
         if (!nextSellerId) {

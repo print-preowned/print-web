@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     } else if (targetContext === "CUSTOMER") {
       path = "/auth/context/customer";
     } else {
-      return NextResponse.json({ detail: "Invalid target_context" }, { status: 400 });
+      return NextResponse.json({ detail: "Invalid targetContext" }, { status: 400 });
     }
 
     const res = await backendFetch<{ statusCode: number; message: string; token: string }>(

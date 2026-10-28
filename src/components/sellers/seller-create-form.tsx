@@ -55,7 +55,7 @@ export function CreateSellerForm({
         try {
           await apiFetch("/api/auth/context-switch", {
             method: "POST",
-            body: { target_context: "SELLER", seller_id: created.id },
+            body: { targetContext: "SELLER", seller_id: created.id },
             silentStatuses: [400, 401, 403, 422],
           });
           await refreshSession();
