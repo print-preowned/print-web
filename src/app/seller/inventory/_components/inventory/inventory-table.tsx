@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { FormDrawer, useFormDrawer } from "@/components/form-drawer";
@@ -28,9 +30,7 @@ import {
   type SellerInventory,
 } from "@/app/seller/lib/api/inventory";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
-import { InventoryOnboardForm } from "./inventory-onboard-form";
 import { ScannerBar } from "./scanner-bar";
-import { Modal } from "@/components/ui/modal";
 
 function formatCount(value: number) {
   return value.toLocaleString();
@@ -58,8 +58,7 @@ export function InventoryTable({
   totalPages,
 }: InventoryTableProps) {
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
-  const [adding, setAdding] = useState(false);
-  const [scannedIsbn, setScannedIsbn] = useState<string | null>(null);
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const deleteMutation = useApiMutation<unknown>({
@@ -210,10 +209,7 @@ export function InventoryTable({
     <>
       <div className="mb-4">
         <ScannerBar
-          onScan={(isbn) => {
-            setScannedIsbn(isbn);
-            setAdding(true);
-          }}
+          onScan={(isbn) => router.push(`/seller/inventory/create?isbn=${encodeURIComponent(isbn)}`)}
         />
       </div>
       <DataTable
@@ -226,31 +222,14 @@ export function InventoryTable({
         isLoading={isLoading}
       >
         <div className="mb-4 flex">
-          <Button onClick={() => setAdding(true)}>
-            <PlusCircleIcon className="mr-2 size-4" />
-            Add to inventory
+          <Button asChild>
+            <Link href="/seller/inventory/create">
+              <PlusCircleIcon className="mr-2 size-4" />
+              Add to inventory
+            </Link>
           </Button>
         </div>
       </DataTable>
-      <Modal
-        open={adding}
-        onOpenChange={(open) => {
-          setAdding(open);
-          if (!open) setScannedIsbn(null);
-        }}
-        title="Add to inventory"
-        description="Look up by ISBN or search the catalog by title, then set price and stock. With the scanner on Single, each scan opens this form."
-        footer={null}
-        contentClassName="max-h-[85vh] max-w-2xl overflow-y-auto"
-      >
-        <InventoryOnboardForm
-          onSuccess={() => {
-            setAdding(false);
-            setScannedIsbn(null);
-          }}
-          initialIsbn={scannedIsbn}
-        />
-      </Modal>
       {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
     </>
   );

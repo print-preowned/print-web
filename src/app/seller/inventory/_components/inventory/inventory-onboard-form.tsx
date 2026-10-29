@@ -183,7 +183,8 @@ export function InventoryOnboardForm({
   onSuccess,
   initialIsbn = null,
 }: {
-  onSuccess?: () => void;
+  /** Called with the title of the book just added. */
+  onSuccess?: (title: string) => void;
   initialIsbn?: string | null;
 }) {
   const queryClient = useQueryClient();
@@ -344,7 +345,7 @@ export function InventoryOnboardForm({
       await queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
       toast.success("Inventory added");
       reset();
-      onSuccess?.();
+      onSuccess?.(publication?.title || publication?.work?.title || values.title.trim() || "Untitled");
     } catch {
       // apiFetch reports the server error through the shared toast handler.
     }
@@ -492,7 +493,7 @@ export function InventoryOnboardForm({
         <InventoryWorkOfferForm
           workId={selectedWork.id}
           workTitle={selectedWork.title.displayTitle}
-          onSuccess={onSuccess}
+          onSuccess={() => onSuccess?.(selectedWork.title.displayTitle)}
         />
       ) : null}
 

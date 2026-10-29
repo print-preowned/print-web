@@ -183,7 +183,7 @@ export function ScannerBar({ onScan }: Props) {
     if (mode === "single") {
       return reconnecting
         ? { tone: "warn", text: "Reconnecting… scans may be missed until this clears." }
-        : { tone: "live", text: "Listening — each scan opens the add form." };
+        : { tone: "live", text: "Listening — each scan mutates the add form." };
     }
     if (mode === "batch") {
       return { tone: "batch", text: "Batch in progress — scans are queued for review." };
@@ -200,7 +200,7 @@ export function ScannerBar({ onScan }: Props) {
         <ScanBarcode className="text-muted-foreground size-5 shrink-0" />
         {stations.length > 1 ? (
           <Select value={stationId ?? undefined} onValueChange={setStationId}>
-            <SelectTrigger className="h-8 w-40" aria-label="Scanner">
+            <SelectTrigger size="sm" className="w-40" aria-label="Scanner">
               <SelectValue placeholder="Scanner" />
             </SelectTrigger>
             <SelectContent>
