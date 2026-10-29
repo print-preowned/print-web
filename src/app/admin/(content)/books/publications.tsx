@@ -35,7 +35,7 @@ function publicationSummary(publication: Publication, workTitle: string) {
     formatProductForm(publication.productForm ?? publication.binding ?? ""),
     publication.isbn13,
     publication.language,
-    publication.edition,
+    publication.editionStatement,
     publication.editionNumber != null ? `Ed. ${publication.editionNumber}` : null,
     publication.publishedDate,
     publication.publisher?.name,
@@ -201,7 +201,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
               <div className="min-w-0">
                 <p className="text-sm">{publicationSummary(publication, workTitle)}</p>
                 <p className="text-muted-foreground text-xs">
-                  {publication.is_verified ? "Verified" : "Unverified"}
+                  {publication.isVerified ? "Verified" : "Unverified"}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">

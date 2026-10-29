@@ -21,7 +21,7 @@ export type PublicationLookup = {
   editionStatement?: string | null;
   publishedDate?: string | null;
   pageCount?: number | null;
-  weightGrams?: number | null;
+  weightG?: number | null;
   publisher?: { id: string; name: string } | null;
   isVerified?: boolean | null;
   status?: string | null;

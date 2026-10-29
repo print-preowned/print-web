@@ -35,7 +35,7 @@ export type PublicationDraft = {
   series_number: string;
   volume_number: string;
   page_count: string;
-  weight_grams: string;
+  weight_g: string;
   height_mm: string;
   width_mm: string;
   thickness_mm: string;
@@ -61,7 +61,7 @@ export const EMPTY_PUBLICATION_DRAFT: PublicationDraft = {
   series_number: "",
   volume_number: "",
   page_count: "",
-  weight_grams: "",
+  weight_g: "",
   height_mm: "",
   width_mm: "",
   thickness_mm: "",
@@ -115,7 +115,7 @@ export function draftFromPublication(publication: Publication): PublicationDraft
       form === "HARDCOVER" || form === "EBOOK" || form === "AUDIOBOOK" || form === "OTHER"
         ? form
         : "PAPERBACK",
-    edition: publication.editionStatement ?? publication.edition ?? "",
+    edition: publication.editionStatement ?? "",
     edition_number: numberText(publication.editionNumber),
     published_date: publication.publishedDate ?? "",
     country_of_publication: publication.countryOfPublication ?? "",
@@ -131,13 +131,13 @@ export function draftFromPublication(publication: Publication): PublicationDraft
     series_id: publication.series?.id ?? "",
     series_title: publication.series?.title ?? "",
     series_number: publication.seriesNumber ?? "",
-    volume_number: numberText(publication.volumeNumber ?? publication.volume_number),
-    page_count: numberText(publication.pageCount ?? publication.page_count),
-    weight_grams: numberText(publication.weightGrams ?? publication.weight_grams),
+    volume_number: numberText(publication.volumeNumber),
+    page_count: numberText(publication.pageCount),
+    weight_g: numberText(publication.weightG),
     height_mm: numberText(publication.heightMm),
     width_mm: numberText(publication.widthMm),
     thickness_mm: numberText(publication.thicknessMm),
-    is_verified: publication.isVerified ?? publication.is_verified,
+    is_verified: publication.isVerified,
   };
 }
 
@@ -166,7 +166,7 @@ export function publicationFieldsFromDraft(
     series_number: draft.series_number.trim() || null,
     volume_number: optionalInt(draft.volume_number) ?? null,
     page_count: optionalInt(draft.page_count) ?? null,
-    weight_grams: optionalInt(draft.weight_grams) ?? null,
+    weight_g: optionalInt(draft.weight_g) ?? null,
     height_mm: optionalInt(draft.height_mm) ?? null,
     width_mm: optionalInt(draft.width_mm) ?? null,
     thickness_mm: optionalInt(draft.thickness_mm) ?? null,

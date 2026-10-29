@@ -29,8 +29,6 @@ export type Publication = {
   language: string | null;
   binding?: string;
   productForm?: ProductForm | string | null;
-  volume_number: number | null;
-  edition: string | null;
   editionStatement?: string | null;
   editionNumber?: number | null;
   identifiers?: { scheme: string; value: string }[];
@@ -45,16 +43,13 @@ export type Publication = {
   heightMm?: number | null;
   widthMm?: number | null;
   thicknessMm?: number | null;
-  page_count: number | null;
   pageCount?: number | null;
-  weight_grams: number | null;
-  weightGrams?: number | null;
+  weightG?: number | null;
   volumeNumber?: number | null;
-  isVerified?: boolean;
-  is_verified: boolean;
+  isVerified: boolean;
   status: string;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type PublicationCreatePayload = {
@@ -78,7 +73,7 @@ export type PublicationCreatePayload = {
   width_mm?: number | null;
   thickness_mm?: number | null;
   page_count?: number | null;
-  weight_grams?: number | null;
+  weight_g?: number | null;
 };
 
 export type PublicationUpdatePayload = {
@@ -101,7 +96,7 @@ export type PublicationUpdatePayload = {
   width_mm?: number | null;
   thickness_mm?: number | null;
   page_count?: number | null;
-  weight_grams?: number | null;
+  weight_g?: number | null;
   is_verified?: boolean;
 };
 

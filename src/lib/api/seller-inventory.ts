@@ -12,7 +12,7 @@ export type PublicationLookup = {
   volume_number: number | null;
   edition: string | null;
   page_count: number | null;
-  weight_grams: number | null;
+  weight_g: number | null;
   is_verified: boolean;
   status: string;
 };

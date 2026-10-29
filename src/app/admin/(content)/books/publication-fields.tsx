@@ -259,8 +259,8 @@ export function PublicationFields({
             <Input
               id={`${idPrefix}-weight`}
               inputMode="numeric"
-              value={draft.weight_grams}
-              onChange={(event) => set("weight_grams", event.target.value)}
+              value={draft.weight_g}
+              onChange={(event) => set("weight_g", event.target.value)}
             />
           </div>
           <div className="space-y-2">
