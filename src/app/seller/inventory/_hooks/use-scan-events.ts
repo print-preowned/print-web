@@ -103,7 +103,7 @@ export function useScanEvents(
                     lostClaim = true;
                     break;
                   }
-                  if (payload?.isbn) {
+                  if (payload?.type) {
                     onEventRef.current(payload);
                   }
                 } catch {

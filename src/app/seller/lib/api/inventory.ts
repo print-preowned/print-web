@@ -2,21 +2,29 @@ import { generateUrl } from "@/lib/api";
 import type { WorkTitle } from "@/lib/api/work-title";
 import { firstImage } from "@/lib/cover";
 
+/** Publication as the API serializes it (camelCase aliases). */
 export type PublicationLookup = {
   id: string;
-  work_id: string;
+  work?: {
+    id: string;
+    title: string;
+    images?: string[] | null;
+    authors?: { id?: string | null; name?: string | null; role?: string }[] | null;
+  } | null;
   isbn13: string | null;
   title: string | null;
   images: string[];
   language: string | null;
   productForm?: string | null;
   binding?: string | null;
-  volume_number: number | null;
-  edition: string | null;
-  page_count: number | null;
-  weight_grams: number | null;
-  is_verified: boolean;
-  status: string;
+  volumeNumber?: number | null;
+  editionStatement?: string | null;
+  publishedDate?: string | null;
+  pageCount?: number | null;
+  weightGrams?: number | null;
+  publisher?: { id: string; name: string } | null;
+  isVerified?: boolean | null;
+  status?: string | null;
 };
 
 export type InventoryOfferCreatePayload = {

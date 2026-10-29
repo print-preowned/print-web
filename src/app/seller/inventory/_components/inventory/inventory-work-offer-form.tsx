@@ -32,11 +32,11 @@ type Props = {
 function publicationDetails(publication: PublicationLookup) {
   return [
     formatProductForm(publication.productForm ?? publication.binding ?? ""),
-    publication.edition,
-    publication.volume_number != null ? `Vol. ${publication.volume_number}` : null,
+    publication.editionStatement,
+    publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
     publication.language,
     publication.isbn13,
-    publication.page_count != null ? `${publication.page_count} pages` : null,
+    publication.pageCount != null ? `${publication.pageCount} pages` : null,
   ].filter((part): part is string => Boolean(part));
 }
 

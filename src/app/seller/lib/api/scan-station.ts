@@ -13,10 +13,17 @@ export type ScanStation = {
   token?: string;
 };
 
+export type ScanSessionItem = {
+  isbn: string;
+  quantity: number;
+};
+
 export type ScanSession = {
   id: string;
   station_id: string;
-  isbns: string[];
+  /** First-scan order; quantity counts repeat scans of the same ISBN. */
+  items: ScanSessionItem[];
+  /** Total copies scanned. */
   count: number;
 };
 
@@ -33,15 +40,20 @@ export type ScanSessionImportResult = {
   error: string | null;
 };
 
+export type ScanRejectedReason = "no_barcode" | "invalid_isbn" | "not_listening";
+
 export type ScanEvent = {
-  type: "scan" | "session_item" | "claim_lost";
+  type: "scan" | "session_item" | "session_item_removed" | "scan_rejected" | "claim_lost";
   isbn?: string;
   station_id: string;
   seller_id?: string;
   session_id?: string;
   added?: boolean;
+  quantity?: number;
   count?: number;
-  reason?: "claimed" | "released";
+  /** Raw scanned value on scan_rejected. */
+  code?: string | null;
+  reason?: "claimed" | "released" | ScanRejectedReason;
 };
 
 export function listScanStations() {
@@ -98,6 +110,13 @@ export function readScanSession(stationId: string) {
 export function endScanSession(stationId: string) {
   return {
     endpoint: `/scan-stations/${stationId}/sessions/current`,
+    method: "DELETE" as const,
+  };
+}
+
+export function removeScanSessionItem(stationId: string, isbn: string) {
+  return {
+    endpoint: `/scan-stations/${stationId}/sessions/current/items/${encodeURIComponent(isbn)}`,
     method: "DELETE" as const,
   };
 }

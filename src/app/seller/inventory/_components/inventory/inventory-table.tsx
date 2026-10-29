@@ -15,7 +15,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { listingStatusLabel } from "@/lib/seller-book-listing-status";
 import { EllipsisVertical, PlusCircleIcon } from "lucide-react";
 import { BookTableTitleCell } from "@/components/books/book-table-title-cell";
-import { scanStationKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
+import { sellerInventoryKeys } from "@/lib/api/query-keys";
 import { formatPrice } from "@/lib/format-price";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -29,8 +29,7 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { InventoryOnboardForm } from "./inventory-onboard-form";
-import { ScanStationPanel } from "./scan-station-panel";
-import { useScanEvents } from "../../_hooks/use-scan-events";
+import { ScannerBar } from "./scanner-bar";
 import { Modal } from "@/components/ui/modal";
 
 function formatCount(value: number) {
@@ -60,28 +59,8 @@ export function InventoryTable({
 }: InventoryTableProps) {
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const [adding, setAdding] = useState(false);
-  const [scanStationId, setScanStationId] = useState<string | null>(null);
   const [scannedIsbn, setScannedIsbn] = useState<string | null>(null);
-  const [holdsClaim, setHoldsClaim] = useState(false);
   const queryClient = useQueryClient();
-
-  const { reconnecting } = useScanEvents(
-    scanStationId,
-    (event) => {
-      if (event.type === "claim_lost") {
-        if (event.reason === "claimed") {
-          toast.message("Another user claimed this station");
-        }
-        void queryClient.invalidateQueries({ queryKey: scanStationKeys.all });
-        return;
-      }
-      if (event.type !== "scan" || !event.isbn) return;
-      setScannedIsbn(event.isbn);
-      setAdding(true);
-    },
-    Boolean(scanStationId && holdsClaim),
-    "user",
-  );
 
   const deleteMutation = useApiMutation<unknown>({
     onSuccess: () => {
@@ -230,11 +209,11 @@ export function InventoryTable({
   return (
     <>
       <div className="mb-4">
-        <ScanStationPanel
-          selectedStationId={scanStationId}
-          onSelectStation={setScanStationId}
-          onHoldsClaimChange={setHoldsClaim}
-          reconnecting={reconnecting}
+        <ScannerBar
+          onScan={(isbn) => {
+            setScannedIsbn(isbn);
+            setAdding(true);
+          }}
         />
       </div>
       <DataTable
@@ -260,7 +239,7 @@ export function InventoryTable({
           if (!open) setScannedIsbn(null);
         }}
         title="Add to inventory"
-        description="Look up by ISBN or search the catalog by title, then set price and stock. With a scanner station selected, scans open this form and resolve the ISBN."
+        description="Look up by ISBN or search the catalog by title, then set price and stock. With the scanner on Single, each scan opens this form."
         footer={null}
         contentClassName="max-h-[85vh] max-w-2xl overflow-y-auto"
       >

@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, LoaderCircle } from "lucide-react";
+import { Search, Plus, LoaderCircle, BadgeCheck, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { firstImage } from "@/lib/cover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +43,65 @@ function workOption(work: CatalogWork) {
       ? work.authors.map((author) => author.name).join(", ")
       : "No authors listed",
   };
+}
+
+function languageName(code: string) {
+  try {
+    return new Intl.DisplayNames(undefined, { type: "language" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+function FoundPublication({ publication }: { publication: PublicationLookup }) {
+  const title = publication.title || publication.work?.title || "Untitled";
+  const cover = firstImage(publication.images) ?? firstImage(publication.work?.images);
+  const authors = (publication.work?.authors ?? [])
+    .map((author) => author.name)
+    .filter((name): name is string => Boolean(name));
+  const year = publication.publishedDate?.slice(0, 4);
+  const details = [
+    formatProductForm(publication.productForm ?? publication.binding ?? ""),
+    publication.editionStatement,
+    publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
+    publication.language ? languageName(publication.language) : null,
+    year,
+    publication.pageCount ? `${publication.pageCount} pages` : null,
+  ].filter((part): part is string => Boolean(part));
+  const source = [publication.publisher?.name, publication.isbn13 && `ISBN ${publication.isbn13}`]
+    .filter((part): part is string => Boolean(part));
+
+  return (
+    <div className="bg-muted/50 flex gap-4 rounded-md p-3 text-sm">
+      {cover ? (
+        <img src={cover} alt="" className="h-24 w-16 shrink-0 rounded object-cover shadow-sm" />
+      ) : (
+        <div className="bg-muted text-muted-foreground flex h-24 w-16 shrink-0 items-center justify-center rounded">
+          <BookOpen className="size-5" aria-hidden />
+        </div>
+      )}
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <p className="font-medium leading-snug">{title}</p>
+          {publication.isVerified ? (
+            <Badge variant="secondary" className="gap-1">
+              <BadgeCheck className="size-3.5" aria-hidden />
+              Verified
+            </Badge>
+          ) : (
+            <Badge variant="outline" title="Details came from an outside source and may be incomplete">
+              Unverified
+            </Badge>
+          )}
+        </div>
+        {authors.length ? <p className="text-muted-foreground">{authors.join(", ")}</p> : null}
+        {details.length ? <p className="text-muted-foreground">{details.join(" · ")}</p> : null}
+        {source.length ? (
+          <p className="text-muted-foreground text-xs">{source.join(" · ")}</p>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 const inputClassName = "bg-background";
@@ -437,18 +498,7 @@ export function InventoryOnboardForm({
 
       {createFormVisible ? (
         <form onSubmit={handleSubmit(submit)} className="space-y-4">
-          {publication ? (
-            <div className="bg-muted/50 rounded-md p-3 text-sm">
-              <div className="font-medium">Found in catalog</div>
-              <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                <span>{formatProductForm(publication.productForm ?? publication.binding ?? "")}</span>
-                {publication.language ? <span>{publication.language}</span> : null}
-                {publication.isbn13 ? <span>{publication.isbn13}</span> : null}
-                {publication.page_count ? <span>{publication.page_count} pages</span> : null}
-                {publication.is_verified ? <span>Verified metadata</span> : <span>Unverified metadata</span>}
-              </div>
-            </div>
-          ) : null}
+          {publication ? <FoundPublication publication={publication} /> : null}
 
           {showNewWork ? (
             <div className="border-border space-y-4 rounded-md border border-dashed p-4">
