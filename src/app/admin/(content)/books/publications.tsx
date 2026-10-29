@@ -32,7 +32,7 @@ import { PublicationFields } from "./publication-fields";
 function publicationSummary(publication: Publication, workTitle: string) {
   return [
     publication.title?.trim() || workTitle,
-    formatProductForm(publication.productForm ?? publication.binding ?? ""),
+    formatProductForm(publication.productForm ?? ""),
     publication.isbn13,
     publication.language,
     publication.editionStatement,
@@ -152,7 +152,7 @@ export function AdminWorkPublications({ workId, workTitle }: Props) {
   }
 
   async function onDelete(publication: Publication) {
-    if (!confirm(`Delete this publication (${formatProductForm(publication.productForm ?? publication.binding ?? "")})?`)) {
+    if (!confirm(`Delete this publication (${formatProductForm(publication.productForm ?? "")})?`)) {
       return;
     }
     const request = deletePublication(publication.id);

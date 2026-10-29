@@ -34,11 +34,6 @@ export function buildStandardCheckoutPayload(redirectUrl: string) {
   };
 }
 
-/** @deprecated Use buildStandardCheckoutPayload */
-export function buildCheckoutSessionPayload(redirectUrl: string) {
-  return buildStandardCheckoutPayload(redirectUrl);
-}
-
 export type PaymentCheckoutStart =
   | { type: "redirect"; url: string }
   | { type: "pending"; response: PaymentInitiateResponse };

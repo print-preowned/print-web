@@ -105,7 +105,7 @@ export function isbnFieldError(value: string): string | null {
 
 export function draftFromPublication(publication: Publication): PublicationDraft {
   const publishingStatus = publication.publishingStatus;
-  const form = publication.productForm ?? publication.binding;
+  const form = publication.productForm;
   return {
     images: publication.images ?? [],
     isbn13: publication.isbn13 ?? "",

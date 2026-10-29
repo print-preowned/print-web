@@ -61,7 +61,7 @@ function FoundPublication({ publication }: { publication: PublicationLookup }) {
     .filter((name): name is string => Boolean(name));
   const year = publication.publishedDate?.slice(0, 4);
   const details = [
-    formatProductForm(publication.productForm ?? publication.binding ?? ""),
+    formatProductForm(publication.productForm ?? ""),
     publication.editionStatement,
     publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
     publication.language ? languageName(publication.language) : null,
@@ -300,7 +300,7 @@ export function InventoryOnboardForm({
         setValue("language", result.language ?? "");
         setValue(
           "product_form",
-          (result.productForm ?? result.binding ?? "OTHER") as ProductFormValue,
+          (result.productForm ?? "OTHER") as ProductFormValue,
         );
         setValue("isbn", result.isbn13 ?? value);
         setLookupState("idle");

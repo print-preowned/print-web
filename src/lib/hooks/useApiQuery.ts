@@ -16,7 +16,6 @@ type ApiQueryOptions<T> = Omit<
 
 /**
  * Standard read hook: semantic queryKey + URL from lib/api builders + apiFetch.
- * Prefer this over relying on QueryProvider's default queryFn.
  */
 export function useApiQuery<T>(
   queryKey: readonly unknown[],

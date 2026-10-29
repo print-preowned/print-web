@@ -2,7 +2,6 @@ import { generateUrl } from "@/lib/api";
 import type { WorkTitle } from "@/lib/api/work-title";
 import { firstImage } from "@/lib/cover";
 
-/** Publication as the API serializes it (camelCase aliases). */
 export type PublicationLookup = {
   id: string;
   work?: {
@@ -16,7 +15,6 @@ export type PublicationLookup = {
   images: string[];
   language: string | null;
   productForm?: string | null;
-  binding?: string | null;
   volumeNumber?: number | null;
   editionStatement?: string | null;
   publishedDate?: string | null;

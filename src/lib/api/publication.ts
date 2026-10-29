@@ -27,7 +27,6 @@ export type Publication = {
   title: string | null;
   images: string[];
   language: string | null;
-  binding?: string;
   productForm?: ProductForm | string | null;
   editionStatement?: string | null;
   editionNumber?: number | null;

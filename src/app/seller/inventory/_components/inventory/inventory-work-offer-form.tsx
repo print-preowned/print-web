@@ -31,7 +31,7 @@ type Props = {
 
 function publicationDetails(publication: PublicationLookup) {
   return [
-    formatProductForm(publication.productForm ?? publication.binding ?? ""),
+    formatProductForm(publication.productForm ?? ""),
     publication.editionStatement,
     publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
     publication.language,
