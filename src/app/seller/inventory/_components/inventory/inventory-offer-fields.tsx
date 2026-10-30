@@ -25,6 +25,8 @@ type Props<T extends FieldValues> = {
   isPending?: boolean;
   submitDisabled?: boolean;
   submitLabel?: string;
+  /** Focus price on mount, once the book is known and only the offer is left. */
+  autoFocusPrice?: boolean;
 };
 
 const inputClassName = "bg-background";
@@ -38,6 +40,7 @@ export function InventoryOfferFields<T extends FieldValues>({
   isPending = false,
   submitDisabled = false,
   submitLabel = "Add inventory",
+  autoFocusPrice = false,
 }: Props<T>) {
   const path = (name: keyof InventoryOfferValues) =>
     (namePrefix ? `${namePrefix}.${name}` : name) as Path<T>;
@@ -55,6 +58,7 @@ export function InventoryOfferFields<T extends FieldValues>({
             className={inputClassName + (errors?.price ? " border-destructive" : "")}
             inputMode="decimal"
             placeholder="0.00"
+            autoFocus={autoFocusPrice}
             {...register(path("price"))}
           />
           {errors?.price?.message ? (

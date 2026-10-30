@@ -5,7 +5,7 @@ export const PRODUCT_FORMS = [
   { value: "HARDCOVER", label: "Hardcover" },
   { value: "EBOOK", label: "Ebook" },
   { value: "AUDIOBOOK", label: "Audiobook" },
-  { value: "OTHER", label: "Other" },
+  { value: "OTHER", label: "" },
 ] as const;
 
 export type ProductForm = (typeof PRODUCT_FORMS)[number]["value"];

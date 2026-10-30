@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, LoaderCircle, BadgeCheck, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { firstImage } from "@/lib/cover";
 import { Input } from "@/components/ui/input";
@@ -53,52 +54,114 @@ function languageName(code: string) {
   }
 }
 
-function FoundPublication({ publication }: { publication: PublicationLookup }) {
-  const title = publication.title || publication.work?.title || "Untitled";
-  const cover = firstImage(publication.images) ?? firstImage(publication.work?.images);
-  const authors = (publication.work?.authors ?? [])
-    .map((author) => author.name)
-    .filter((name): name is string => Boolean(name));
-  const year = publication.publishedDate?.slice(0, 4);
-  const details = [
-    formatProductForm(publication.productForm ?? ""),
-    publication.editionStatement,
-    publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
-    publication.language ? languageName(publication.language) : null,
-    year,
-    publication.pageCount ? `${publication.pageCount} pages` : null,
-  ].filter((part): part is string => Boolean(part));
-  const source = [publication.publisher?.name, publication.isbn13 && `ISBN ${publication.isbn13}`]
-    .filter((part): part is string => Boolean(part));
+type BookSummaryProps = {
+  cover: string | null | undefined;
+  title: string;
+  authors: string[];
+  details: string[];
+  source?: string[];
+  /** Omit for catalog works, which carry no verification state. */
+  verified?: boolean;
+};
 
+/** The book being listed: a row on small screens, a sticky cover column beside the offer on wider ones. */
+function BookSummary({ cover, title, authors, details, source = [], verified }: BookSummaryProps) {
   return (
-    <div className="bg-muted/50 flex gap-4 rounded-md p-3 text-sm">
+    <div className="bg-muted/50 flex gap-4 self-start rounded-md p-3 text-sm md:sticky md:top-4 md:flex-col">
       {cover ? (
-        <img src={cover} alt="" className="h-24 w-16 shrink-0 rounded object-cover shadow-sm" />
+        <img
+          src={cover}
+          alt=""
+          className="h-24 w-16 shrink-0 rounded object-cover shadow-sm md:aspect-[2/3] md:h-auto md:w-full"
+        />
       ) : (
-        <div className="bg-muted text-muted-foreground flex h-24 w-16 shrink-0 items-center justify-center rounded">
+        <div className="bg-muted text-muted-foreground flex h-24 w-16 shrink-0 items-center justify-center rounded md:aspect-[2/3] md:h-auto md:w-full">
           <BookOpen className="size-5" aria-hidden />
         </div>
       )}
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="font-medium leading-snug">{title}</p>
-          {publication.isVerified ? (
-            <Badge variant="secondary" className="gap-1">
-              <BadgeCheck className="size-3.5" aria-hidden />
-              Verified
-            </Badge>
-          ) : (
-            <Badge variant="outline" title="Details came from an outside source and may be incomplete">
-              Unverified
-            </Badge>
-          )}
-        </div>
+        <p className="font-medium leading-snug">{title}</p>
         {authors.length ? <p className="text-muted-foreground">{authors.join(", ")}</p> : null}
         {details.length ? <p className="text-muted-foreground">{details.join(" · ")}</p> : null}
         {source.length ? (
-          <p className="text-muted-foreground text-xs">{source.join(" · ")}</p>
+          <p className="text-muted-foreground text-xs break-words">{source.join(" · ")}</p>
         ) : null}
+        {verified === undefined ? null : verified ? (
+          <Badge variant="secondary" className="gap-1">
+            <BadgeCheck className="size-3.5" aria-hidden />
+            Verified
+          </Badge>
+        ) : (
+          <Badge variant="outline" title="Details came from an outside source and may be incomplete">
+            Unverified
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function publicationSummary(publication: PublicationLookup): BookSummaryProps {
+  const year = publication.publishedDate?.slice(0, 4);
+  return {
+    cover: firstImage(publication.images) ?? firstImage(publication.work?.images),
+    title: publication.title || publication.work?.title || "Untitled",
+    authors: (publication.work?.authors ?? [])
+      .map((author) => author.name)
+      .filter((name): name is string => Boolean(name)),
+    details: [
+      formatProductForm(publication.productForm ?? ""),
+      publication.editionStatement,
+      publication.volumeNumber != null ? `Vol. ${publication.volumeNumber}` : null,
+      publication.language ? languageName(publication.language) : null,
+      year,
+      publication.pageCount ? `${publication.pageCount} pages` : null,
+    ].filter((part): part is string => Boolean(part)),
+    source: [publication.publisher?.name, publication.isbn13 && `ISBN ${publication.isbn13}`]
+      .filter((part): part is string => Boolean(part)),
+    verified: Boolean(publication.isVerified),
+  };
+}
+
+function workSummary(work: CatalogWork, publication: PublicationLookup | null): BookSummaryProps {
+  // An existing format can have its own cover and details; fall back to the
+  // work's for anything it doesn't carry.
+  if (publication) {
+    const summary = publicationSummary(publication);
+    return {
+      ...summary,
+      cover: summary.cover ?? firstImage(work.images),
+      title: publication.title || work.title.displayTitle,
+      authors: summary.authors.length
+        ? summary.authors
+        : (work.authors ?? []).map((author) => author.name),
+    };
+  }
+  console.log("workSummary", work);
+  return {
+    cover: firstImage(work.images),
+    title: work.title.displayTitle,
+    authors: (work.authors ?? []).map((author) => author.name),
+    details: work.language ? [languageName(work.language)] : [],
+  };
+}
+
+const bookLayoutClassName = "grid gap-6 md:grid-cols-[12rem_minmax(0,1fr)]";
+
+function LookupSkeleton() {
+  return (
+    <div className={bookLayoutClassName} aria-busy="true" aria-label="Looking up ISBN">
+      <div className="flex gap-4 md:flex-col">
+        <Skeleton className="h-24 w-16 md:aspect-[2/3] md:h-auto md:w-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-20 w-full" />
       </div>
     </div>
   );
@@ -182,15 +245,19 @@ const buildInventorySchema = ({ publication, showNewWork }: { publication: Publi
 export function InventoryOnboardForm({
   onSuccess,
   initialIsbn = null,
+  defaultCondition = "",
 }: {
-  /** Called with the title of the book just added. */
-  onSuccess?: (title: string) => void;
+  /** Called with the book just added and the condition it was listed in. */
+  onSuccess?: (added: { title: string; condition: string }) => void;
   initialIsbn?: string | null;
+  /** Condition to start from, e.g. the one used for the previous book. */
+  defaultCondition?: string;
 }) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<LookupMode>("isbn");
   const [publication, setPublication] = useState<PublicationLookup | null>(null);
   const [selectedWork, setSelectedWork] = useState<CatalogWork | null>(null);
+  const [workPublication, setWorkPublication] = useState<PublicationLookup | null>(null);
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "miss">("idle");
   const [showNewWork, setShowNewWork] = useState(false);
   const [titleQuery, setTitleQuery] = useState("");
@@ -233,7 +300,7 @@ export function InventoryOnboardForm({
       offer: {
         price: "",
         stock: "1",
-        condition: "",
+        condition: defaultCondition,
         description: "",
         signed: "false",
       },
@@ -282,6 +349,7 @@ export function InventoryOnboardForm({
       setMode("isbn");
       setValue("lookupIsbn", value);
       setLookupState("loading");
+      setPublication(null);
       setShowNewWork(false);
       try {
         const resolveCall = resolveInventoryIsbn(value);
@@ -305,7 +373,6 @@ export function InventoryOnboardForm({
         );
         setValue("isbn", result.isbn13 ?? value);
         setLookupState("idle");
-        toast.success("Found in catalog");
       } catch {
         setLookupState("idle");
       }
@@ -345,7 +412,10 @@ export function InventoryOnboardForm({
       await queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
       toast.success("Inventory added");
       reset();
-      onSuccess?.(publication?.title || publication?.work?.title || values.title.trim() || "Untitled");
+      onSuccess?.({
+        title: publication?.title || publication?.work?.title || values.title.trim() || "Untitled",
+        condition: values.offer.condition,
+      });
     } catch {
       // apiFetch reports the server error through the shared toast handler.
     }
@@ -364,7 +434,7 @@ export function InventoryOnboardForm({
       offer: {
         price: "",
         stock: "1",
-        condition: "",
+        condition: defaultCondition,
         description: "",
         signed: "false",
       },
@@ -403,6 +473,7 @@ export function InventoryOnboardForm({
               id="inventory-isbn-lookup"
               className={inputClassName + (errors.lookupIsbn ? " border-destructive" : "")}
               placeholder="ISBN-10 or ISBN-13"
+              autoFocus
               aria-invalid={Boolean(errors.lookupIsbn)}
               {...register("lookupIsbn", {
                 onChange: () => {
@@ -489,17 +560,42 @@ export function InventoryOnboardForm({
         </div>
       )}
 
+      {lookupState === "loading" ? <LookupSkeleton /> : null}
+
       {offerFormVisible ? (
-        <InventoryWorkOfferForm
-          workId={selectedWork.id}
-          workTitle={selectedWork.title.displayTitle}
-          onSuccess={() => onSuccess?.(selectedWork.title.displayTitle)}
-        />
+        <div className={bookLayoutClassName}>
+          <BookSummary {...workSummary(selectedWork, workPublication)} />
+          <InventoryWorkOfferForm
+            key={selectedWork.id}
+            workId={selectedWork.id}
+            onPublicationChange={setWorkPublication}
+            workTitle={selectedWork.title.displayTitle}
+            defaultCondition={defaultCondition}
+            onSuccess={(condition) =>
+              onSuccess?.({ title: selectedWork.title.displayTitle, condition })
+            }
+          />
+        </div>
       ) : null}
 
       {createFormVisible ? (
         <form onSubmit={handleSubmit(submit)} className="space-y-4">
-          {publication ? <FoundPublication publication={publication} /> : null}
+          {publication ? (
+            <div className={bookLayoutClassName}>
+              <BookSummary {...publicationSummary(publication)} />
+              <div className="space-y-4">
+                <InventoryOfferFields
+                  idPrefix="inventory"
+                  namePrefix="offer"
+                  register={register}
+                  conditionValue={watch("offer.condition")}
+                  errors={errors.offer}
+                  isPending={isPending}
+                  autoFocusPrice
+                />
+              </div>
+            </div>
+          ) : null}
 
           {showNewWork ? (
             <div className="border-border space-y-4 rounded-md border border-dashed p-4">
@@ -560,7 +656,7 @@ export function InventoryOnboardForm({
             </div>
           ) : null}
 
-          {publication || showNewWork ? (
+          {showNewWork ? (
             <InventoryOfferFields
               idPrefix="inventory"
               namePrefix="offer"

@@ -9,6 +9,7 @@ import { apiErrorToast } from "@/lib/api";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { publicationKeys, sellerInventoryKeys } from "@/lib/api/query-keys";
 import { cn } from "@/lib/utils";
+import { firstImage } from "@/lib/cover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,7 +27,11 @@ import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/pu
 type Props = {
   workId: string;
   workTitle: string;
-  onSuccess?: () => void;
+  /** Condition to start from, e.g. the one used for the previous book. */
+  defaultCondition?: string;
+  onSuccess?: (condition: string) => void;
+  /** Reports the existing format picked, or null for a new one, so the cover can follow it. */
+  onPublicationChange?: (publication: PublicationLookup | null) => void;
 };
 
 function publicationDetails(publication: PublicationLookup) {
@@ -49,7 +54,13 @@ type WorkOfferValues = {
   offer: InventoryOfferValues;
 };
 
-export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) {
+export function InventoryWorkOfferForm({
+  workId,
+  workTitle,
+  defaultCondition = "",
+  onSuccess,
+  onPublicationChange,
+}: Props) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
   const publicationsQuery = useApiQuery<PublicationLookup[]>(
@@ -67,7 +78,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
       offer: {
         price: "",
         stock: "1",
-        condition: "",
+        condition: defaultCondition,
         description: "",
         signed: "false",
       },
@@ -82,55 +93,63 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
     didPrefillPublication.current = true;
   }, [form, publications]);
 
+  const selectedPublication =
+    publications.find((publication) => publication.id === selectedPublicationId) ?? null;
+  useEffect(() => {
+    onPublicationChange?.(selectedPublication);
+  }, [onPublicationChange, selectedPublication]);
+
+  const submit = async (values: WorkOfferValues) => {
+    const price = values.offer.price.trim();
+    const stock = Number(values.offer.stock);
+    if (!price || Number(price) <= 0) {
+      toast.error("Price must be greater than zero");
+      return;
+    }
+    if (!Number.isFinite(stock) || stock < 0) {
+      toast.error("Stock must be 0 or greater");
+      return;
+    }
+    if (!INVENTORY_CONDITION_VALUES.includes(values.offer.condition as (typeof INVENTORY_CONDITION_VALUES)[number])) {
+      toast.error("Select a condition");
+      return;
+    }
+    const publicationTitle = values.title.trim();
+    try {
+      await mutateAsync(
+        createInventory({
+          ...(values.publication_id
+            ? { publication_id: values.publication_id }
+            : {
+                work_id: workId,
+                ...(publicationTitle && publicationTitle !== workTitle.trim()
+                  ? { title: publicationTitle }
+                  : {}),
+                language: values.language.trim() || undefined,
+                product_form: values.product_form,
+                isbn: values.isbn.trim() || undefined,
+              }),
+          offer: {
+            price,
+            stock,
+            condition: values.offer.condition,
+            signed: values.offer.signed === "true",
+            description: values.offer.description.trim() || undefined,
+          },
+        }),
+      );
+      toast.success("Added to your inventory");
+      void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
+      onSuccess?.(values.offer.condition);
+    } catch (error) {
+      apiErrorToast(error, "Failed to add to inventory");
+    }
+  }
+
   return (
     <form
       className="space-y-4"
-      onSubmit={form.handleSubmit(async (values) => {
-        const price = values.offer.price.trim();
-        const stock = Number(values.offer.stock);
-        if (!price || Number(price) <= 0) {
-          toast.error("Price must be greater than zero");
-          return;
-        }
-        if (!Number.isFinite(stock) || stock < 0) {
-          toast.error("Stock must be 0 or greater");
-          return;
-        }
-        if (!INVENTORY_CONDITION_VALUES.includes(values.offer.condition as (typeof INVENTORY_CONDITION_VALUES)[number])) {
-          toast.error("Select a condition");
-          return;
-        }
-        const publicationTitle = values.title.trim();
-        try {
-          await mutateAsync(
-            createInventory({
-              ...(values.publication_id
-                ? { publication_id: values.publication_id }
-                : {
-                    work_id: workId,
-                    ...(publicationTitle && publicationTitle !== workTitle.trim()
-                      ? { title: publicationTitle }
-                      : {}),
-                    language: values.language.trim() || undefined,
-                    product_form: values.product_form,
-                    isbn: values.isbn.trim() || undefined,
-                  }),
-              offer: {
-                price,
-                stock,
-                condition: values.offer.condition,
-                signed: values.offer.signed === "true",
-                description: values.offer.description.trim() || undefined,
-              },
-            }),
-          );
-          toast.success("Added to your inventory");
-          void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
-          onSuccess?.();
-        } catch (error) {
-          apiErrorToast(error, "Failed to add to inventory");
-        }
-      })}
+      onSubmit={form.handleSubmit(submit)}
     >
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">Format</legend>
@@ -151,6 +170,7 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
               {publications.map((publication) => {
                 const checked = selectedPublicationId === publication.id;
                 const details = publicationDetails(publication);
+                const cover = firstImage(publication.images);
                 return (
                   <li key={publication.id}>
                     <label
@@ -167,6 +187,13 @@ export function InventoryWorkOfferForm({ workId, workTitle, onSuccess }: Props) 
                         className="mt-0.5"
                         {...form.register("publication_id")}
                       />
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt=""
+                          className="h-12 w-8 shrink-0 rounded object-cover shadow-sm"
+                        />
+                      ) : null}
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium">
                           {publication.title?.trim() || workTitle}

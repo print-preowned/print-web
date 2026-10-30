@@ -19,6 +19,9 @@ function AddToInventory() {
   const [dirty, setDirty] = useState(false);
   const [pendingScan, setPendingScan] = useState<string | null>(null);
   const [added, setAdded] = useState<string[]>([]);
+  // Books scanned in one sitting are usually in similar shape, so carry the
+  // last condition over instead of making the seller pick it every time.
+  const [lastCondition, setLastCondition] = useState("");
 
   function startOver(nextIsbn: string | null) {
     setDirty(false);
@@ -27,7 +30,7 @@ function AddToInventory() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 py-4">
+    <div className="mx-auto max-w-4xl space-y-6 py-4">
       <div className="space-y-1">
         <h1 className="text-xl font-semibold">Add to inventory</h1>
         <p className="text-muted-foreground text-sm">
@@ -71,8 +74,10 @@ function AddToInventory() {
         <InventoryOnboardForm
           key={formKey}
           initialIsbn={isbn}
-          onSuccess={(title) => {
+          defaultCondition={lastCondition}
+          onSuccess={({ title, condition }) => {
             setAdded((current) => [title, ...current]);
+            setLastCondition(condition);
             startOver(null);
           }}
         />
