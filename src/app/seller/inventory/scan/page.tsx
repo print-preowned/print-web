@@ -222,17 +222,21 @@ export default function ScanBatchPage() {
     }
   }
 
-  const missingPrice = items.filter((item) => {
+  // A blank price is fine (the book is saved as a draft); a typed one must be valid.
+  const badPrice = items.filter((item) => {
     const value = effectiveRow(item.isbn, item.quantity).price.trim();
-    return !value || !(Number(value) > 0);
+    return value !== "" && !(Number(value) > 0);
   });
+  const unpriced = items.filter(
+    (item) => effectiveRow(item.isbn, item.quantity).price.trim() === "",
+  );
 
   async function importAll() {
     if (!stationId || items.length === 0) return;
     setAttempted(true);
-    if (missingPrice.length > 0) {
+    if (badPrice.length > 0) {
       toast.error(
-        `${missingPrice.length} book${missingPrice.length === 1 ? " needs" : "s need"} a price`,
+        `${badPrice.length} price${badPrice.length === 1 ? " isn't" : "s aren't"} a valid amount`,
       );
       return;
     }
@@ -241,7 +245,7 @@ export default function ScanBatchPage() {
       return {
         isbn: item.isbn,
         offer: {
-          price: row.price.trim(),
+          price: row.price.trim() || undefined,
           stock: Number(row.stock) || 0,
           condition: row.condition,
           signed: false,
@@ -258,7 +262,13 @@ export default function ScanBatchPage() {
       );
       setAttempted(false);
       if (created > 0) {
-        toast.success(`Added ${created} book${created === 1 ? "" : "s"} to inventory`);
+        const drafts = results.filter((row) => row.status === "DRAFT").length;
+        toast.success(`Added ${created} book${created === 1 ? "" : "s"} to inventory`, {
+          description:
+            drafts > 0
+              ? `${drafts} saved as draft${drafts === 1 ? "" : "s"} — price them in Inventory to publish.`
+              : undefined,
+        });
         void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
       }
       if (failed.length > 0) {
@@ -395,7 +405,7 @@ export default function ScanBatchPage() {
                 const lookup = lookups[item.isbn];
                 const error = rowErrors[item.isbn];
                 const needsPrice =
-                  attempted && missingPrice.some((missing) => missing.isbn === item.isbn);
+                  attempted && badPrice.some((invalid) => invalid.isbn === item.isbn);
                 return (
                   <tr
                     key={item.isbn}
@@ -504,9 +514,10 @@ export default function ScanBatchPage() {
             {isPending ? <LoaderCircle className="animate-spin" /> : null}
             Add {rows.length} book{rows.length === 1 ? "" : "s"} to inventory
           </Button>
-          {missingPrice.length > 0 ? (
+          {unpriced.length > 0 ? (
             <p className="text-muted-foreground text-sm">
-              {missingPrice.length} still need{missingPrice.length === 1 ? "s" : ""} a price.
+              {unpriced.length} without a price will be saved as draft
+              {unpriced.length === 1 ? "" : "s"}, not for sale until priced.
             </p>
           ) : null}
         </div>

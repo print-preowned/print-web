@@ -25,8 +25,9 @@ export type PublicationLookup = {
   status?: string | null;
 };
 
+/** Price and condition may be left out; the offer is then saved as a draft. */
 export type InventoryOfferCreatePayload = {
-  price: string;
+  price?: string;
   stock: number;
   condition?: string;
   signed?: boolean;
@@ -44,6 +45,8 @@ export type InventoryCreatePayload = {
   product_form?: string;
   description?: string;
   offer: InventoryOfferCreatePayload;
+  /** Omitted: live when complete, else draft. "ACTIVE" fails if incomplete. */
+  status?: "DRAFT" | "ACTIVE";
 };
 
 export type WorkRef = {
@@ -74,7 +77,7 @@ export type SellerInventory = {
   seller: SellerRef;
   work: WorkRef;
   publication: PublicationRef;
-  price: number;
+  price: number | null;
   stock: number;
   currency: string;
   condition: string | null;
@@ -82,9 +85,19 @@ export type SellerInventory = {
   description: string | null;
   images: string[];
   status: string;
+  /** What the offer still needs before it can go live. */
+  missing: OfferRequirement[];
   createdAt: string;
   updatedAt?: string | null;
 };
+
+export type OfferRequirement = "price" | "stock" | "condition";
+
+export function describeMissing(missing: OfferRequirement[]): string {
+  return `Needs ${missing.join(", ")}`;
+}
+
+export type SellerListingStatusFilter = "DRAFT" | "ACTIVE" | "INACTIVE";
 
 export type SellerInventoryUpdatePayload = {
   price?: string;
@@ -93,7 +106,7 @@ export type SellerInventoryUpdatePayload = {
   signed?: boolean | null;
   description?: string | null;
   images?: string[] | null;
-  status?: string;
+  status?: SellerListingStatusFilter;
 };
 
 export function inventoryTitle(item: SellerInventory) {
@@ -130,8 +143,17 @@ export function readWorkPublications(workId: string) {
   return generateUrl(`/works/${workId}/publications`);
 }
 
-export function readSellerInventory(params?: { page?: number; size?: number; search?: string }) {
+export function readSellerInventory(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+  status?: SellerListingStatusFilter;
+}) {
   return generateUrl("/seller-inventory", params);
+}
+
+export function readSellerInventoryStatusCounts() {
+  return generateUrl("/seller-inventory/status-counts");
 }
 
 export function createInventory(payload: InventoryCreatePayload) {

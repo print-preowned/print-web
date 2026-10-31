@@ -71,6 +71,8 @@ export default function InventoryPage() {
               pagination={sellerInventory.pagination}
               setPagination={sellerInventory.setPagination}
               totalPages={sellerInventory.totalPages}
+              status={sellerInventory.status}
+              onStatusChange={sellerInventory.setStatus}
             />
           </TabsContent>
           <TabsContent value="global" className="mt-4">
@@ -131,7 +133,9 @@ function InventoryDetails({ offer }: { offer: SellerInventory }) {
           </div>
           <div>
             <span className="text-muted-foreground">Price</span>
-            <p className="tabular-nums">{formatPrice(offer.price)}</p>
+            <p className="tabular-nums">
+              {offer.price != null ? formatPrice(offer.price) : "—"}
+            </p>
           </div>
           <div>
             <span className="text-muted-foreground">Stock</span>

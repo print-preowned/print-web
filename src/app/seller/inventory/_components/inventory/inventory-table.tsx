@@ -25,10 +25,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import {
   deleteSellerInventory,
+  describeMissing,
   inventoryTitle,
   inventoryImage,
+  readSellerInventoryStatusCounts,
   type SellerInventory,
+  type SellerListingStatusFilter,
 } from "@/app/seller/lib/api/inventory";
+import { useApiQuery } from "@/lib/hooks/useApiQuery";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { ScannerBar } from "./scanner-bar";
 
@@ -46,7 +51,19 @@ export interface InventoryTableProps {
     React.SetStateAction<{ pageIndex: number; pageSize: number }>
   >;
   totalPages: number;
+  status: SellerListingStatusFilter | undefined;
+  onStatusChange: (status: SellerListingStatusFilter | undefined) => void;
 }
+
+const STATUS_FILTERS: {
+  value: SellerListingStatusFilter | "ALL";
+  label: string;
+}[] = [
+  { value: "ALL", label: "All" },
+  { value: "DRAFT", label: "Drafts" },
+  { value: "ACTIVE", label: "Live" },
+  { value: "INACTIVE", label: "Paused" },
+];
 
 export function InventoryTable({
   selectedIds,
@@ -56,7 +73,13 @@ export function InventoryTable({
   pagination,
   setPagination,
   totalPages,
+  status,
+  onStatusChange,
 }: InventoryTableProps) {
+  const statusCounts = useApiQuery<Record<string, number>>(
+    [...sellerInventoryKeys.all, "status-counts"],
+    readSellerInventoryStatusCounts(),
+  );
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -84,7 +107,9 @@ export function InventoryTable({
       openDrawer({
         title: "Edit offer",
         description: "Update price, stock, and condition for this listing",
-        children: <InventoryEditOfferForm offer={offer} onSuccess={closeDrawer} />,
+        children: (
+          <InventoryEditOfferForm offer={offer} onSuccess={closeDrawer} />
+        ),
       });
     },
     [openDrawer, closeDrawer],
@@ -94,7 +119,8 @@ export function InventoryTable({
     (rows: SellerInventory[]) => {
       const next = new Set(selectedIds);
       const pageIds = new Set(rows.map((row) => row.id));
-      const allSelected = rows.length > 0 && rows.every((row) => next.has(row.id));
+      const allSelected =
+        rows.length > 0 && rows.every((row) => next.has(row.id));
       if (allSelected) pageIds.forEach((id) => next.delete(id));
       else pageIds.forEach((id) => next.add(id));
       setSelectedIds(next);
@@ -113,7 +139,9 @@ export function InventoryTable({
         const someSelected = rowsOnPage.some((row) => selectedIds.has(row.id));
         return (
           <Checkbox
-            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            checked={
+              allSelected ? true : someSelected ? "indeterminate" : false
+            }
             onCheckedChange={() => toggleAllOnPage(rowsOnPage)}
             aria-label="Select all on page"
           />
@@ -133,7 +161,10 @@ export function InventoryTable({
       accessorKey: "title",
       header: "Book",
       cell: ({ row }) => (
-        <BookTableTitleCell title={inventoryTitle(row.original)} image={inventoryImage(row.original)} />
+        <BookTableTitleCell
+          title={inventoryTitle(row.original)}
+          image={inventoryImage(row.original)}
+        />
       ),
     },
     {
@@ -150,25 +181,44 @@ export function InventoryTable({
       accessorKey: "price",
       header: "Price",
       cell: ({ row }) => (
-        <span className="text-xs tabular-nums">{formatPrice(row.original.price)}</span>
+        <span className="text-xs tabular-nums">
+          {row.original.price != null ? formatPrice(row.original.price) : "—"}
+        </span>
       ),
     },
     {
       accessorKey: "stock",
       header: "Stock",
       cell: ({ row }) => (
-        <span className="text-xs tabular-nums">{formatCount(row.original.stock)}</span>
+        <span className="text-xs tabular-nums">
+          {formatCount(row.original.stock)}
+        </span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.status}
-          label={listingStatusLabel(row.original.status)}
-        />
-      ),
+      cell: ({ row }) => {
+        const offer = row.original;
+        // A live offer may sell down to zero; only flag stock before it goes live.
+        const gaps =
+          offer.status === "ACTIVE"
+            ? offer.missing.filter((field) => field !== "stock")
+            : offer.missing;
+        return (
+          <div className="space-y-1">
+            <StatusBadge
+              status={offer.status}
+              label={listingStatusLabel(offer.status)}
+            />
+            {gaps.length > 0 ? (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                {describeMissing(gaps)}
+              </p>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -209,7 +259,11 @@ export function InventoryTable({
     <>
       <div className="mb-4">
         <ScannerBar
-          onScan={(isbn) => router.push(`/seller/inventory/create?isbn=${encodeURIComponent(isbn)}`)}
+          onScan={(isbn) =>
+            router.push(
+              `/seller/inventory/create?isbn=${encodeURIComponent(isbn)}`,
+            )
+          }
         />
       </div>
       <DataTable
@@ -221,13 +275,52 @@ export function InventoryTable({
         onPaginationChange={setPagination}
         isLoading={isLoading}
       >
-        <div className="mb-4 flex">
-          <Button asChild>
-            <Link href="/seller/inventory/create">
-              <PlusCircleIcon className="mr-2 size-4" />
-              Add to inventory
-            </Link>
-          </Button>
+        <div className="mb-4 w-full">
+          <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              size="sm"
+              value={status ?? "ALL"}
+              onValueChange={(value) => {
+                if (!value) return;
+                setSelectedIds(new Set());
+                onStatusChange(
+                  value === "ALL"
+                    ? undefined
+                    : (value as SellerListingStatusFilter),
+                );
+              }}
+              aria-label="Filter by status"
+            >
+              {STATUS_FILTERS.map((filter) => {
+                const n =
+                  filter.value === "ALL"
+                    ? undefined
+                    : statusCounts.data?.[filter.value];
+                return (
+                  <ToggleGroupItem
+                    key={filter.value}
+                    value={filter.value}
+                    className="px-3"
+                  >
+                    {filter.label}
+                    {n ? (
+                      <span className="text-muted-foreground ml-1 tabular-nums">
+                        {n}
+                      </span>
+                    ) : null}
+                  </ToggleGroupItem>
+                );
+              })}
+            </ToggleGroup>
+            <Button asChild>
+              <Link href="/seller/inventory/create">
+                <PlusCircleIcon className="mr-2 size-4" />
+                Add to inventory
+              </Link>
+            </Button>
+          </div>
         </div>
       </DataTable>
       {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}

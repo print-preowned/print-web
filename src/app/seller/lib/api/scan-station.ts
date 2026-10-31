@@ -37,6 +37,7 @@ export type ScanSessionResolveItem = {
 export type ScanSessionImportResult = {
   isbn: string;
   inventory_id: string | null;
+  status: string | null;
   error: string | null;
 };
 
@@ -128,8 +129,9 @@ export function resolveScanSession(stationId: string) {
   };
 }
 
+/** Leave price out to import the book as a draft and price it later. */
 export type ScanSessionImportOffer = {
-  price: string;
+  price?: string;
   stock: number;
   condition: string;
   signed?: boolean;

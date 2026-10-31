@@ -99,10 +99,12 @@ export function InventoryWorkOfferForm({
     onPublicationChange?.(selectedPublication);
   }, [onPublicationChange, selectedPublication]);
 
-  const submit = async (values: WorkOfferValues) => {
+  // A draft may leave price and condition for later; anything typed must still be valid.
+  const submit = async (values: WorkOfferValues, status: "DRAFT" | "ACTIVE") => {
+    const asDraft = status === "DRAFT";
     const price = values.offer.price.trim();
     const stock = Number(values.offer.stock);
-    if (!price || Number(price) <= 0) {
+    if ((price || !asDraft) && !(Number(price) > 0)) {
       toast.error("Price must be greater than zero");
       return;
     }
@@ -110,7 +112,11 @@ export function InventoryWorkOfferForm({
       toast.error("Stock must be 0 or greater");
       return;
     }
-    if (!INVENTORY_CONDITION_VALUES.includes(values.offer.condition as (typeof INVENTORY_CONDITION_VALUES)[number])) {
+    const condition = values.offer.condition;
+    const knownCondition = INVENTORY_CONDITION_VALUES.includes(
+      condition as (typeof INVENTORY_CONDITION_VALUES)[number],
+    );
+    if (!asDraft && !knownCondition) {
       toast.error("Select a condition");
       return;
     }
@@ -130,17 +136,18 @@ export function InventoryWorkOfferForm({
                 isbn: values.isbn.trim() || undefined,
               }),
           offer: {
-            price,
+            price: price || undefined,
             stock,
-            condition: values.offer.condition,
+            condition: knownCondition ? condition : undefined,
             signed: values.offer.signed === "true",
             description: values.offer.description.trim() || undefined,
           },
+          status,
         }),
       );
-      toast.success("Added to your inventory");
+      toast.success(asDraft ? "Saved as draft" : "Added to your inventory");
       void queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
-      onSuccess?.(values.offer.condition);
+      onSuccess?.(condition);
     } catch (error) {
       apiErrorToast(error, "Failed to add to inventory");
     }
@@ -149,7 +156,7 @@ export function InventoryWorkOfferForm({
   return (
     <form
       className="space-y-4"
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={form.handleSubmit((values) => submit(values, "ACTIVE"))}
     >
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">Format</legend>
@@ -308,6 +315,10 @@ export function InventoryWorkOfferForm({
         conditionValue={form.watch("offer.condition")}
         isPending={isPending}
         submitDisabled={publicationsQuery.isLoading || publicationsQuery.isError}
+        secondaryAction={{
+          label: "Save as draft",
+          onClick: () => void form.handleSubmit((values) => submit(values, "DRAFT"))(),
+        }}
       />
     </form>
   );

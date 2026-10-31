@@ -137,7 +137,6 @@ function workSummary(work: CatalogWork, publication: PublicationLookup | null): 
         : (work.authors ?? []).map((author) => author.name),
     };
   }
-  console.log("workSummary", work);
   return {
     cover: firstImage(work.images),
     title: work.title.displayTitle,
@@ -178,6 +177,8 @@ type InventoryFormValues = {
   description: string;
   language: string;
   product_form: ProductFormValue;
+  /** Set by the button pressed: "Save as draft" or "Add inventory". */
+  status: "DRAFT" | "ACTIVE";
   offer: {
     price: string;
     stock: string;
@@ -187,7 +188,17 @@ type InventoryFormValues = {
   };
 };
 
-const buildInventorySchema = ({ publication, showNewWork }: { publication: PublicationLookup | null; showNewWork: boolean }) =>
+function isKnownCondition(value: string) {
+  return INVENTORY_CONDITION_VALUES.includes(value as (typeof INVENTORY_CONDITION_VALUES)[number]);
+}
+
+const buildInventorySchema = ({
+  publication,
+  showNewWork,
+}: {
+  publication: PublicationLookup | null;
+  showNewWork: boolean;
+}) =>
   z.object({
     lookupIsbn: z.string(),
     isbn: z.string().trim(),
@@ -195,14 +206,11 @@ const buildInventorySchema = ({ publication, showNewWork }: { publication: Publi
     description: z.string().trim(),
     language: z.string().trim(),
     product_form: z.enum(["PAPERBACK", "HARDCOVER", "EBOOK", "AUDIOBOOK", "OTHER"]),
+    status: z.enum(["DRAFT", "ACTIVE"]),
     offer: z.object({
-      price: z.string().trim().min(1, "Price is required"),
+      price: z.string().trim(),
       stock: z.string().trim().min(1, "Stock is required"),
-      condition: z.string().trim().refine(
-        (value) =>
-          INVENTORY_CONDITION_VALUES.includes(value as (typeof INVENTORY_CONDITION_VALUES)[number]),
-        { message: "Select a condition" },
-      ),
+      condition: z.string().trim(),
       description: z.string().trim(),
       signed: z.enum(["true", "false"]),
     }),
@@ -217,12 +225,21 @@ const buildInventorySchema = ({ publication, showNewWork }: { publication: Publi
       });
     }
 
-    if (values.offer.price && Number(values.offer.price) <= 0) {
+    // A draft may leave price and condition for later; anything typed must still be valid.
+    const live = values.status === "ACTIVE";
+
+    if (!values.offer.price && live) {
+      ctx.addIssue({ path: ["offer", "price"], code: "custom", message: "Price is required" });
+    } else if (values.offer.price && !(Number(values.offer.price) > 0)) {
       ctx.addIssue({
         path: ["offer", "price"],
         code: "custom",
         message: "Price must be greater than zero",
       });
+    }
+
+    if (!isKnownCondition(values.offer.condition) && live) {
+      ctx.addIssue({ path: ["offer", "condition"], code: "custom", message: "Select a condition" });
     }
 
     if (values.offer.stock && (!Number.isFinite(Number(values.offer.stock)) || Number(values.offer.stock) < 0)) {
@@ -289,7 +306,9 @@ export function InventoryOnboardForm({
     return options;
   }, [titleResults, selectedWork]);
   const form = useForm<InventoryFormValues>({
-    resolver: zodResolver(buildInventorySchema({ publication, showNewWork })),
+    resolver: zodResolver(
+      buildInventorySchema({ publication, showNewWork }),
+    ),
     defaultValues: {
       lookupIsbn: "",
       isbn: "",
@@ -297,6 +316,7 @@ export function InventoryOnboardForm({
       description: "",
       language: "",
       product_form: "OTHER",
+      status: "ACTIVE",
       offer: {
         price: "",
         stock: "1",
@@ -399,18 +419,19 @@ export function InventoryOnboardForm({
             product_form: values.product_form,
           }),
       offer: {
-        price: values.offer.price,
+        price: values.offer.price || undefined,
         stock: parsedStock,
-        condition: values.offer.condition,
+        condition: isKnownCondition(values.offer.condition) ? values.offer.condition : undefined,
         signed: values.offer.signed === "true",
         description: values.offer.description.trim() || undefined,
       },
+      status: values.status,
     };
 
     try {
       await mutateAsync(createInventory(payload));
       await queryClient.invalidateQueries({ queryKey: sellerInventoryKeys.all });
-      toast.success("Inventory added");
+      toast.success(values.status === "DRAFT" ? "Saved as draft" : "Inventory added");
       reset();
       onSuccess?.({
         title: publication?.title || publication?.work?.title || values.title.trim() || "Untitled",
@@ -431,6 +452,7 @@ export function InventoryOnboardForm({
       description: "",
       language: "",
       product_form: "OTHER",
+      status: "ACTIVE",
       offer: {
         price: "",
         stock: "1",
@@ -439,6 +461,11 @@ export function InventoryOnboardForm({
         signed: "false",
       },
     });
+  }
+
+  function submitAs(status: InventoryFormValues["status"]) {
+    setValue("status", status);
+    return handleSubmit(submit);
   }
 
   const offerFormVisible = selectedWork != null && !showNewWork;
@@ -579,7 +606,7 @@ export function InventoryOnboardForm({
       ) : null}
 
       {createFormVisible ? (
-        <form onSubmit={handleSubmit(submit)} className="space-y-4">
+        <form onSubmit={(event) => submitAs("ACTIVE")(event)} className="space-y-4">
           {publication ? (
             <div className={bookLayoutClassName}>
               <BookSummary {...publicationSummary(publication)} />
@@ -592,6 +619,7 @@ export function InventoryOnboardForm({
                   errors={errors.offer}
                   isPending={isPending}
                   autoFocusPrice
+                  secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
                 />
               </div>
             </div>
@@ -664,6 +692,7 @@ export function InventoryOnboardForm({
               conditionValue={watch("offer.condition")}
               errors={errors.offer}
               isPending={isPending}
+              secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
             />
           ) : null}
         </form>

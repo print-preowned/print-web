@@ -9,6 +9,7 @@ import {
   readWorks,
   type CatalogWork,
   type SellerInventory,
+  type SellerListingStatusFilter,
 } from "@/app/seller/lib/api/inventory";
 
 function searchOrUndefined(s: string): string | undefined {
@@ -73,10 +74,14 @@ export interface UseSellerInventoryReturn {
     React.SetStateAction<{ pageIndex: number; pageSize: number }>
   >;
   totalPages: number;
+  status: SellerListingStatusFilter | undefined;
+  setStatus: (status: SellerListingStatusFilter | undefined) => void;
 }
 
 export function useSellerInventory(): UseSellerInventoryReturn {
   const sellerId = useSellerId();
+  const [status, setStatus] = useState<SellerListingStatusFilter | undefined>();
+  const params = useMemo(() => ({ status }), [status]);
 
   const {
     data: inventory,
@@ -88,10 +93,10 @@ export function useSellerInventory(): UseSellerInventoryReturn {
     queryKey: [...sellerInventoryKeys.all, sellerId ?? ""],
     getUrl: ({ page, size }) => {
       if (!sellerId) return "";
-      return readSellerInventory({ page, size });
+      return readSellerInventory({ page, size, status });
     },
     initialPageSize: 10,
-    params: {},
+    params,
     enabled: Boolean(sellerId),
   });
 
@@ -101,5 +106,10 @@ export function useSellerInventory(): UseSellerInventoryReturn {
     pagination,
     setPagination,
     totalPages,
+    status,
+    setStatus: (next) => {
+      setStatus(next);
+      setPagination((current) => ({ ...current, pageIndex: 0 }));
+    },
   };
 }

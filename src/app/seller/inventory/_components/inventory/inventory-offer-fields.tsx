@@ -27,6 +27,8 @@ type Props<T extends FieldValues> = {
   submitLabel?: string;
   /** Focus price on mount, once the book is known and only the offer is left. */
   autoFocusPrice?: boolean;
+  /** A second button beside submit, e.g. "Save as draft". */
+  secondaryAction?: { label: string; onClick: () => void };
 };
 
 const inputClassName = "bg-background";
@@ -41,6 +43,7 @@ export function InventoryOfferFields<T extends FieldValues>({
   submitDisabled = false,
   submitLabel = "Add inventory",
   autoFocusPrice = false,
+  secondaryAction,
 }: Props<T>) {
   const path = (name: keyof InventoryOfferValues) =>
     (namePrefix ? `${namePrefix}.${name}` : name) as Path<T>;
@@ -123,7 +126,17 @@ export function InventoryOfferFields<T extends FieldValues>({
           {...register(path("description"))}
         />
       </div>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2 mt-8">
+        {secondaryAction ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isPending || submitDisabled}
+            onClick={secondaryAction.onClick}
+          >
+            {secondaryAction.label}
+          </Button>
+        ) : null}
         <Button type="submit" disabled={isPending || submitDisabled}>
           {isPending ? <LoaderCircle className="animate-spin" /> : submitLabel === "Add inventory" ? <Plus /> : null}
           {submitLabel}
