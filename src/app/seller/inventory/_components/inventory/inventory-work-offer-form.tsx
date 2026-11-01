@@ -20,6 +20,7 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { isbnFieldError } from "@/app/seller/lib/inventory-isbn";
+import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
 import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/publication";
 
@@ -63,6 +64,7 @@ export function InventoryWorkOfferForm({
 }: Props) {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
+  const photos = useOfferPhotos();
   const publicationsQuery = useApiQuery<PublicationLookup[]>(
     publicationKeys.byWork(workId),
     readWorkPublications(workId),
@@ -121,6 +123,8 @@ export function InventoryWorkOfferForm({
       return;
     }
     const publicationTitle = values.title.trim();
+    const images = await photos.resolve();
+    if (!images) return;
     try {
       await mutateAsync(
         createInventory({
@@ -141,6 +145,7 @@ export function InventoryWorkOfferForm({
             condition: knownCondition ? condition : undefined,
             signed: values.offer.signed === "true",
             description: values.offer.description.trim() || undefined,
+            images,
           },
           status,
         }),
@@ -314,6 +319,7 @@ export function InventoryWorkOfferForm({
         register={form.register}
         conditionValue={form.watch("offer.condition")}
         isPending={isPending}
+        photos={photos}
         submitDisabled={publicationsQuery.isLoading || publicationsQuery.isError}
         secondaryAction={{
           label: "Save as draft",

@@ -30,6 +30,7 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { resolveInventoryIsbn } from "@/app/seller/lib/api/scan-station";
 import { InventoryWorkOfferForm } from "./inventory-work-offer-form";
+import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { ISBN_ERROR_MESSAGE, ISBN_PATTERN } from "@/app/seller/lib/inventory-isbn";
@@ -280,6 +281,7 @@ export function InventoryOnboardForm({
   const [titleQuery, setTitleQuery] = useState("");
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
+  const photos = useOfferPhotos();
 
   useEffect(() => {
     const trimmed = titleQuery.trim();
@@ -406,6 +408,8 @@ export function InventoryOnboardForm({
   }, [initialIsbn, lookupByIsbn]);
 
   async function submit(values: InventoryFormValues) {
+    const images = await photos.resolve();
+    if (!images) return;
     const parsedStock = Number(values.offer.stock);
 
     const payload: InventoryCreatePayload = {
@@ -424,6 +428,7 @@ export function InventoryOnboardForm({
         condition: isKnownCondition(values.offer.condition) ? values.offer.condition : undefined,
         signed: values.offer.signed === "true",
         description: values.offer.description.trim() || undefined,
+        images,
       },
       status: values.status,
     };
@@ -444,6 +449,7 @@ export function InventoryOnboardForm({
 
   function reset() {
     resetResolution();
+    photos.clear();
     setMode("isbn");
     resetForm({
       lookupIsbn: "",
@@ -619,6 +625,7 @@ export function InventoryOnboardForm({
                   errors={errors.offer}
                   isPending={isPending}
                   autoFocusPrice
+                  photos={photos}
                   secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
                 />
               </div>
@@ -692,6 +699,7 @@ export function InventoryOnboardForm({
               conditionValue={watch("offer.condition")}
               errors={errors.offer}
               isPending={isPending}
+              photos={photos}
               secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
             />
           ) : null}

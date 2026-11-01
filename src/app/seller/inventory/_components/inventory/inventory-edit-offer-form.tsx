@@ -13,6 +13,7 @@ import {
   type SellerInventory,
   type SellerInventoryUpdatePayload,
 } from "@/app/seller/lib/api/inventory";
+import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
 
 type Props = {
@@ -32,6 +33,8 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
     },
   });
 
+  const photos = useOfferPhotos(offer.images);
+
   const mutation = useApiMutation({
     onError: (error: Error) => apiErrorToast(error, "Failed to update offer"),
   });
@@ -39,7 +42,9 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
   // Drafts and paused offers can be saved as they are, or saved and put live in one go.
   const canPublish = offer.status === "DRAFT" || offer.status === "INACTIVE";
 
-  function save(values: InventoryOfferValues, publish: boolean) {
+  async function save(values: InventoryOfferValues, publish: boolean) {
+    const images = await photos.resolve();
+    if (!images) return;
     const price = values.price.trim();
     const payload: SellerInventoryUpdatePayload = {
       ...(price ? { price } : {}),
@@ -47,6 +52,7 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
       ...(values.condition.trim() ? { condition: values.condition.trim() } : {}),
       signed: values.signed === "true",
       description: values.description.trim() || null,
+      images,
       ...(publish ? { status: "ACTIVE" as const } : {}),
     };
     mutation.mutate(updateSellerInventory(offer.id, payload), {
@@ -76,6 +82,7 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
         register={form.register}
         conditionValue={form.watch("condition")}
         isPending={mutation.isPending}
+        photos={photos}
         submitLabel={canPublish ? "Save and publish" : "Save offer"}
         secondaryAction={
           canPublish

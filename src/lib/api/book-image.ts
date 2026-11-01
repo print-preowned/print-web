@@ -38,15 +38,24 @@ export function contentTypeForFileType(fileType: string): string {
 }
 
 export async function readBookUploadUrl(fileType: string): Promise<BookUploadUrl> {
+  return readStagingUploadUrl("/works/upload-url", fileType);
+}
+
+async function readStagingUploadUrl(path: string, fileType: string): Promise<BookUploadUrl> {
   const res = await apiFetch<BaseResponse<BookUploadUrl>>(
-    generateUrl("/works/upload-url", { file_type: fileType }),
+    generateUrl(path, { file_type: fileType }),
   );
   return res.data;
 }
 
 export async function uploadBookCoverToStaging(file: File): Promise<string> {
+  return uploadImageToStaging("/works/upload-url", file);
+}
+
+/** Upload to a temporary key; the record it's saved on moves it out of staging. */
+export async function uploadImageToStaging(uploadUrlPath: string, file: File): Promise<string> {
   const fileType = fileTypeFromImage(file);
-  const { upload_url, url } = await readBookUploadUrl(fileType);
+  const { upload_url, url } = await readStagingUploadUrl(uploadUrlPath, fileType);
 
   const uploadRes = await fetch(upload_url, {
     method: "PUT",

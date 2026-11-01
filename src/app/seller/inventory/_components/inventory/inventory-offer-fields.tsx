@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { INVENTORY_CONDITIONS } from "@/app/seller/lib/inventory-condition";
+import { OfferPhotos, type OfferPhotosState } from "./offer-photos";
 
 export type InventoryOfferValues = {
   price: string;
@@ -29,6 +30,8 @@ type Props<T extends FieldValues> = {
   autoFocusPrice?: boolean;
   /** A second button beside submit, e.g. "Save as draft". */
   secondaryAction?: { label: string; onClick: () => void };
+  /** Photos of this copy; buttons stay disabled while they upload. */
+  photos?: OfferPhotosState;
 };
 
 const inputClassName = "bg-background";
@@ -44,7 +47,9 @@ export function InventoryOfferFields<T extends FieldValues>({
   submitLabel = "Add inventory",
   autoFocusPrice = false,
   secondaryAction,
+  photos,
 }: Props<T>) {
+  const busy = isPending || photos?.uploading === true;
   const path = (name: keyof InventoryOfferValues) =>
     (namePrefix ? `${namePrefix}.${name}` : name) as Path<T>;
   const selectedCondition = INVENTORY_CONDITIONS.find(
@@ -126,19 +131,20 @@ export function InventoryOfferFields<T extends FieldValues>({
           {...register(path("description"))}
         />
       </div>
+      {photos ? <OfferPhotos photos={photos} /> : null}
       <div className="flex flex-wrap justify-end gap-2 mt-8">
         {secondaryAction ? (
           <Button
             type="button"
             variant="outline"
-            disabled={isPending || submitDisabled}
+            disabled={busy || submitDisabled}
             onClick={secondaryAction.onClick}
           >
             {secondaryAction.label}
           </Button>
         ) : null}
-        <Button type="submit" disabled={isPending || submitDisabled}>
-          {isPending ? <LoaderCircle className="animate-spin" /> : submitLabel === "Add inventory" ? <Plus /> : null}
+        <Button type="submit" disabled={busy || submitDisabled}>
+          {busy ? <LoaderCircle className="animate-spin" /> : submitLabel === "Add inventory" ? <Plus /> : null}
           {submitLabel}
         </Button>
       </div>

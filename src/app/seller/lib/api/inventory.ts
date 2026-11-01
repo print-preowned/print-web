@@ -1,4 +1,5 @@
 import { generateUrl } from "@/lib/api";
+import { uploadImageToStaging } from "@/lib/api/book-image";
 import type { WorkTitle } from "@/lib/api/work-title";
 import { firstImage } from "@/lib/cover";
 
@@ -154,6 +155,13 @@ export function readSellerInventory(params?: {
 
 export function readSellerInventoryStatusCounts() {
   return generateUrl("/seller-inventory/status-counts");
+}
+
+/** Matches the server's per-offer limit. */
+export const MAX_OFFER_PHOTOS = 6;
+
+export function uploadOfferPhotoToStaging(file: File) {
+  return uploadImageToStaging("/seller-inventory/upload-url", file);
 }
 
 export function createInventory(payload: InventoryCreatePayload) {

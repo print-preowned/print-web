@@ -23,12 +23,15 @@ export type UseImageUploadOptions = {
   initialPreviews?: string[];
   fallback?: string | null;
   maxItems?: number;
+  /** Uploads a selected file and returns its staged URL. Defaults to book covers. */
+  upload?: (file: File) => Promise<string>;
 };
 
 export function useImageUpload({
   initialPreviews = [],
   fallback = DEFAULT_IMAGE_PLACEHOLDER,
   maxItems,
+  upload = uploadBookCoverToStaging,
 }: UseImageUploadOptions = {}) {
   const idPrefix = useId();
   const nextId = useRef(0);
@@ -104,6 +107,14 @@ export function useImageUpload({
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  const moveToFront = (index: number) => {
+    const target = itemsRef.current[index];
+    if (!target || index === 0) return;
+    const next = [target, ...itemsRef.current.filter((_, i) => i !== index)];
+    itemsRef.current = next;
+    setItems(next);
+  };
+
   const clear = () => {
     itemsRef.current.forEach((item) => {
       if (item.file) revokeBlobUrl(item.preview);
@@ -117,7 +128,7 @@ export function useImageUpload({
     const urls: string[] = [];
     for (const item of items) {
       if (item.file) {
-        urls.push(await uploadBookCoverToStaging(item.file));
+        urls.push(await upload(item.file));
       } else if (item.url) {
         urls.push(item.url);
       }
@@ -133,6 +144,7 @@ export function useImageUpload({
     inputRef,
     onFilesSelect,
     removeAt,
+    moveToFront,
     clear,
     resolveValues,
   };
