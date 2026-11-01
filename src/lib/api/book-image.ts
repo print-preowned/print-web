@@ -10,6 +10,7 @@ const FILE_TYPE_BY_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/jp2": "jp2",
+  "image/webp": "webp",
 };
 
 export function fileTypeFromImage(file: File): string {
@@ -18,9 +19,9 @@ export function fileTypeFromImage(file: File): string {
 
   const ext = file.name.split(".").pop()?.toLowerCase();
   if (ext === "jpeg") return "jpg";
-  if (ext && ["jpg", "png", "jp2"].includes(ext)) return ext;
+  if (ext && ["jpg", "png", "jp2", "webp"].includes(ext)) return ext;
 
-  throw new Error("Supports JPG, JPEG2000, and PNG only");
+  throw new Error("Supports JPG, JPEG2000, PNG, and WebP only");
 }
 
 export function contentTypeForFileType(fileType: string): string {
@@ -32,6 +33,8 @@ export function contentTypeForFileType(fileType: string): string {
       return "image/png";
     case "jp2":
       return "image/jp2";
+    case "webp":
+      return "image/webp";
     default:
       return `image/${fileType}`;
   }

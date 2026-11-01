@@ -12,9 +12,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/jp2"]);
+const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/jp2", "image/webp"]);
 
-const ACCEPT_ATTR = ".jpg,.jpeg,.png,.jp2,image/jpeg,image/png,image/jp2";
+const ACCEPT_ATTR = ".jpg,.jpeg,.png,.jp2,.webp,image/jpeg,image/png,image/jp2,image/webp";
 
 export type ImageDropzoneProps = {
   id?: string;
@@ -29,7 +29,7 @@ export type ImageDropzoneProps = {
 
 function validateImageFile(file: File): boolean {
   if (ACCEPTED_IMAGE_TYPES.has(file.type)) return true;
-  toast.error("Supports JPG, JPEG2000, and PNG only");
+  toast.error("Supports JPG, JPEG2000, PNG, and WebP only");
   return false;
 }
 
@@ -160,7 +160,7 @@ export function ImageDropzone({
                 </p>
               </div>
               <p className="text-muted-foreground text-[11px]">
-                JPG, PNG, JPEG
+                JPG, PNG, WebP
               </p>
             </div>
           </label>

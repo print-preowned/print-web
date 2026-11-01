@@ -9,7 +9,7 @@ import { downscaleImage } from "@/lib/downscale-image";
 import { useImageUpload } from "@/lib/hooks/useImageUpload";
 import { MAX_OFFER_PHOTOS, uploadOfferPhotoToStaging } from "@/app/seller/lib/api/inventory";
 
-const UPLOADABLE_TYPES = new Set(["image/jpeg", "image/png"]);
+const UPLOADABLE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 /** Photos of the seller's own copy, uploaded when the offer is saved. */
 export function useOfferPhotos(initial: string[] = []) {
@@ -54,7 +54,7 @@ export function OfferPhotos({ photos }: { photos: OfferPhotosState }) {
       const prepared = await Promise.all(files.map((file) => downscaleImage(file)));
       const accepted = prepared.filter((file) => UPLOADABLE_TYPES.has(file.type));
       if (accepted.length < prepared.length) {
-        toast.error("Some photos couldn't be read. Use JPG or PNG.");
+        toast.error("Some photos couldn't be read. Use JPG, PNG or WebP.");
       }
       photos.onFilesSelect(accepted);
     } finally {
