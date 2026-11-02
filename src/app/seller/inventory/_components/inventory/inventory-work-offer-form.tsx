@@ -20,6 +20,7 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { isbnFieldError } from "@/app/seller/lib/inventory-isbn";
+import { useOnboardingGrantId } from "@/lib/auth/context";
 import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
 import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/publication";
@@ -65,6 +66,8 @@ export function InventoryWorkOfferForm({
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
   const photos = useOfferPhotos();
+  // Staff onboarding a store save drafts only; the seller publishes.
+  const onboarding = useOnboardingGrantId() != null;
   const publicationsQuery = useApiQuery<PublicationLookup[]>(
     publicationKeys.byWork(workId),
     readWorkPublications(workId),
@@ -161,7 +164,7 @@ export function InventoryWorkOfferForm({
   return (
     <form
       className="space-y-4"
-      onSubmit={form.handleSubmit((values) => submit(values, "ACTIVE"))}
+      onSubmit={form.handleSubmit((values) => submit(values, onboarding ? "DRAFT" : "ACTIVE"))}
     >
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">Format</legend>
@@ -321,10 +324,14 @@ export function InventoryWorkOfferForm({
         isPending={isPending}
         photos={photos}
         submitDisabled={publicationsQuery.isLoading || publicationsQuery.isError}
-        secondaryAction={{
-          label: "Save as draft",
-          onClick: () => void form.handleSubmit((values) => submit(values, "DRAFT"))(),
-        }}
+        {...(onboarding
+          ? { submitLabel: "Save draft" }
+          : {
+              secondaryAction: {
+                label: "Save as draft",
+                onClick: () => void form.handleSubmit((values) => submit(values, "DRAFT"))(),
+              },
+            })}
       />
     </form>
   );

@@ -38,6 +38,11 @@ const sidebarData = {
       icon: "bookmark",
     },
     {
+      title: "Onboarding",
+      url: "/admin/onboarding",
+      icon: "buildingStore",
+    },
+    {
       title: "Users",
       url: "/admin/users",
       icon: "users",

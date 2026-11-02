@@ -30,6 +30,7 @@ import {
 } from "@/app/seller/lib/api/inventory";
 import { resolveInventoryIsbn } from "@/app/seller/lib/api/scan-station";
 import { InventoryWorkOfferForm } from "./inventory-work-offer-form";
+import { useOnboardingGrantId } from "@/lib/auth/context";
 import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
@@ -282,6 +283,8 @@ export function InventoryOnboardForm({
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
   const photos = useOfferPhotos();
+  // Staff onboarding a store save drafts only; the seller publishes.
+  const onboarding = useOnboardingGrantId() != null;
 
   useEffect(() => {
     const trimmed = titleQuery.trim();
@@ -474,6 +477,10 @@ export function InventoryOnboardForm({
     return handleSubmit(submit);
   }
 
+  const offerActions = onboarding
+    ? { submitLabel: "Save draft" }
+    : { secondaryAction: { label: "Save as draft", onClick: () => void submitAs("DRAFT")() } };
+
   const offerFormVisible = selectedWork != null && !showNewWork;
   const createFormVisible = !offerFormVisible;
 
@@ -612,7 +619,10 @@ export function InventoryOnboardForm({
       ) : null}
 
       {createFormVisible ? (
-        <form onSubmit={(event) => submitAs("ACTIVE")(event)} className="space-y-4">
+        <form
+          onSubmit={(event) => submitAs(onboarding ? "DRAFT" : "ACTIVE")(event)}
+          className="space-y-4"
+        >
           {publication ? (
             <div className={bookLayoutClassName}>
               <BookSummary {...publicationSummary(publication)} />
@@ -626,7 +636,7 @@ export function InventoryOnboardForm({
                   isPending={isPending}
                   autoFocusPrice
                   photos={photos}
-                  secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
+                  {...offerActions}
                 />
               </div>
             </div>
@@ -700,7 +710,7 @@ export function InventoryOnboardForm({
               errors={errors.offer}
               isPending={isPending}
               photos={photos}
-              secondaryAction={{ label: "Save as draft", onClick: () => void submitAs("DRAFT")() }}
+              {...offerActions}
             />
           ) : null}
         </form>

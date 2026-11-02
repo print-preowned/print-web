@@ -27,6 +27,8 @@ export interface SellerTokenData {
     is_system: boolean;
   };
   is_owner: boolean;
+  /** Set when platform staff work in the store under an onboarding grant. */
+  grant_id?: string;
 }
 
 export interface CustomerToken extends BaseTokenFields {
@@ -59,7 +61,7 @@ export type AccessToken = CustomerToken | SellerToken | PlatformToken;
 export interface Session {
   id: string;
   context: TokenContext;
-  seller?: { id: string; is_owner: boolean };
+  seller?: { id: string; is_owner: boolean; grantId?: string };
   privileges?: string[];
   /** When context is CUSTOMER, true if the user has a linked seller (can switch). */
   hasSeller?: boolean;
@@ -76,6 +78,7 @@ export function sessionFromToken(decoded: AccessToken): Session {
     session.seller = {
       id: decoded.seller.id,
       is_owner: decoded.seller.is_owner,
+      ...(decoded.seller.grant_id ? { grantId: decoded.seller.grant_id } : {}),
     };
     session.privileges = decoded.privileges;
   }

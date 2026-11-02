@@ -124,6 +124,15 @@ export function useIsOwner(): boolean {
 }
 
 /**
+ * Onboarding grant the session runs under, when platform staff are working in
+ * the store for the seller (drafts only; the seller publishes).
+ */
+export function useOnboardingGrantId(): string | null {
+  const { session } = useAuth();
+  return session?.context === "SELLER" ? (session.seller?.grantId ?? null) : null;
+}
+
+/**
  * Hook to get current seller ID (SELLER context only)
  */
 export function useSellerId(): string | null {

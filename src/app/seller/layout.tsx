@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { ApiStatusBanner } from "@/components/api-status-banner";
+import { OnboardingBanner } from "@/components/onboarding-banner";
 import { getUserProfileCookie } from "@/lib/auth/server-cookie";
 
 const sidebarData = {
@@ -75,6 +76,7 @@ export default async function SellerLayout({ children }: { children: ReactNode }
             <div className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto">
               <div className="container mx-auto flex w-full flex-col gap-4 px-4 py-4 md:gap-6 md:py-6">
                 <ApiStatusBanner />
+                <OnboardingBanner />
                 {children}
               </div>
             </div>

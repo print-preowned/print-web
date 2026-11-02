@@ -33,6 +33,7 @@ import {
   type SellerListingStatusFilter,
 } from "@/app/seller/lib/api/inventory";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
+import { useOnboardingGrantId, usePrivilege } from "@/lib/auth/context";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { InventoryEditOfferForm } from "./inventory-edit-offer-form";
 import { ScannerBar } from "./scanner-bar";
@@ -81,6 +82,9 @@ export function InventoryTable({
     readSellerInventoryStatusCounts(),
   );
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
+  // Staff onboarding a store edit drafts only and can't remove offers.
+  const onboarding = useOnboardingGrantId() != null;
+  const canRemove = usePrivilege("DELETE_SELLER_INVENTORY");
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -216,6 +220,9 @@ export function InventoryTable({
                 {describeMissing(gaps)}
               </p>
             ) : null}
+            {offer.createdBy?.grantId ? (
+              <p className="text-muted-foreground text-xs">Added by Print</p>
+            ) : null}
           </div>
         );
       },
@@ -236,19 +243,24 @@ export function InventoryTable({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={() => openEditDrawer(row.original)}>
+            <DropdownMenuItem
+              disabled={onboarding && row.original.status !== "DRAFT"}
+              onClick={() => openEditDrawer(row.original)}
+            >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => {
-                if (confirm("Remove this offer from your inventory?")) {
-                  deleteMutation.mutate(deleteSellerInventory(row.original.id));
-                }
-              }}
-            >
-              Remove
-            </DropdownMenuItem>
+            {canRemove ? (
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  if (confirm("Remove this offer from your inventory?")) {
+                    deleteMutation.mutate(deleteSellerInventory(row.original.id));
+                  }
+                }}
+              >
+                Remove
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),

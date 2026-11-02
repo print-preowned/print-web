@@ -10,6 +10,7 @@ import { SellerDetailsForm } from "./seller-details-form";
 import { SellerLocationsList } from "./seller-locations-list";
 import { LegalEntityForm } from "./legal-entity-form";
 import { PayoutAccountPanel } from "./payout-account-panel";
+import { OnboardingAccessPanel } from "./onboarding-access-panel";
 import type { BaseResponse } from "@/lib/model";
 
 export default function SellerAccountPage() {
@@ -104,6 +105,8 @@ export default function SellerAccountPage() {
       <LegalEntityForm />
 
       <PayoutAccountPanel />
+
+      {isOwner ? <OnboardingAccessPanel /> : null}
     </div>
   );
 }

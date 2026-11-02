@@ -13,6 +13,7 @@ import {
   type SellerInventory,
   type SellerInventoryUpdatePayload,
 } from "@/app/seller/lib/api/inventory";
+import { useOnboardingGrantId } from "@/lib/auth/context";
 import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields, type InventoryOfferValues } from "./inventory-offer-fields";
 
@@ -40,7 +41,9 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
   });
 
   // Drafts and paused offers can be saved as they are, or saved and put live in one go.
-  const canPublish = offer.status === "DRAFT" || offer.status === "INACTIVE";
+  // Staff onboarding a store can only save drafts; the seller publishes.
+  const onboarding = useOnboardingGrantId() != null;
+  const canPublish = !onboarding && (offer.status === "DRAFT" || offer.status === "INACTIVE");
 
   async function save(values: InventoryOfferValues, publish: boolean) {
     const images = await photos.resolve();
@@ -83,7 +86,7 @@ export function InventoryEditOfferForm({ offer, onSuccess }: Props) {
         conditionValue={form.watch("condition")}
         isPending={mutation.isPending}
         photos={photos}
-        submitLabel={canPublish ? "Save and publish" : "Save offer"}
+        submitLabel={canPublish ? "Save and publish" : onboarding ? "Save draft" : "Save offer"}
         secondaryAction={
           canPublish
             ? {

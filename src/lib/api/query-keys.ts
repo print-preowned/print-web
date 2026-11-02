@@ -8,6 +8,15 @@ export const scanStationKeys = {
   all: ["scan-stations"] as const,
 };
 
+export const accessGrantKeys = {
+  all: ["access-grants"] as const,
+  staff: (openOnly: boolean) =>
+    [...accessGrantKeys.all, "staff", openOnly] as const,
+  seller: () => [...accessGrantKeys.all, "seller"] as const,
+  sellers: (search: string) =>
+    [...accessGrantKeys.all, "sellers", search] as const,
+};
+
 export const publicationKeys = {
   byWork: (workId: string) => ["publications", "work", workId] as const,
 };

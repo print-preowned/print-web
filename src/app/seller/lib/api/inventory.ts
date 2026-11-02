@@ -88,6 +88,8 @@ export type SellerInventory = {
   status: string;
   /** What the offer still needs before it can go live. */
   missing: OfferRequirement[];
+  /** Who added the offer; grantId is set when Print's onboarding team added it. */
+  createdBy?: { userId: string; grantId?: string | null } | null;
   createdAt: string;
   updatedAt?: string | null;
 };

@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const targetContext = body?.targetContext as string | undefined;
     const sellerId = body?.seller_id as string | undefined;
+    const grantId = body?.grant_id as string | undefined;
 
     let path: string;
     if (targetContext === "SELLER") {
@@ -20,6 +21,15 @@ export async function POST(request: Request) {
       path = `/auth/context/seller/${sellerId}`;
     } else if (targetContext === "CUSTOMER") {
       path = "/auth/context/customer";
+    } else if (targetContext === "ONBOARDING") {
+      // Platform staff entering a store the seller granted onboarding access to.
+      if (!grantId) {
+        return NextResponse.json({ detail: "grant_id required" }, { status: 400 });
+      }
+      path = `/seller-access-grants/${grantId}/enter`;
+    } else if (targetContext === "PLATFORM") {
+      // Back to admin from an onboarding session.
+      path = "/auth/context/platform";
     } else {
       return NextResponse.json({ detail: "Invalid targetContext" }, { status: 400 });
     }
