@@ -3,6 +3,8 @@ import { ReadParams, buildQueryParams } from "./types";
 
 export type Role = {
   id: string;
+  /** Null for system roles (e.g. Owner), which every store sees but can't change. */
+  seller_id: string | null;
   name: string;
   code: string;
   description?: string | null;

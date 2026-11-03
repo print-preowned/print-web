@@ -90,8 +90,14 @@ export default function RolesPage() {
                 <TableCell>{r.name}</TableCell>
                 <TableCell className="text-muted-foreground">{r.description}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => onDelete(r.id)}>Delete</Button>
+                  {r.seller_id ? (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Edit</Button>
+                      <Button size="sm" variant="destructive" onClick={() => onDelete(r.id)}>Delete</Button>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">Built-in</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
