@@ -75,7 +75,9 @@ export default function SellerAccountPage() {
       {isOwner ? (
         <SellerDetailsForm
           seller={seller}
-          onSubmit={(values) => updateMutation.mutate(values)}
+          onSubmit={(values) =>
+            updateMutation.mutate({ ...values, logo: values.logo || null })
+          }
           isPending={updateMutation.isPending}
         />
       ) : (

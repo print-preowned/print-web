@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Store } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
@@ -14,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProfileImageUpload } from "@/components/profile-image-upload";
 import type { Seller } from "@/lib/api/seller";
+import { uploadSellerLogo } from "@/lib/api/profile-image";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,6 +40,7 @@ export function SellerDetailsForm({
   onSubmit,
   isPending = false,
 }: SellerDetailsFormProps) {
+  const [isLogoUploading, setIsLogoUploading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -53,6 +58,7 @@ export function SellerDetailsForm({
   });
 
   const status = watch("status");
+  const logo = watch("logo");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl space-y-6 rounded-lg border bg-card p-6">
@@ -84,13 +90,17 @@ export function SellerDetailsForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="logo">Logo URL</Label>
-        <Input
+        <ProfileImageUpload
           id="logo"
-          {...register("logo")}
-          type="url"
-          placeholder="https://example.com/logo.png"
-          className={errors.logo ? "border-destructive" : ""}
+          label="Logo"
+          shape="square"
+          placeholderIcon={Store}
+          entityId={seller.id}
+          onUpload={uploadSellerLogo}
+          value={logo}
+          onChange={(url) => setValue("logo", url, { shouldDirty: true })}
+          onUploadingChange={setIsLogoUploading}
+          disabled={isPending}
         />
         {errors.logo && (
           <p className="text-sm text-destructive">{errors.logo.message}</p>
@@ -116,7 +126,7 @@ export function SellerDetailsForm({
         )}
       </div>
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending || isLogoUploading}>
         {isPending ? "Saving…" : "Save changes"}
       </Button>
     </form>

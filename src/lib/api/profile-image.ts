@@ -11,6 +11,7 @@ async function uploadToProfileAsset(file: File, endpoint: string): Promise<strin
   const fileType = fileTypeFromImage(file);
   const response = await apiFetch<BaseResponse<ProfileImageUploadUrl>>(
     generateUrl(endpoint, { file_type: fileType }),
+    { method: "POST" },
   );
   const upload = await fetch(response.data.upload_url, {
     method: "PUT",

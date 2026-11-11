@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,11 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import z from "zod";
+import { ProfileImageUpload } from "@/components/profile-image-upload";
 import { Seller, createSeller, updateSeller } from "@/lib/api/seller";
+import { uploadSellerLogo } from "@/lib/api/profile-image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
-import { useAuth } from "@/lib/auth/context";
+import { useAuth, useSellerId } from "@/lib/auth/context";
 import { apiErrorToast } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -52,6 +56,10 @@ export function SellerForm({
   const router = useRouter();
   const { refreshSession } = useAuth();
   const isEdit = !!seller;
+  // Logo uploads are scoped to the session's storefront; others are switched to first.
+  const currentSellerId = useSellerId();
+  const canEditLogo = isEdit && seller.id === currentSellerId;
+  const [isLogoUploading, setIsLogoUploading] = useState(false);
 
   const {
     register,
@@ -76,6 +84,7 @@ export function SellerForm({
   });
 
   const status = isEdit ? watch("status" as const) : undefined;
+  const logo = watch("logo");
 
   const saveMutation = useApiMutation({
     onSuccess: async () => {
@@ -146,19 +155,31 @@ export function SellerForm({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="logo">Logo URL</Label>
-        <Input
-          id="logo"
-          {...register("logo")}
-          type="url"
-          placeholder="https://example.com/logo.png"
-          className={errors.logo ? "border-red-500" : ""}
-        />
-        {errors.logo && (
-          <p className="text-sm text-red-500">{errors.logo.message}</p>
-        )}
-      </div>
+      {canEditLogo ? (
+        <div className="flex flex-col gap-2">
+          <ProfileImageUpload
+            id="logo"
+            label="Logo"
+            shape="square"
+            placeholderIcon={Store}
+            entityId={seller.id}
+            onUpload={uploadSellerLogo}
+            value={logo}
+            onChange={(url) => setValue("logo", url, { shouldDirty: true })}
+            onUploadingChange={setIsLogoUploading}
+            disabled={saveMutation.isPending}
+          />
+          {errors.logo && (
+            <p className="text-sm text-red-500">{errors.logo.message}</p>
+          )}
+        </div>
+      ) : (
+        <p className="text-muted-foreground text-xs">
+          {isEdit
+            ? "Switch to this storefront to change its logo."
+            : "Add a logo from Account after switching to the new storefront."}
+        </p>
+      )}
 
       {isEdit && status != null && (
         <div className="flex flex-col gap-2">
@@ -196,7 +217,7 @@ export function SellerForm({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={saveMutation.isPending}>
+        <Button type="submit" disabled={saveMutation.isPending || isLogoUploading}>
           {saveMutation.isPending
             ? "Saving…"
             : isEdit

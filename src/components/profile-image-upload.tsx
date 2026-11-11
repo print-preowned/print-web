@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, LoaderCircle, UserRound, X } from "lucide-react";
+import { Camera, LoaderCircle, UserRound, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiErrorToast } from "@/lib/api";
@@ -21,6 +21,10 @@ type Props = {
   onUploadingChange?: (isUploading: boolean) => void;
   disabled?: boolean;
   className?: string;
+  /** Portrait for people (tall frame), square for storefront logos. */
+  shape?: "portrait" | "square";
+  /** Shown in the frame when there is no image. */
+  placeholderIcon?: LucideIcon;
 };
 
 export function ProfileImageUpload({
@@ -34,6 +38,8 @@ export function ProfileImageUpload({
   onUploadingChange,
   disabled = false,
   className,
+  shape = "portrait",
+  placeholderIcon: PlaceholderIcon = UserRound,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -98,12 +104,17 @@ export function ProfileImageUpload({
         disabled={disabled || isUploading}
         onChange={(event) => void handleFileChange(event.target.files?.[0])}
       />
-      <div className="relative flex h-28 w-20 shrink-0 items-center justify-center overflow-hidden rounded border bg-background text-muted-foreground">
+      <div
+        className={cn(
+          "relative flex shrink-0 items-center justify-center overflow-hidden rounded border bg-background text-muted-foreground",
+          shape === "square" ? "size-24" : "h-28 w-20",
+        )}
+      >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt={`${label} preview`} className="size-full object-cover" />
+          <img src={preview} alt={`${label} preview`} width="100%" height="100%" className="size-full object-cover" />
         ) : (
-          <UserRound className="size-8" />
+          <PlaceholderIcon className="size-8" />
         )}
         {isUploading ? (
           <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white">
@@ -118,7 +129,7 @@ export function ProfileImageUpload({
             {isUploading
               ? "Uploading image…"
               : preview
-                ? "Portrait image selected"
+                ? "Image selected"
                 : "No image selected"}
           </p>
         </div>
