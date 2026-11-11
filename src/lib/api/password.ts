@@ -6,8 +6,6 @@ export interface PasswordResetRequest {
 
 export interface PasswordResetRequestResponse {
   message: string;
-  token?: string; // Only in development
-  expires_at?: string;
 }
 
 export interface PasswordResetValidateResponse {

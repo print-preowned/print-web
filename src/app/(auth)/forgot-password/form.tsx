@@ -26,16 +26,7 @@ export function ForgotPasswordForm() {
         body: request.body,
       });
 
-      // TODO: In production, the token should be sent via email
-      // For now, show it to the user (should be removed in production)
-      if (res.token) {
-        toast.success(
-          `Password reset link sent! Token: ${res.token}\n\n` +
-          `⚠️ In production, this token should be sent via email`
-        );
-      } else {
-        toast.success(res.message || "If an account with that email exists, a password reset link has been sent.");
-      }
+      toast.success(res.message || "If an account with that email exists, a password reset link has been sent.");
     } catch (error: unknown) {
       console.error("Password reset request error:", error);
       // Error toast is handled by apiFetch
