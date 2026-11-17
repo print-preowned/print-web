@@ -45,6 +45,8 @@ export type InventoryCreatePayload = {
   language?: string;
   product_form?: string;
   description?: string;
+  /** New work only: a picked author links by id; a typed name waits for staff to match it. */
+  authors?: { id?: string; name?: string }[];
   offer: InventoryOfferCreatePayload;
   /** Omitted: live when complete, else draft. "ACTIVE" fails if incomplete. */
   status?: "DRAFT" | "ACTIVE";

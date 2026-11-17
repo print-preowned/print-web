@@ -19,11 +19,6 @@ const sidebarData = {
       icon: "listDetails",
     },
     {
-      title: "Authors",
-      url: "/seller/authors",
-      icon: "chartBar",
-    },
-    {
       title: "Orders",
       url: "/seller/orders",
       icon: "folder",

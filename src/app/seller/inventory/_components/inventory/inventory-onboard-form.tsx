@@ -35,6 +35,7 @@ import { useOfferPhotos } from "./offer-photos";
 import { InventoryOfferFields } from "./inventory-offer-fields";
 import { INVENTORY_CONDITION_VALUES } from "@/app/seller/lib/inventory-condition";
 import { ISBN_ERROR_MESSAGE, ISBN_PATTERN } from "@/app/seller/lib/inventory-isbn";
+import { NewBookAuthorsField, type NewBookAuthor } from "./new-book-authors";
 import { PRODUCT_FORMS, formatProductForm, type ProductForm } from "@/lib/api/publication";
 
 
@@ -279,6 +280,7 @@ export function InventoryOnboardForm({
   const [workPublication, setWorkPublication] = useState<PublicationLookup | null>(null);
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "miss">("idle");
   const [showNewWork, setShowNewWork] = useState(false);
+  const [newBookAuthors, setNewBookAuthors] = useState<NewBookAuthor[]>([]);
   const [titleQuery, setTitleQuery] = useState("");
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const { mutateAsync, isPending } = useApiMutation<SellerInventory>();
@@ -424,6 +426,9 @@ export function InventoryOnboardForm({
             description: values.description.trim() || undefined,
             language: values.language.trim() || undefined,
             product_form: values.product_form,
+            authors: newBookAuthors.map((author) =>
+              author.id ? { id: author.id } : { name: author.name },
+            ),
           }),
       offer: {
         price: values.offer.price || undefined,
@@ -454,6 +459,7 @@ export function InventoryOnboardForm({
     resetResolution();
     photos.clear();
     setMode("isbn");
+    setNewBookAuthors([]);
     resetForm({
       lookupIsbn: "",
       isbn: "",
@@ -653,6 +659,9 @@ export function InventoryOnboardForm({
                   <Label htmlFor="new-book-title">Title</Label>
                   <Input id="new-book-title" className={inputClassName + (errors.title ? " border-destructive" : "")} {...register("title")} />
                   {errors.title ? <p className="text-sm text-destructive">{errors.title.message}</p> : null}
+                </div>
+                <div className="md:col-span-2">
+                  <NewBookAuthorsField value={newBookAuthors} onChange={setNewBookAuthors} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="new-book-language">Language</Label>

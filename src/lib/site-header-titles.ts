@@ -16,7 +16,6 @@ const PATH_LABELS: Record<string, string> = {
   "/seller/dashboard": "Dashboard",
   "/seller/inventory": "Inventory",
   "/seller/inventory/scan": "Scan batch",
-  "/seller/authors": "Authors",
   "/seller/orders": "Orders",
   "/seller/users": "Users",
   "/seller/account": "Account",
