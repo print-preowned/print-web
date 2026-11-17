@@ -9,6 +9,10 @@
 export const AUTH_FORCE_LOGOUT_EVENT = "print:auth-force-logout";
 
 
+function currentLoginPath(): string {
+  return window.location.pathname.startsWith("/admin") ? "/admin/login" : "/login";
+}
+
 /** Clears React session immediately, then clears cookie and redirects. */
 async function logoutAndRedirect(hasExpiredSession =  true): Promise<void> {
   if (typeof window === "undefined") return;
@@ -19,10 +23,9 @@ async function logoutAndRedirect(hasExpiredSession =  true): Promise<void> {
     // Redirect even if the logout request fails.
   }
 
-  const isAdminRoute = window.location.pathname.startsWith("/admin");
-  const loginPath = isAdminRoute ? "/admin/login" : "/login";
+  const loginPath = currentLoginPath();
 
-  window.location.href = hasExpiredSession ? `${loginPath}'?reason=session_expired` : loginPath;
+  window.location.href = hasExpiredSession ? `${loginPath}?reason=session_expired` : loginPath;
 }
 
 export async function forceLogout() {
