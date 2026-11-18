@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,17 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AutocompleteSelect } from "@/components/autocomplete";
+import { AuthorPicker } from "@/components/authors/author-picker";
 import { apiFetch, apiErrorToast } from "@/lib/api";
 import {
-  authorLabel,
-  readAuthors,
   readUnresolvedAuthorNames,
   resolveAuthorName,
-  type Author,
   type UnresolvedAuthorName,
 } from "@/lib/api/author";
-import type { BaseResponse, PaginatedResponse } from "@/lib/model";
+import type { BaseResponse } from "@/lib/model";
 import { CreateFromNameForm } from "./create-from-name-form";
 
 const UNRESOLVED_KEY = ["authors", "unresolved"] as const;
@@ -139,7 +136,7 @@ function UnresolvedRow({
           {others.length ? ` · also spelt ${others.join(", ")}` : ""}
         </p>
       </div>
-      <AuthorPicker id={`pick-${row.name}`} value={authorId} onChange={setAuthorId} />
+      <AuthorPicker id={`pick-${row.name}`} value={authorId} onChange={(author) => setAuthorId(author?.id ?? null)} />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" disabled={busy || !authorId} onClick={() => authorId && onLink(authorId)}>
           Link books
@@ -150,59 +147,5 @@ function UnresolvedRow({
         </Button>
       </div>
     </li>
-  );
-}
-
-function AuthorPicker({
-  id,
-  value,
-  onChange,
-}: {
-  id: string;
-  value: string | null;
-  onChange: (authorId: string | null) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
-  const [picked, setPicked] = useState<Author | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(query.trim()), 250);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  const search = useQuery<PaginatedResponse<Author>>({
-    queryKey: ["authors", "lookup", debounced],
-    queryFn: () =>
-      apiFetch(readAuthors({ page: 1, size: 10, filter: { search: debounced } })),
-    enabled: debounced.length >= 2,
-  });
-  const matches = search.data?.data ?? [];
-
-  const options = matches.map((author) => ({
-    value: author.id,
-    label: authorLabel(author),
-    description: author.status === "PROVISIONAL" ? "Unconfirmed" : undefined,
-  }));
-  // Keep the chosen author labelled once the search has moved on.
-  if (picked && !options.some((option) => option.value === picked.id)) {
-    options.push({ value: picked.id, label: authorLabel(picked), description: undefined });
-  }
-
-  return (
-    <AutocompleteSelect
-      id={id}
-      label="Existing author"
-      placeholder="Search authors…"
-      options={options}
-      value={value}
-      onValueChange={(next) => {
-        setPicked(matches.find((author) => author.id === next) ?? null);
-        onChange(next);
-      }}
-      onInputValueChange={setQuery}
-      showClear
-      noResultsMessage={debounced.length < 2 ? "Type at least two letters" : "No authors match"}
-    />
   );
 }
