@@ -7,18 +7,19 @@ import { apiFetch } from "@/lib/api";
 import { authorLabel, readAuthors, type Author } from "@/lib/api/author";
 import type { PaginatedResponse } from "@/lib/model";
 
-/** A catalog author (id) or a name typed as it appears on the book. */
+/** A catalog author (id) or a name as written on the book. */
 export type NewBookAuthor = { id?: string; name: string };
 
-const TYPED_PREFIX = "typed:";
+/** Option value for a name with no author record yet. */
+const WRITTEN_NAME_PREFIX = "name:";
 
 function optionValue(author: NewBookAuthor) {
-  return author.id ?? `${TYPED_PREFIX}${author.name}`;
+  return author.id ?? `${WRITTEN_NAME_PREFIX}${author.name}`;
 }
 
 function fromOptionValue(value: string, matches: Author[]): NewBookAuthor | null {
-  if (value.startsWith(TYPED_PREFIX)) {
-    return { name: value.slice(TYPED_PREFIX.length) };
+  if (value.startsWith(WRITTEN_NAME_PREFIX)) {
+    return { name: value.slice(WRITTEN_NAME_PREFIX.length) };
   }
   const author = matches.find((candidate) => candidate.id === value);
   return author ? { id: author.id, name: authorLabel(author) } : null;
@@ -26,7 +27,7 @@ function fromOptionValue(value: string, matches: Author[]): NewBookAuthor | null
 
 /**
  * Sellers don't create author records. Matches from the catalog link by id;
- * a name nobody matches is kept as typed for platform staff to resolve.
+ * a name nobody matches is kept as written for platform staff to resolve.
  */
 export function NewBookAuthorsField({
   value,
@@ -64,14 +65,14 @@ export function NewBookAuthorsField({
       options.push({ value: chosen, label: author.name });
     }
   }
-  const typed = query.trim();
+  const entered = query.trim();
   const exact = matches.some(
-    (author) => authorLabel(author).toLowerCase() === typed.toLowerCase(),
+    (author) => authorLabel(author).toLowerCase() === entered.toLowerCase(),
   );
-  if (typed.length >= 2 && !exact) {
+  if (entered.length >= 2 && !exact) {
     options.push({
-      value: `${TYPED_PREFIX}${typed}`,
-      label: typed,
+      value: `${WRITTEN_NAME_PREFIX}${entered}`,
+      label: entered,
       description: "Add as written on the book",
     });
   }

@@ -82,3 +82,23 @@ export function updateAuthor(
 export function readAuthorById(id: string) {
   return generateUrl(`/authors/${id}`);
 }
+
+/** A name typed on books by sellers that no author record has claimed yet. */
+export type UnresolvedAuthorName = {
+  name: string;
+  variants: string[];
+  workCount: number;
+};
+
+export function readUnresolvedAuthorNames(limit = 50) {
+  return generateUrl("/authors/unresolved", { limit });
+}
+
+/** Link every book spelt one of `names` to an author. */
+export function resolveAuthorName(payload: { names: string[]; author_id: string }) {
+  return {
+    endpoint: "/authors/unresolved/resolve",
+    method: "POST" as const,
+    body: payload,
+  };
+}

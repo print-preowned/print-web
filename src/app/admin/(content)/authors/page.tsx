@@ -146,6 +146,9 @@ export default function AdminAuthorsPage() {
             </Select>
           </div>
           <div className="flex gap-2 mb-4">
+            <Button asChild variant="outline">
+              <Link href="/admin/authors/unresolved">Unresolved names</Link>
+            </Button>
             <Button asChild>
               <Link href="/admin/authors/create">
                 <Plus className="mr-2 h-4 w-4" />

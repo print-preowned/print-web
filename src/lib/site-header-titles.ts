@@ -27,6 +27,7 @@ const PATH_LABELS: Record<string, string> = {
   "/admin/books/create": "Create book",
   "/admin/authors": "Authors",
   "/admin/authors/create": "Create author",
+  "/admin/authors/unresolved": "Unresolved author names",
   "/admin/genres": "Genres",
   "/admin/publishers": "Publishers",
   "/admin/series": "Series",
