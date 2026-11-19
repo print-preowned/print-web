@@ -32,6 +32,8 @@ export const routeConfig: Record<string, RouteConfig> = {
   "/register": {},
   "/forgot-password": {},
   "/reset-password": {},
+  // Store invitations: the page itself handles signed-in and signed-out visitors.
+  "/invite": {},
 
   "/change-password": {
     requireAuth: true,
@@ -70,7 +72,7 @@ export const routeConfig: Record<string, RouteConfig> = {
   "/seller/users": {
     requireAuth: true,
     requiredContext: "SELLER",
-    requiredPrivileges: ["READ_USER"], // Example privilege
+    requiredPrivileges: ["READ_SELLER_USER"],
     redirectTo: "/login",
   },
 

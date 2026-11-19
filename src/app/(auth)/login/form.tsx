@@ -20,14 +20,46 @@ function platformRedirect(session: Session) {
     : "/admin/books";
 }
 
-export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: boolean, reason?: string | null }) {
+/**
+ * Only paths on this site, so a crafted link can't send people elsewhere after login.
+ * The browser parses it, so tricks like "//evil.com" or "/\evil.com" resolve to their
+ * real host and are rejected.
+ */
+function safeRedirect(redirect?: string | null) {
+  if (!redirect || !redirect.startsWith("/")) return null;
+  // Any fixed base works (this also runs on the server, where there's no window):
+  // if the parsed URL still has the base's origin, `redirect` was a path on this site.
+  const base = "http://same-site.invalid";
+  try {
+    const url = new URL(redirect, base);
+    if (url.origin !== base) return null;
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return null;
+  }
+}
+
+export function LoginForm({
+  isPlatform = false,
+  reason = null,
+  redirect = null,
+}: {
+  isPlatform?: boolean;
+  reason?: string | null;
+  redirect?: string | null;
+}) {
   const router = useRouter();
+  const returnTo = safeRedirect(redirect);
   const sessionExpired = reason === "session_expired";
   const { session, isLoading, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();
 
   useEffect(() => {
     if (isLoading || !session || sessionExpired) return;
+    if (returnTo) {
+      router.push(returnTo);
+      return;
+    }
 
     switch (session.context) {
       case "SELLER": {
@@ -42,7 +74,7 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
         router.push("/");
       }
     }
-  }, [session, isLoading, sessionExpired, router]);
+  }, [session, isLoading, sessionExpired, router, returnTo]);
 
   const handleLogin = async (data: FieldValues) => {
     try {
@@ -60,6 +92,12 @@ export function LoginForm({ isPlatform = false, reason = null }: { isPlatform?: 
     }
 
     const nextSession = await refreshSession();
+
+    if (returnTo) {
+      toast.success("Login successful!");
+      router.push(returnTo);
+      return;
+    }
 
     if (isPlatform) {
       toast.success("Login successful!");

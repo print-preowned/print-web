@@ -1,268 +1,347 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/data-table";
-import { FormDrawer, useFormDrawer, type DrawerConfig } from "@/components/form-drawer";
-import { UserForm } from "@/app/seller/users/form";
-import z from "zod";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/status-badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
-  EllipsisVertical,
-  PlusCircleIcon,
-} from "lucide-react";
-// import { readUsers, createUser, updateUser, deleteUser, type User } from "@/lib/api/user";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useConfirm } from "@/components/confirm-dialog-provider";
+import { apiFetch, apiErrorToast } from "@/lib/api";
+import { readRoles, type Role } from "@/lib/api/role";
+import {
+  changeMemberRole,
+  createInvite,
+  readInvites,
+  readMembers,
+  removeMember,
+  resendInvite,
+  revokeInvite,
+  type SellerInvite,
+  type SellerMember,
+} from "@/lib/api/seller-team";
+import { usePrivilege } from "@/lib/auth/context";
+import type { BaseResponse } from "@/lib/model";
+import type { PaginatedResponse } from "@/lib/api/user";
 
-type User = {
-  id: string;
-  role_id?: string | null;
-  first_name: string;
-  last_name: string;
-  middle_name?: string | null;
-  country_code?: string | null;
-  phone_number?: string | null;
-  email: string;
-  profile_image?: string | null;
-  status: string;
-  created_at?: string;
-  updated_at?: string;
-};
-type FormState = Partial<
-  Omit<User, "_id" | "created_at" | "updated_at" | "status">
-> & {
-  status?: string;
-  password?: string;
-};
+const TEAM_KEY = ["seller-team"] as const;
 
-export default function UsersPage() {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<User[]>([]);
-  const [search, setSearch] = useState("");
-  const { drawer, openDrawer, closeDrawer } = useFormDrawer();
+type Request = { endpoint: string; method: "POST" | "PATCH" | "DELETE"; body?: unknown };
+const send = (request: Request) =>
+  apiFetch(request.endpoint, { method: request.method, body: request.body });
 
-  async function load() {
-    setLoading(true);
-    try {
-      // Dummy data for now
-      const dummy: User[] = [
-        {
-          id: "1",
-          first_name: "Albert",
-          last_name: "Dfi",
-          email: "albert@example.com",
-          status: "ACTIVE",
-        },
-        {
-          id: "2",
-          first_name: "Jane",
-          last_name: "Cooper",
-          email: "jane@example.com",
-          status: "PENDING",
-        },
-        {
-          id: "3",
-          first_name: "Esther",
-          last_name: "Howard",
-          email: "esther@example.com",
-          status: "ACTIVE",
-        },
-        {
-          id: "4",
-          first_name: "Jenny",
-          last_name: "Wilson",
-          email: "jenny@example.com",
-          status: "CANCELLED",
-        },
-        {
-          id: "5",
-          first_name: "Robert",
-          last_name: "Fox",
-          email: "robert@example.com",
-          status: "ACTIVE",
-        },
-      ];
-      const filtered = search
-        ? dummy.filter((d) =>
-            `${d.first_name} ${d.last_name} ${d.email}`
-              .toLowerCase()
-              .includes(search.toLowerCase())
-          )
-        : dummy;
-      setData(filtered);
-    } finally {
-      setLoading(false);
-    }
-  }
+function fullName(member: SellerMember) {
+  return `${member.first_name} ${member.last_name}`.trim() || member.email;
+}
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+function shortDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
 
-  async function onDelete(id: string) {
-    setData((prev) => prev.filter((u) => u.id !== id));
-  }
+/** Roles a member can be given: the store's own plus shared ones, never Owner. */
+function useAssignableRoles() {
+  const roles = useQuery<PaginatedResponse<Role>>({
+    queryKey: ["roles", "assignable"],
+    queryFn: () => apiFetch(readRoles({ page: 1, size: 100 })),
+  });
+  return (roles.data?.data ?? []).filter(
+    (role) => !(role.seller_id === null && role.code === "OWNER"),
+  );
+}
 
-  const columns = createColumns({ openDrawer, closeDrawer, onDelete });
+export default function TeamPage() {
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const canInvite = usePrivilege("CREATE_SELLER_USER");
+  const canChangeRole = usePrivilege("UPDATE_SELLER_USER");
+  const canRemove = usePrivilege("DELETE_SELLER_USER");
+  const [inviting, setInviting] = useState(false);
+  const roles = useAssignableRoles();
+
+  const members = useQuery<BaseResponse<SellerMember[]>>({
+    queryKey: [...TEAM_KEY, "members"],
+    queryFn: () => apiFetch(readMembers()),
+  });
+  const invites = useQuery<BaseResponse<SellerInvite[]>>({
+    queryKey: [...TEAM_KEY, "invites"],
+    queryFn: () => apiFetch(readInvites()),
+  });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: TEAM_KEY });
+
+  const action = useMutation({
+    mutationFn: async ({ request }: { request: Request; done: string }) => send(request),
+    onSuccess: (_, { done }) => {
+      toast.success(done);
+      refresh();
+    },
+    onError: (error) => apiErrorToast(error, "That didn't work"),
+  });
+
+  const remove = async (member: SellerMember) => {
+    const name = fullName(member);
+    const ok = await confirm({
+      title: `Remove ${name}?`,
+      description: `${name} loses access to this store straight away. You can invite them again later.`,
+      confirmLabel: "Remove",
+      destructive: true,
+    });
+    if (ok) action.mutate({ request: removeMember(member.id), done: `${name} removed` });
+  };
+
+  const cancel = async (invite: SellerInvite) => {
+    const ok = await confirm({
+      title: `Cancel the invite to ${invite.email}?`,
+      description: "The link in their email stops working.",
+      confirmLabel: "Cancel invite",
+      cancelLabel: "Keep it",
+      destructive: true,
+    });
+    if (ok) action.mutate({ request: revokeInvite(invite.id), done: "Invite cancelled" });
+  };
+
+  const pending = invites.data?.data ?? [];
 
   return (
-    <div>
-      <DataTable
-        data={data.map((d) => schema.parse({ ...d, role: "admin" }))}
-        columns={columns}
-        meta={{ onDelete }}
-        isLoading={loading}
-        totalPages={1}
-        pageIndex={0}
-        pageSize={10}
-        onPaginationChange={() => {}}
-      >
-        <div className="flex mb-4">
-          <Button
-            onClick={() =>
-              openDrawer({
-                title: "User Form",
-                description: "Add user details",
-                children: <UserForm user={undefined} />,
-              })
-            }
-          >
-            <PlusCircleIcon className="size-4" />
-            Add User
-          </Button>
+    <div className="container mx-auto space-y-6 px-4 py-4">
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-muted-foreground max-w-xl text-sm">
+          People who work in this store. Each person signs in with their own account, and
+          their role decides what they can do.
+        </p>
+        {canInvite ? <Button onClick={() => setInviting(true)}>Invite someone</Button> : null}
+      </div>
+
+      <section className="space-y-2">
+        <h2 className="text-md font-medium">Members</h2>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead className="w-0" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-muted-foreground">
+                    Loading…
+                  </TableCell>
+                </TableRow>
+              ) : (
+                (members.data?.data ?? []).map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">{fullName(member)}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell>
+                      {member.is_owner || !canChangeRole ? (
+                        member.role_name
+                      ) : (
+                        <Select
+                          value={member.role_id}
+                          onValueChange={(roleId) =>
+                            action.mutate({
+                              request: changeMemberRole(member.id, roleId),
+                              done: `${fullName(member)}'s role changed`,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="h-8 w-44">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roles.map((role) => (
+                              <SelectItem key={role.id} value={role.id}>
+                                {role.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>{shortDate(member.created_at)}</TableCell>
+                    <TableCell>
+                      {canRemove && !member.is_owner ? (
+                        <Button size="sm" variant="ghost" onClick={() => remove(member)}>
+                          Remove
+                        </Button>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
-      </DataTable>
-      {drawer && <FormDrawer {...drawer} onClose={closeDrawer} />}
+      </section>
+
+      {pending.length ? (
+        <section className="space-y-2">
+          <h2 className="text-md font-medium">Waiting to accept</h2>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Invited by</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead className="w-0" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pending.map((invite) => (
+                  <TableRow key={invite.id}>
+                    <TableCell className="font-medium">{invite.email}</TableCell>
+                    <TableCell>{invite.role_name}</TableCell>
+                    <TableCell>{invite.invited_by_name}</TableCell>
+                    <TableCell>{shortDate(invite.expires_at)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {canInvite ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={action.isPending}
+                          onClick={() =>
+                            action.mutate({
+                              request: resendInvite(invite.id),
+                              done: `New link sent to ${invite.email}`,
+                            })
+                          }
+                        >
+                          Resend
+                        </Button>
+                      ) : null}
+                      {canRemove ? (
+                        <Button size="sm" variant="ghost" onClick={() => cancel(invite)}>
+                          Cancel
+                        </Button>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </section>
+      ) : null}
+
+      <Dialog open={inviting} onOpenChange={setInviting}>
+        {inviting ? (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite someone</DialogTitle>
+              <DialogDescription>
+                They get an email with a link to join. It works for 7 days.
+              </DialogDescription>
+            </DialogHeader>
+            <InviteForm
+              roles={roles}
+              onSent={(email) => {
+                setInviting(false);
+                toast.success(`Invitation sent to ${email}`);
+                refresh();
+              }}
+              onCancel={() => setInviting(false)}
+            />
+          </DialogContent>
+        ) : null}
+      </Dialog>
     </div>
   );
 }
 
-const schema = z.object({
-  id: z.string(),
-  first_name: z.string(),
-  last_name: z.string(),
-  email: z.string(),
-  phone_number: z.string().optional(),
-  country_code: z.string().optional(),
-  role: z.string().optional(),
-  status: z.string(),
-});
-
-function createColumns({
-  openDrawer,
-  closeDrawer,
-  onDelete,
+function InviteForm({
+  roles,
+  onSent,
+  onCancel,
 }: {
-  openDrawer: (config: DrawerConfig) => void;
-  closeDrawer: () => void;
-  onDelete: (id: string) => void;
-}): ColumnDef<z.infer<typeof schema>>[] {
-  return [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+  roles: Role[];
+  onSent: (email: string) => void;
+  onCancel: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [roleId, setRoleId] = useState("");
+
+  const invite = useMutation({
+    mutationFn: () => send(createInvite({ email: email.trim(), role_id: roleId })),
+    onSuccess: () => onSent(email.trim()),
+    onError: (error) => apiErrorToast(error, "Could not send the invitation"),
+  });
+
+  return (
+    <form
+      className="mt-4 flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        invite.mutate();
+      }}
+    >
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="invite-email">Email</Label>
+        <Input
+          id="invite-email"
+          type="email"
+          required
+          autoFocus
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
         />
       </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="invite-role">Role</Label>
+        <Select value={roleId} onValueChange={setRoleId}>
+          <SelectTrigger id="invite-role">
+            <SelectValue placeholder="Choose a role" />
+          </SelectTrigger>
+          <SelectContent>
+            {roles.map((role) => (
+              <SelectItem key={role.id} value={role.id}>
+                {role.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {roles.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            Create a role on the Roles page first.
+          </p>
+        ) : null}
       </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <span className="font-medium">
-        {row.original.first_name} {row.original.last_name}
-      </span>
-    ),
-    enableHiding: false,
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.role}
-        </Badge>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => <span>{row.original.email}</span>,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.original.status} />,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8 justify-self-end"
-            size="icon"
-          >
-            <EllipsisVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem
-            onClick={() =>
-              openDrawer({
-                title: "User Form",
-                description: "Edit user details",
-                children: <UserForm user={row.original} />,
-              })
-            }
-          >
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => onDelete(row.original.id)}
-          >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-    enableHiding: false,
-  },
-  ];
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!email.trim() || !roleId || invite.isPending}>
+          {invite.isPending ? "Sending…" : "Send invitation"}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
 }

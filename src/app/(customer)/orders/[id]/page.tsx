@@ -158,7 +158,7 @@ export default async function OrderConfirmationPage({
   const { id } = await params;
   const token = await getAuthTokenFromRequest();
   if (!token) {
-    redirect(`/login?redirect=/orders/${id}`);
+    redirect(`/login?redirect=${encodeURIComponent(`/orders/${id}`)}`);
   }
 
   let order: OrderDetail;

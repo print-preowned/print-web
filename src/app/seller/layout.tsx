@@ -24,7 +24,7 @@ const sidebarData = {
       icon: "folder",
     },
     {
-      title: "Users",
+      title: "Team",
       url: "/seller/users",
       icon: "users",
     },
