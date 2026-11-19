@@ -329,10 +329,13 @@ function InviteForm({
           </SelectContent>
         </Select>
         {roles.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No roles are available yet.</p>
+        ) : (
           <p className="text-muted-foreground text-sm">
-            Create a role on the Roles page first.
+            {roles.find((role) => role.id === roleId)?.description ??
+              "The role decides what they can see and change."}
           </p>
-        ) : null}
+        )}
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
