@@ -4,6 +4,7 @@ import { CardDescription } from "@/components/ui/card";
 import { CardContent } from "@/components/ui/card";
 import { LoginForm } from "./form";
 import Link from "next/link";
+import { sectionUrl } from "@/lib/sections";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason?: string; redirect?: string }> }) {
   const { reason, redirect } = await searchParams;
@@ -15,7 +16,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <CardDescription>Login to your account to continue</CardDescription>
       </CardHeader>
       <CardContent>
-        <LoginForm reason={reason} redirect={redirect} />
+        <LoginForm
+          section="store"
+          reason={reason}
+          redirect={redirect}
+          forgotPasswordHref="/forgot-password"
+        />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm mt-6">
         <Link href="/forgot-password" className="underline underline-offset-4">
@@ -26,6 +32,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Link href="/register" className="underline underline-offset-4">
             Sign up
           </Link>
+        </div>
+        <div className="text-muted-foreground">
+          Selling on PRINT?{" "}
+          <a href={sectionUrl("seller", "/seller/login")} className="underline underline-offset-4">
+            Sign in to your store
+          </a>
         </div>
       </CardFooter>
     </Card>

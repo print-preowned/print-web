@@ -8,8 +8,8 @@ import {
 } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 
- import { useSwitchContext } from "@/components/context-switcher"
 import { useAuth } from "@/lib/auth/context"
+import { sectionUrl } from "@/lib/sections"
 
 import {
   Avatar,
@@ -47,9 +47,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
-  const { context } = useAuth()
-  const { handleSwitchContext: handleSwitchToCustomer, isSwitching: isSwitchingToCustomer } =
-    useSwitchContext({ targetContext: "CUSTOMER" })
+  const { section } = useAuth()
   const userData = user
 
   return (
@@ -104,15 +102,12 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              {context === "SELLER" && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    void handleSwitchToCustomer()
-                  }}
-                  disabled={isSwitchingToCustomer}
-                >
-                  <IconShoppingBag />
-                  Switch to Customer
+              {section !== "store" && (
+                <DropdownMenuItem asChild>
+                  <a href={sectionUrl("store", "/")} target="_blank" rel="noopener">
+                    <IconShoppingBag />
+                    Visit storefront
+                  </a>
                 </DropdownMenuItem>
               )}
             </DropdownMenuGroup>

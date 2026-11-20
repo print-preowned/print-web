@@ -24,29 +24,3 @@ export function login(payload: Login) {
 export function signup(payload: Signup) {
   return { endpoint: "/auth/signup", method: "POST" as const, body: payload };
 }
-
-export function platformLogin(payload: Login) {
-  return { endpoint: "/admin/auth/login", method: "POST" as const, body: payload };
-}
-
-export interface ContextSwitchResponse {
-  statusCode: number;
-  message: string;
-  token: string;
-}
-
-export function switchToSeller(sellerId: string) {
-  return {
-    endpoint: `/auth/context/seller/${sellerId}`,
-    method: "POST" as const,
-    body: {},
-  };
-}
-
-export function switchToCustomer() {
-  return {
-    endpoint: "/auth/context/customer",
-    method: "POST" as const,
-    body: {},
-  };
-}

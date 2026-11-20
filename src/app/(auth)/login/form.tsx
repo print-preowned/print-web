@@ -1,31 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/context";
-import { readSellers, type Seller } from "@/lib/api/seller";
-import { apiFetch } from "@/lib/api";
-import { Session } from "@/lib/auth/token";
-import { type Login, login, platformLogin } from "@/lib/api/auth";
-import type { BaseResponse } from "@/lib/model";
+import { apiErrorToast, apiFetch } from "@/lib/api";
+import type { Session } from "@/lib/auth/token";
+import { HOME_PATH, sectionForPath, type Section } from "@/lib/sections";
 
-function platformRedirect(session: Session) {
-  return session.passwordChangeRequired
-    ? "/admin/change-password"
-    : "/admin/books";
-}
+type StoreOption = { id: string; name: string; logo?: string | null };
 
 /**
- * Only paths on this site, so a crafted link can't send people elsewhere after login.
- * The browser parses it, so tricks like "//evil.com" or "/\evil.com" resolve to their
- * real host and are rejected.
+ * Only paths in this section, so a crafted link can't send people elsewhere
+ * after login. The browser parses it, so tricks like "//evil.com" or
+ * "/\evil.com" resolve to their real host and are rejected.
  */
-function safeRedirect(redirect?: string | null) {
+function safeRedirect(redirect: string | null | undefined, section: Section) {
   if (!redirect || !redirect.startsWith("/")) return null;
   // Any fixed base works (this also runs on the server, where there's no window):
   // if the parsed URL still has the base's origin, `redirect` was a path on this site.
@@ -33,108 +26,106 @@ function safeRedirect(redirect?: string | null) {
   try {
     const url = new URL(redirect, base);
     if (url.origin !== base) return null;
+    if (sectionForPath(url.pathname) !== section) return null;
     return url.pathname + url.search + url.hash;
   } catch {
     return null;
   }
 }
 
+function destination(section: Section, session: Session | null, returnTo: string | null) {
+  if (section === "admin" && session?.passwordChangeRequired) return "/admin/change-password";
+  return returnTo ?? HOME_PATH[section];
+}
+
+/**
+ * Sign-in for one section. Each section signs in on its own and gets its own
+ * session; signing in here never touches the others.
+ */
 export function LoginForm({
-  isPlatform = false,
+  section,
   reason = null,
   redirect = null,
+  inviteToken = null,
+  forgotPasswordHref,
 }: {
-  isPlatform?: boolean;
+  section: Section;
   reason?: string | null;
   redirect?: string | null;
+  /** Seller sign-in from an invite link: joins that store, then opens it. */
+  inviteToken?: string | null;
+  forgotPasswordHref: string;
 }) {
-  const router = useRouter();
-  const returnTo = safeRedirect(redirect);
+  const returnTo = safeRedirect(redirect, section);
   const sessionExpired = reason === "session_expired";
   const { session, isLoading, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();
+  const [stores, setStores] = useState<StoreOption[] | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading || !session || sessionExpired) return;
-    if (returnTo) {
-      router.push(returnTo);
-      return;
-    }
-
-    switch (session.context) {
-      case "SELLER": {
-        router.push("/seller/dashboard");
-        break;
-      }
-      case "PLATFORM": {
-        router.push(platformRedirect(session));
-        break;
-      }
-      default: {
-        router.push("/");
-      }
-    }
-  }, [session, isLoading, sessionExpired, router, returnTo]);
+    if (isLoading || !session || sessionExpired || inviteToken) return;
+    window.location.assign(destination(section, session, returnTo));
+  }, [session, isLoading, sessionExpired, inviteToken, section, returnTo]);
 
   const handleLogin = async (data: FieldValues) => {
+    let result: { stores?: StoreOption[] } | null;
     try {
-      // Next /api/auth/* handlers mint the HttpOnly cookie. `/auth/login` via
-      // the proxy would reach the server and drop Set-Cookie.
-      const payload: Login = { email: data.email, password: data.password };
-      const { endpoint, method, body } = isPlatform ? platformLogin(payload) : login(payload);
-      await apiFetch<{ data?: unknown }>(`/api/${endpoint}`, {
-        method,
-        body,
+      // Next /api/auth/* handlers mint the HttpOnly cookie. Calling the API
+      // through the proxy would drop Set-Cookie.
+      result = await apiFetch<{ stores?: StoreOption[] }>("/api/auth/login", {
+        method: "POST",
+        body: {
+          email: data.email,
+          password: data.password,
+          ...(inviteToken ? { inviteToken } : {}),
+        },
       });
-    } catch (error) {
+    } catch {
       // Error toast is handled by apiFetch
       return;
     }
 
+    if (result?.stores?.length) {
+      setStores(result.stores);
+      return;
+    }
+
     const nextSession = await refreshSession();
-
-    if (returnTo) {
-      toast.success("Login successful!");
-      router.push(returnTo);
-      return;
-    }
-
-    if (isPlatform) {
-      toast.success("Login successful!");
-      if (nextSession?.context === "PLATFORM") {
-        router.push(platformRedirect(nextSession));
-      } else {
-        router.push("/admin/books");
-      }
-      return;
-    }
-
-    try {
-      const memberships = await apiFetch<BaseResponse<Seller[]>>(readSellers());
-      const sellers = memberships.data ?? [];
-      if (sellers.length === 1) {
-        const switched = await apiFetch("/api/auth/context-switch", {
-          method: "POST",
-          body: {
-            targetContext: "SELLER",
-            seller_id: sellers[0].id,
-          },
-          silentStatuses: [400, 401, 403, 422],
-        });
-        if (switched) {
-          await refreshSession();
-          toast.success("Login successful! Switched to Seller context.");
-          router.push("/seller/dashboard");
-          return;
-        }
-      }
-    } catch {
-      // continue with CUSTOMER context
-    }
-
     toast.success("Login successful!");
-    router.push("/");
+    window.location.assign(destination(section, nextSession, returnTo));
   };
+
+  const openStore = async (store: StoreOption) => {
+    setOpening(store.id);
+    try {
+      await apiFetch("/api/auth/select-store", { method: "POST", body: { sellerId: store.id } });
+      window.location.assign(returnTo ?? HOME_PATH.seller);
+    } catch (error) {
+      apiErrorToast(error, "Couldn't open the store");
+      setOpening(null);
+      setStores(null);
+    }
+  };
+
+  if (stores) {
+    return (
+      <div className="grid gap-3">
+        <p className="text-muted-foreground text-sm">Which store do you want to work in?</p>
+        {stores.map((store) => (
+          <Button
+            key={store.id}
+            variant="outline"
+            className="justify-start"
+            disabled={opening !== null}
+            onClick={() => void openStore(store)}
+          >
+            {store.name}
+          </Button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(handleLogin)}>
@@ -154,7 +145,7 @@ export function LoginForm({
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
               <a
-                href={`${isPlatform ? "/admin/forgot-password" : "/forgot-password"}`}
+                href={forgotPasswordHref}
                 className="ml-auto text-sm underline-offset-4 hover:underline"
               >
                 Forgot your password?

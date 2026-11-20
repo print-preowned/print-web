@@ -4,6 +4,13 @@ import { SiteHeader } from "@/components/site-header";
 import { ApiStatusBanner } from "@/components/api-status-banner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { getUserProfileCookie } from "@/lib/auth/server-cookie";
+import { SectionAuthProvider } from "@/lib/auth/section-auth-provider";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "PRINT Admin",
+  description: "Platform administration for PRINT.",
+};
 
 const sidebarData = {
   navMain: [
@@ -71,26 +78,28 @@ export default async function AdminLayout({
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as CSSProperties
-      }
-    >
-      <AppSidebar data={sidebarDataWithUser} />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="container flex flex-col gap-4 py-4 px-8 mx-auto md:gap-6 md:py-6">
-              <ApiStatusBanner />
-              {children}
+    <SectionAuthProvider section="admin">
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as CSSProperties
+        }
+      >
+        <AppSidebar data={sidebarDataWithUser} />
+        <SidebarInset>
+          <SiteHeader homeHref="/admin/books" />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <div className="container flex flex-col gap-4 py-4 px-8 mx-auto md:gap-6 md:py-6">
+                <ApiStatusBanner />
+                {children}
+              </div>
             </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </SectionAuthProvider>
   );
 }

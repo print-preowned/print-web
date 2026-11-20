@@ -12,6 +12,18 @@ export { AUTH_COOKIE_NAME };
 
 const MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
+/** Seconds until the token expires, so the cookie never outlives the session. */
+function tokenMaxAge(token: string): number {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const seconds = Math.floor(Number(payload.exp) - Date.now() / 1000);
+    if (Number.isFinite(seconds)) return Math.max(0, seconds);
+  } catch {
+    // fall through
+  }
+  return MAX_AGE_SECONDS;
+}
+
 function isSecureCookieContext(request?: Request): boolean {
   if (process.env.NODE_ENV === "production") {
     return true;
@@ -26,21 +38,18 @@ function isSecureCookieContext(request?: Request): boolean {
   return false;
 }
 
-function getAuthCookieOptions(request?: Request) {
+function getAuthCookieOptions(request: Request | undefined, maxAge: number) {
   return {
     httpOnly: true,
     secure: isSecureCookieContext(request),
     sameSite: "lax" as const,
     path: "/",
-    maxAge: MAX_AGE_SECONDS,
+    maxAge,
   };
 }
 
 export function getAuthCookieClearOptions(request?: Request) {
-  return {
-    ...getAuthCookieOptions(request),
-    maxAge: 0,
-  };
+  return getAuthCookieOptions(request, 0);
 }
 
 function getProfileCookieOptions(request?: Request) {
@@ -58,7 +67,7 @@ export function applyAuthCookie(
   token: string,
   request?: Request,
 ): NextResponse {
-  response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(request));
+  response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(request, tokenMaxAge(token)));
   return response;
 }
 
@@ -104,7 +113,7 @@ export async function getUserProfileCookie(): Promise<User | null> {
 
 export async function setAuthCookie(token: string, request?: Request) {
   const store = await cookies();
-  store.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(request));
+  store.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(request, tokenMaxAge(token)));
 }
 
 export async function clearAuthCookie(request?: Request) {

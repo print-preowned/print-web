@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Context management following PRINT Authorization & Context Model
+ * Session state for one UI section. Each section's layout mounts its own
+ * provider, so a page only ever sees the session of the section it is in.
  *
  * Rules:
- * - Single active context (CUSTOMER or SELLER)
+ * - One section per provider (store, seller or admin), never mixed
  * - Token-based hydration (token stored HttpOnly cookie, never exposed to client)
- * - No mixed UI contexts
  * - No authority inference
  */
 
@@ -14,8 +14,10 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { AUTH_FORCE_LOGOUT_EVENT } from "./logout";
 import { clearUserProfileCookie } from "./profile-cookie";
 import { Session, TokenContext } from "./token";
+import type { Section } from "../sections";
 
 interface AuthContextValue {
+  section: Section;
   session: Session | null;
   context: TokenContext | null;
   isLoading: boolean;
@@ -26,9 +28,18 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSessionState] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({
+  section,
+  initialSession,
+  children,
+}: {
+  section: Section;
+  /** The session the server already verified for this request, if any. */
+  initialSession?: Session | null;
+  children: ReactNode;
+}) {
+  const [session, setSessionState] = useState<Session | null>(initialSession ?? null);
+  const [isLoading, setIsLoading] = useState(initialSession === undefined);
 
   const refreshSession = async (): Promise<Session | null> => {
     // After a server route replaces the auth cookie, call this to sync React state.
@@ -57,7 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       return;
     }
+    if (initialSession !== undefined) return;
     refreshSession().finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -76,12 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearAuth = () => {
     setSessionState(null);
     clearUserProfileCookie();
-    fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+    fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
   };
 
   const context = session?.context ?? null;
 
   const value: AuthContextValue = {
+    section,
     session,
     context,
     isLoading,

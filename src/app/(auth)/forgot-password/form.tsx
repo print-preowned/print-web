@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useState } from "react";
+import { currentSection } from "@/lib/sections";
 
 type ForgotPasswordFormValues = {
   email: string;
@@ -20,7 +21,7 @@ export function ForgotPasswordForm() {
   const handleRequestReset = async (data: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
     try {
-      const request = requestPasswordReset({ email: data.email });
+      const request = requestPasswordReset({ email: data.email, section: currentSection() });
       const res = await apiFetch<PasswordResetRequestResponse>(request.endpoint, {
         method: request.method,
         body: request.body,

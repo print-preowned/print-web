@@ -33,7 +33,7 @@ export interface SellerTokenData {
 
 export interface CustomerToken extends BaseTokenFields {
   ctx: "CUSTOMER";
-  /** Set at login/context-switch; true if user has a linked seller (can switch to SELLER). */
+  /** True if the user is on a store's team; the storefront then links to the seller portal. */
   has_seller?: boolean;
   // Customer tokens must NOT have: seller (object), privileges, role
 }
@@ -63,7 +63,7 @@ export interface Session {
   context: TokenContext;
   seller?: { id: string; is_owner: boolean; grantId?: string };
   privileges?: string[];
-  /** When context is CUSTOMER, true if the user has a linked seller (can switch). */
+  /** When context is CUSTOMER, true if the user is on a store's team. */
   hasSeller?: boolean;
   /** PLATFORM only: must change password before accessing admin resources */
   passwordChangeRequired?: boolean;

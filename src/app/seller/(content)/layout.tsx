@@ -5,6 +5,13 @@ import { SiteHeader } from "@/components/site-header";
 import { ApiStatusBanner } from "@/components/api-status-banner";
 import { OnboardingBanner } from "@/components/onboarding-banner";
 import { getUserProfileCookie } from "@/lib/auth/server-cookie";
+import { SectionAuthProvider } from "@/lib/auth/section-auth-provider";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "PRINT for Sellers",
+  description: "Run your store on PRINT.",
+};
 
 const sidebarData = {
   navMain: [
@@ -49,6 +56,7 @@ export default async function SellerLayout({ children }: { children: ReactNode }
   };
 
   return (
+    <SectionAuthProvider section="seller">
     <SidebarProvider
       className="flex h-svh flex-col overflow-hidden"
       style={
@@ -58,7 +66,7 @@ export default async function SellerLayout({ children }: { children: ReactNode }
         } as CSSProperties
       }
     >
-      <SiteHeader />
+      <SiteHeader homeHref="/seller/dashboard" />
       {/* <div className="flex min-h-[calc(100svh-var(--header-height))] flex-1"></div> */}
       {/* Main row: only this region scrolls (inset), not the header */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -79,5 +87,6 @@ export default async function SellerLayout({ children }: { children: ReactNode }
         </SidebarInset>
       </div>
     </SidebarProvider>
+    </SectionAuthProvider>
   );
 }

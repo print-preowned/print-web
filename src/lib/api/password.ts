@@ -2,6 +2,8 @@ import { apiFetch } from ".";
 
 export interface PasswordResetRequest {
   email: string;
+  /** The section asking; the emailed link opens that section's reset page. */
+  section?: "store" | "seller" | "admin";
 }
 
 export interface PasswordResetRequestResponse {

@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/server";
+import { getSection } from "@/lib/auth/section-server";
 import {
   applyAuthCookie,
   applyUserProfileCookie,
 } from "@/lib/auth/server-cookie";
 
+/** Shoppers sign up on the storefront. Store teams join by invite; staff are invited. */
 export async function POST(request: Request) {
+  if ((await getSection()) !== "store") {
+    return NextResponse.json({ detail: "Not found" }, { status: 404 });
+  }
   try {
     const body = await request.json();
     const res = await backendFetch<{ statusCode: number; message: string; data: unknown; token: string }>(

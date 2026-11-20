@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StatusBadge } from "@/components/status-badge";
 import { CloseGrantDialog } from "@/components/close-grant-dialog";
-import { useOnboardingSwitch } from "@/components/onboarding-switch";
+import { enterStoreFromAdmin } from "@/lib/auth/seller-session";
 import { useApiQuery } from "@/lib/hooks/useApiQuery";
 import { useApiMutation } from "@/lib/hooks/useApiMutation";
 import { apiErrorToast } from "@/lib/api";
@@ -89,7 +89,17 @@ export default function AdminOnboardingPage() {
 
 function GrantRow({ grant }: { grant: AccessGrant }) {
   const queryClient = useQueryClient();
-  const { enterStore, pending } = useOnboardingSwitch();
+  const [pending, setPending] = useState(false);
+  // Opens the store in the seller section with its own session; admin stays signed in.
+  const enterStore = async (grantId: string) => {
+    setPending(true);
+    try {
+      await enterStoreFromAdmin(grantId);
+    } catch (error) {
+      apiErrorToast(error, "Couldn't open the store");
+      setPending(false);
+    }
+  };
   const [closing, setClosing] = useState(false);
   const withdraw = useApiMutation({
     onSuccess: () => {

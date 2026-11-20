@@ -13,7 +13,7 @@ Companion API: [print](https://github.com/print-preowned/print) (FastAPI).
 - **HttpOnly cookie auth** — JWT stored in an HttpOnly cookie; the browser never holds the raw token
 - **Next.js API routes** — login, register, logout, session, context switch, and a backend proxy at `/api/proxy`
 - **Multi-context routing** — middleware enforces `CUSTOMER`, `SELLER`, and `PLATFORM` contexts per route
-- **Privilege-aware guards** — route config and middleware check materialized token privileges and owner status
+- **Privilege-aware guards** — route config and middleware check materialized token privileges
 - **Shared catalog UI** — book forms, author/genre linking, and S3 cover upload used by admin and seller flows
 - **Seller inventory onboarding** — search the global catalogue by ISBN or title and list an offer on a publication
 - **Unified shell** — shared sidebar and header across admin and seller areas
@@ -74,10 +74,31 @@ NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 JWT_SECRET=secret
 ```
 
+Each section runs on its own host. All three are required; the app won't start without them:
+
+```bash
+NEXT_PUBLIC_STORE_URL=http://localhost:3000
+NEXT_PUBLIC_SELLER_URL=http://seller.localhost:3000
+NEXT_PUBLIC_ADMIN_URL=http://admin.localhost:3000
+```
+
 | Variable | Description |
 | --- | --- |
 | `NEXT_PUBLIC_API_BASE_URL` | FastAPI base URL |
 | `JWT_SECRET` | HMAC secret for middleware JWT verification — must match the API |
+| `NEXT_PUBLIC_STORE_URL`, `NEXT_PUBLIC_SELLER_URL`, `NEXT_PUBLIC_ADMIN_URL` | Each section's origin. The host a request arrives on decides its section; any other host gets a 404. Payment returns go to the store URL. |
+
+The API's `STORE_APP_BASE_URL`, `SELLER_APP_BASE_URL` and `ADMIN_APP_BASE_URL` should match, so emailed links open the right host.
+
+Chrome and Firefox resolve `*.localhost` on their own. For Safari or curl, add this line to `/etc/hosts`:
+
+```
+127.0.0.1 seller.localhost admin.localhost
+```
+
+Behind a CDN or proxy, forward the original `Host` header (on CloudFront, add it to the origin request policy).
+
+To reach the storefront through a tunnel (for example for payment returns, which need HTTPS), set `NEXT_PUBLIC_STORE_URL` to the tunnel's URL and the API's `STORE_APP_BASE_URL` to match.
 
 In production, set a strong `JWT_SECRET` and serve the app over HTTPS so the auth cookie can use `Secure`.
 
@@ -87,12 +108,12 @@ In production, set a strong `JWT_SECRET` and serve the app over HTTPS so the aut
 npm run dev
 ```
 
-| Surface | URL |
+| Section | URL |
 | --- | --- |
-| Customer storefront | http://localhost:3000 |
-| Customer login | http://localhost:3000/login |
-| Seller dashboard | http://localhost:3000/seller/dashboard |
-| Platform admin | http://localhost:3000/admin |
+| Storefront | http://localhost:3000 |
+| Storefront login | http://localhost:3000/login |
+| Seller login | http://seller.localhost:3000/seller/login |
+| Admin login | http://admin.localhost:3000/admin/login |
 
 ### Build
 
@@ -103,15 +124,15 @@ npm start
 
 ## Auth model
 
-1. User signs in via `/api/auth/login` (or platform login at `/api/auth/platform-login`).
-2. The API route sets an HttpOnly cookie with the access token.
-3. Client `apiFetch` calls go through `/api/proxy/...` with `credentials: "include"`.
-4. Middleware verifies the JWT and enforces context, privileges, and owner rules before pages render.
-5. Context switch (`CUSTOMER` ↔ `SELLER`) calls `/api/auth/context-switch`, replaces the cookie, and redirects per MDC rules.
+The app has three sections: the storefront, the seller portal and admin. Each has its own host, its own sign-in, its own HttpOnly session cookie and its own token audience. One account can be signed in to all three at once, and signing out of one leaves the others alone. There is no switching between sections inside the app; links between them are full page loads.
 
-Session hydration uses `/api/auth/me`; the client auth context does not decode or store the JWT.
+1. Middleware works out the section from the host, sends a page of another section to that section's host, sets the `x-print-section` request header, and checks the page against that section's route table in `src/lib/auth/routes.ts`.
+2. Each section signs in through `/api/auth/login`, which calls that section's API login and sets that section's cookie. A seller on several stores picks one; the API's single-use ticket waits in an HttpOnly cookie for `/api/auth/select-store`.
+3. Client `apiFetch` calls go through `/api/proxy/...`, which sends the current section's token.
+4. Staff enter a store under an onboarding grant from admin: admin gets a single-use code and the seller section exchanges it at `/api/auth/handoff`. The admin session is untouched.
+5. Each section layout mounts its own `AuthProvider` with the session the server verified.
 
-See `.cursor/rules/` for the enforced authorization and context-switching policies.
+See `src/lib/sections.ts` for section names, hosts and paths, and `AUTHORIZATION.md` in the API repo for the server side.
 
 ## API client
 

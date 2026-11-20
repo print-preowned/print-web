@@ -22,7 +22,6 @@ const PATH_LABELS: Record<string, string> = {
   "/seller/roles": "Roles",
   "/admin/account": "Account",
   "/admin/users": "User accounts",
-  "/admin/dashboard": "Dashboard",
   "/admin/books": "Books",
   "/admin/books/create": "Create book",
   "/admin/authors": "Authors",

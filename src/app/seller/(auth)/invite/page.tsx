@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,17 @@ import {
   type SellerInviteLookup,
 } from "@/lib/api/seller-team";
 import { useAuth } from "@/lib/auth/context";
+import { endSectionSession } from "@/lib/auth/logout";
 import { readUserProfileCookie } from "@/lib/auth/profile-cookie";
+import { switchStore } from "@/lib/auth/seller-session";
+import { HOME_PATH } from "@/lib/sections";
 import type { BaseResponse } from "@/lib/model";
 
 /**
- * Where an emailed store invitation lands. Signed-in people accept with the account
- * the invite was sent to; people without an account create one here and join at once.
+ * Where an emailed store invitation lands, in the seller section. People already
+ * signed in to a store accept with the account the invite was sent to; people
+ * with an account sign in to the seller section with the invite, which joins
+ * them; people without one create it here and join at once.
  */
 function InviteContent() {
   const token = useSearchParams().get("token") ?? "";
@@ -82,7 +87,7 @@ function InviteContent() {
           <SignedIn invite={invite} token={token} />
         ) : invite.has_account ? (
           <Button asChild className="w-full">
-            <Link href={`/login?redirect=${encodeURIComponent(`/invite?token=${token}`)}`}>
+            <Link href={`/seller/login?invite=${encodeURIComponent(token)}`}>
               Sign in as {invite.email} to accept
             </Link>
           </Button>
@@ -97,24 +102,7 @@ function InviteContent() {
   );
 }
 
-/** Joining switches straight into the store, so the person lands where they'll work. */
-function useEnterStore() {
-  const router = useRouter();
-  const { refreshSession } = useAuth();
-  return async (invite: SellerInviteLookup) => {
-    await apiFetch("/api/auth/context-switch", {
-      method: "POST",
-      body: { targetContext: "SELLER", seller_id: invite.seller_id },
-    });
-    await refreshSession();
-    toast.success(`Welcome to ${invite.seller_name}`);
-    router.push("/seller/dashboard");
-  };
-}
-
 function SignedIn({ invite, token }: { invite: SellerInviteLookup; token: string }) {
-  const { refreshSession } = useAuth();
-  const enterStore = useEnterStore();
   const signedInAs = readUserProfileCookie()?.email;
   const wrongAccount =
     signedInAs !== undefined && signedInAs.toLowerCase() !== invite.email.toLowerCase();
@@ -124,13 +112,17 @@ function SignedIn({ invite, token }: { invite: SellerInviteLookup; token: string
       const request = acceptInvite(token);
       return apiFetch(request.endpoint, { method: request.method, body: request.body });
     },
-    onSuccess: () => enterStore(invite),
+    // Joined: move this seller session into the new store.
+    onSuccess: async () => {
+      toast.success(`Welcome to ${invite.seller_name}`);
+      await switchStore(invite.seller_id);
+    },
     onError: (error) => apiErrorToast(error, "Could not accept the invitation"),
   });
 
   const signOut = async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    await refreshSession();
+    await endSectionSession();
+    window.location.reload();
   };
 
   if (wrongAccount) {
@@ -154,8 +146,6 @@ function SignedIn({ invite, token }: { invite: SellerInviteLookup; token: string
 }
 
 function Register({ invite, token }: { invite: SellerInviteLookup; token: string }) {
-  const { refreshSession } = useAuth();
-  const enterStore = useEnterStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
@@ -169,14 +159,16 @@ function Register({ invite, token }: { invite: SellerInviteLookup; token: string
         password,
       });
       await apiFetch(request.endpoint, { method: request.method, body: request.body });
-      // The account exists and is on the team; sign in to get a session cookie.
+      // The account exists and is on the team; sign in to that store.
       await apiFetch("/api/auth/login", {
         method: "POST",
-        body: { email: invite.email, password },
+        body: { email: invite.email, password, sellerId: invite.seller_id },
       });
-      await refreshSession();
     },
-    onSuccess: () => enterStore(invite),
+    onSuccess: () => {
+      toast.success(`Welcome to ${invite.seller_name}`);
+      window.location.assign(HOME_PATH.seller);
+    },
     onError: (error) => apiErrorToast(error, "Could not create your account"),
   });
 

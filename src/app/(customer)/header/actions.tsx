@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, ChevronDown, LogOut, Package } from "lucide-react";
+import { ShoppingCart, User, ChevronDown, LogOut, Package, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SwitchToSeller, SwitchToSellerMenuItem } from "@/components/switch-to-seller";
 import { logout } from "@/lib/auth/logout";
+import { sectionUrl } from "@/lib/sections";
 import type { Session } from "@/lib/auth/token";
 import { useCart } from "@customer/cart";
 
@@ -19,7 +19,6 @@ interface ActionsProps {
 }
 
 export function Actions({ session }: ActionsProps) {
-  const context = session?.context ?? null;
   const { count, ready } = useCart();
   return (
     <div className="flex items-center gap-1 sm:gap-2">
@@ -42,8 +41,6 @@ export function Actions({ session }: ActionsProps) {
         </Link>
       </Button>
       {session ? (
-        <SwitchToSeller>
-          {(startSwitch, busy) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -68,8 +65,14 @@ export function Actions({ session }: ActionsProps) {
                     Account
                   </Link>
                 </DropdownMenuItem>
-                {context === "CUSTOMER" && session.hasSeller && (
-                  <SwitchToSellerMenuItem startSwitch={startSwitch} busy={busy} />
+                {session.hasSeller && (
+                  // The seller portal is its own section with its own sign-in.
+                  <DropdownMenuItem asChild>
+                    <a href={sectionUrl("seller", "/seller/login")}>
+                      <Store className="mr-2 h-4 w-4" />
+                      Seller portal
+                    </a>
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild onClick={logout}>
                   <div className="flex items-center">
@@ -79,8 +82,6 @@ export function Actions({ session }: ActionsProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-        </SwitchToSeller>
       ) : (
         <div className="flex items-center gap-1.5">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">

@@ -1,153 +1,115 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { getRouteRule } from "./lib/auth/routes";
+import { verifyAccessToken, type VerifiedPayload } from "./lib/auth/verify";
+import { AUTH_COOKIE_NAME, PROFILE_COOKIE_NAME } from "./lib/cookies";
 import {
-  getRouteConfig,
-  isPublicRoute,
-  requiresAuth,
-} from "./lib/auth/routes";
-import { getJwtSecretKey } from "./lib/auth/jwt-secret";
-import {
-  applyClearAuthCookie,
-  AUTH_COOKIE_NAME,
-} from "./lib/auth/server-cookie";
+  HOME_PATH,
+  LOGIN_PATH,
+  SECTION_CONTEXT,
+  SECTION_HEADER,
+  sectionForHost,
+  sectionForPath,
+  sectionUrl,
+  type Section,
+} from "./lib/sections";
 
-const JWT_SECRET = getJwtSecretKey();
-const JWT_AUDIENCE = "print-web";
-
-type PayloadContext = "CUSTOMER" | "SELLER" | "PLATFORM";
-
-interface JWTPayload {
-  ctx?: PayloadContext;
-  exp?: number;
-  pwd_chg?: boolean;
-  seller?: { is_owner?: boolean };
-  privileges?: string[];
-}
-
-function redirectToLogin(pathname: string, request: NextRequest, admin = false) {
-  const loginPath = admin ? "/admin/login" : "/login";
-  const url = new URL(loginPath, request.url);
-  url.searchParams.set("redirect", pathname);
-  url.searchParams.set("reason", "session_expired");
-  return applyClearAuthCookie(NextResponse.redirect(url), request);
-}
-
-async function verifyToken(token: string): Promise<JWTPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
-      audience: JWT_AUDIENCE,
-      algorithms: ["HS256"],
-    });
-    return payload as unknown as JWTPayload;
-  } catch {
-    return null;
+function clearSessionCookies(response: NextResponse, request: NextRequest) {
+  for (const name of [AUTH_COOKIE_NAME, PROFILE_COOKIE_NAME]) {
+    if (request.cookies.has(name)) {
+      // Browsers ignore a __Host- cookie without Secure, including when clearing it.
+      const secure = name.startsWith("__Host-") || request.nextUrl.protocol === "https:";
+      response.cookies.set(name, "", { path: "/", maxAge: 0, secure });
+    }
   }
+  return response;
 }
 
-function payloadContext(p: JWTPayload): PayloadContext | null {
-  const ctx = p?.ctx;
-  if (ctx === "CUSTOMER" || ctx === "SELLER" || ctx === "PLATFORM") return ctx;
-  return null;
+function redirectToLogin(section: Section, request: NextRequest, expired: boolean) {
+  const url = new URL(LOGIN_PATH[section], request.url);
+  url.searchParams.set("redirect", request.nextUrl.pathname + request.nextUrl.search);
+  if (expired) url.searchParams.set("reason", "session_expired");
+  const response = NextResponse.redirect(url);
+  return expired ? clearSessionCookies(response, request) : response;
 }
 
-function hasPrivileges(p: JWTPayload, required: string[]): boolean {
-  if (required.length === 0) return true;
-  if (p?.ctx !== "SELLER" && p?.ctx !== "PLATFORM") return false;
-  const list = p?.privileges;
-  if (!Array.isArray(list)) return false;
-  return required.every((priv) => list.includes(priv));
+/**
+ * Redirect to another section's host.
+ *
+ * Next rewrites a redirect whose target matches the server's own address
+ * (request.nextUrl, e.g. http://localhost:3000) into a relative one, which
+ * would keep the browser on the current section's host. That only happens on
+ * a local run, where the storefront is localhost; there, send a page that
+ * moves the browser instead.
+ */
+function redirectAcrossHosts(url: string, request: NextRequest) {
+  if (new URL(url).host !== request.nextUrl.host) {
+    return new NextResponse(null, { status: 307, headers: { Location: url } });
+  }
+  const escaped = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  return new NextResponse(
+    `<!doctype html><meta http-equiv="refresh" content="0;url=${escaped}"><a href="${escaped}">Continue</a>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
+  );
 }
 
-function isOwner(p: JWTPayload): boolean {
-  return p?.ctx === "SELLER" && p?.seller?.is_owner === true;
+function hasPrivileges(payload: VerifiedPayload, required: string[]): boolean {
+  const held = payload.privileges;
+  return Array.isArray(held) && required.every((privilege) => held.includes(privilege));
 }
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
-  if (isPublicRoute(pathname)) {
-    return NextResponse.next();
+  // Each section has its own host, and the host decides. Trust only Host:
+  // the hosting/CDN must pass the original one through.
+  const section = sectionForHost(request.headers.get("host"));
+  if (!section) return new NextResponse("Not found", { status: 404 });
+
+  if (!pathname.startsWith("/api/")) {
+    // A page of another section lives on that section's host.
+    const owner = sectionForPath(pathname);
+    if (owner !== section) {
+      if (section !== "store" && (pathname === "/" || pathname === "/login")) {
+        const page = pathname === "/" ? HOME_PATH[section] : LOGIN_PATH[section];
+        return NextResponse.redirect(new URL(page, request.url));
+      }
+      return redirectAcrossHosts(sectionUrl(owner, pathname + search), request);
+    }
   }
 
-  const config = getRouteConfig(pathname) ?? undefined;
+  // Route handlers and server components read the section from this header.
+  // Overwrite whatever the browser sent so a request can't claim another section.
+  const forwarded = new Headers(request.headers);
+  forwarded.set(SECTION_HEADER, section);
+  const next = () => NextResponse.next({ request: { headers: forwarded } });
+
+  if (pathname.startsWith("/api/")) return next();
+
+  const rule = getRouteRule(pathname, section);
+  if (rule.public) return next();
+
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  if (!token) return redirectToLogin(section, request, false);
 
-  if (pathname.startsWith("/api/admin/auth/")) {
-    // Dynamically swap "/api/admin/auth/" for "/api/auth/"
-    // e.g., /api/admin/auth/login -> /api/auth/login
-    const targetedPath = pathname.replace("/api/admin/auth/", "/api/auth/");
-    const rewriteUrl = new URL(targetedPath, request.url);
+  const payload = await verifyAccessToken(token, SECTION_CONTEXT[section]);
+  if (!payload) return redirectToLogin(section, request, true);
 
-    return NextResponse.rewrite(rewriteUrl);
+  if (section === "admin" && payload.pwd_chg === true && pathname !== "/admin/change-password") {
+    return NextResponse.redirect(new URL("/admin/change-password", request.url));
   }
 
-
-  if (requiresAuth(pathname) && !token) {
-    return redirectToLogin(
-      pathname,
-      request,
-      pathname.startsWith("/admin")
-    );
+  const lacksPrivileges = rule.privileges && !hasPrivileges(payload, rule.privileges);
+  if (lacksPrivileges && pathname !== HOME_PATH[section]) {
+    return NextResponse.redirect(new URL(HOME_PATH[section], request.url));
   }
 
-  if (!config?.requireAuth || !token) {
-    return NextResponse.next();
-  }
-
-  const payload = await verifyToken(token);
-  if (!payload) {
-    return redirectToLogin(
-      pathname,
-      request,
-      pathname.startsWith("/admin")
-    );
-  }
-
-  const ctx = payloadContext(payload);
-
-  // Admin routes: require PLATFORM context. Never redirect to client routes.
-  if (pathname.startsWith("/admin")) {
-    if (ctx !== "PLATFORM") {
-      return redirectToLogin(pathname, request, true);
-    }
-    if (payload.pwd_chg === true && pathname !== "/admin/change-password") {
-      return NextResponse.redirect(new URL("/admin/change-password", request.url));
-    }
-    return NextResponse.next();
-  }
-
-  // Platform user on non-admin path: send to admin dashboard only.
-  if (ctx === "PLATFORM") {
-    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-  }
-
-  // Seller/Customer routes: require SELLER/CUSTOMER context
-  if (config.requiredContext && config.requiredContext !== ctx) {
-    const redirectTo = config.redirectTo ?? (config.requiredContext === "SELLER" ? "/" : "/seller/dashboard");
-    const url = new URL(redirectTo, request.url);
-    url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (config.requiredPrivileges && config.requiredPrivileges.length > 0) {
-    if (!hasPrivileges(payload, config.requiredPrivileges)) {
-      const url = new URL("/seller/dashboard", request.url);
-      return NextResponse.redirect(url);
-    }
-  }
-
-  if (config.requireOwner && !isOwner(payload)) {
-    const url = new URL("/seller/dashboard", request.url);
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+  return next();
 }
 
 export const config = {
+  // Next's own files and dev endpoints (/_next/*, /__nextjs*) belong to no section.
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-    "/api/admin/auth/:path*",
+    "/((?!_next/|__nextjs|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

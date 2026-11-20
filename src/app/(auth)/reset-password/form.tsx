@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
+import { currentSection, LOGIN_PATH } from "@/lib/sections";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { completePasswordReset } from "@/lib/api/password";
@@ -44,9 +45,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       });
 
       toast.success("Password reset successfully! Please login.");
-      // Check if we're in admin context by checking the current path
-      const isAdmin = window.location.pathname.startsWith("/admin");
-      router.push(isAdmin ? "/admin/login" : "/login");
+      router.push(LOGIN_PATH[currentSection()]);
     } catch (error: unknown) {
       console.error("Password reset error:", error);
       // Error toast is handled by apiFetch

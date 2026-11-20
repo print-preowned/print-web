@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ConfirmDialogProvider } from "@/components/confirm-dialog-provider";
 import QueryProvider from "../providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/lib/auth/context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Print Admin",
-  description: "Admin portal for the Print app",
+  title: "PRINT",
+  description: "Discover and buy books from independent sellers.",
 };
 
 
@@ -35,14 +34,12 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <QueryProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <ConfirmDialogProvider>
-                {children}
-                <Toaster />
-              </ConfirmDialogProvider>
-            </ThemeProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <ConfirmDialogProvider>
+              {children}
+              <Toaster />
+            </ConfirmDialogProvider>
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>

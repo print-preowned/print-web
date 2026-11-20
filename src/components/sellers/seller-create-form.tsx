@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import z from "zod";
-import { ProfileImageUpload } from "@/components/profile-image-upload";
-import { createSeller, updateSeller } from "@/lib/api/seller";
-import { uploadSellerLogo } from "@/lib/api/profile-image";
+import { createSeller } from "@/lib/api/seller";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -17,6 +13,7 @@ import { apiFetch, type HttpMethod } from "@/lib/api";
 import { useAuth } from "@/lib/auth/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { sectionUrl } from "@/lib/sections";
 
 export const createSellerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,9 +33,6 @@ export function CreateSellerForm({
 }: CreateSellerFormProps) {
   const router = useRouter();
   const { refreshSession } = useAuth();
-  // The logo key is per storefront, so it can only upload once the storefront
-  // exists and the session has switched into it.
-  const [pendingLogo, setPendingLogo] = useState<File | null>(null);
 
   const {
     register,
@@ -54,32 +48,17 @@ export function CreateSellerForm({
       const { endpoint, method, body } = await createSeller(data);
       return apiFetch<{ id?: string }>(endpoint, { method: method as HttpMethod, body });
     },
-    onSuccess: async (created) => {
+    // The store is run from the seller portal, which has its own sign-in.
+    // The logo is added there, from the store's account page.
+    onSuccess: async () => {
       await refreshSession();
-      toast.success("Storefront created");
-      if (created?.id) {
-        try {
-          await apiFetch("/api/auth/context-switch", {
-            method: "POST",
-            body: { targetContext: "SELLER", seller_id: created.id },
-            silentStatuses: [400, 401, 403, 422],
-          });
-          await refreshSession();
-          if (pendingLogo) {
-            try {
-              const logo = await uploadSellerLogo(pendingLogo, created.id);
-              const update = updateSeller(created.id, { logo });
-              await apiFetch(update.endpoint, { method: update.method, body: update.body });
-            } catch {
-              toast.error("Storefront created, but the logo could not be saved. Add it from Account.");
-            }
-          }
-          router.push("/seller/dashboard");
-          return;
-        } catch {
-          // stay in customer context
-        }
-      }
+      toast.success("Storefront created", {
+        description: "Sign in to the seller portal to add a logo and list books.",
+        action: {
+          label: "Seller portal",
+          onClick: () => window.location.assign(sectionUrl("seller", "/seller/login")),
+        },
+      });
       onSuccess?.();
       router.refresh();
     },
@@ -108,17 +87,6 @@ export function CreateSellerForm({
         />
         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
       </div>
-
-      <ProfileImageUpload
-        id="logo"
-        label="Logo"
-        shape="square"
-        placeholderIcon={Store}
-        onUpload={uploadSellerLogo}
-        onChange={() => {}}
-        onPendingFileChange={setPendingLogo}
-        disabled={createMutation.isPending}
-      />
 
       <div className="flex gap-2 mt-4">
         {onCancel && (

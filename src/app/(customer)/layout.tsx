@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Libre_Baskerville } from "next/font/google";
 import { Header } from "@/app/(customer)/header/index";
 import { Footer } from "@/app/(customer)/footer";
+import { SectionAuthProvider } from "@/lib/auth/section-auth-provider";
 import "./storefront.css";
 
 const libreBaskerville = Libre_Baskerville({
@@ -23,10 +24,12 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className={`storefront ${libreBaskerville.variable} ${dmSans.variable}`}>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </div>
+    <SectionAuthProvider section="store">
+      <div className={`storefront ${libreBaskerville.variable} ${dmSans.variable}`}>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+      </div>
+    </SectionAuthProvider>
   );
 }

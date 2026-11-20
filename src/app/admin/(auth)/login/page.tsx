@@ -4,8 +4,12 @@ import { CardDescription } from "@/components/ui/card";
 import { CardContent } from "@/components/ui/card";
 import { LoginForm } from "@/app/(auth)/login/form";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason: string }> }) {
-  const { reason } = await searchParams;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reason?: string; redirect?: string }>;
+}) {
+  const { reason, redirect } = await searchParams;
 
   return (
     <Card className="w-full max-w-sm">
@@ -14,7 +18,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <CardDescription>Login to your account to continue</CardDescription>
       </CardHeader>
       <CardContent>
-        <LoginForm isPlatform reason={reason} />
+        <LoginForm
+          section="admin"
+          reason={reason}
+          redirect={redirect}
+          forgotPasswordHref="/admin/forgot-password"
+        />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm mt-6">
         <div>

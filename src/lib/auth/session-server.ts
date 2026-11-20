@@ -1,15 +1,20 @@
 /**
  * Server-only session builder. Use in API routes and server components.
- * Session is derived from the JWT only (hasSeller is set at login/context-switch on the backend).
+ * The token is verified (signature, audience, and that it belongs to this
+ * request's section) before anything is read from it.
  */
 
+import { getSection } from "./section-server";
 import { getAuthTokenFromRequest } from "./server-cookie";
-import { decodeToken, sessionFromToken, type Session } from "./token";
+import { sessionFromToken, type AccessToken, type Session } from "./token";
+import { verifyAccessToken } from "./verify";
+import { SECTION_CONTEXT } from "../sections";
 
 export async function getSessionFromRequest(): Promise<Session | null> {
+  const section = await getSection();
   const token = await getAuthTokenFromRequest();
-  if (!token) return null;
-  const decoded = decodeToken(token);
-  if (!decoded) return null;
-  return sessionFromToken(decoded);
+  if (!section || !token) return null;
+  const verified = await verifyAccessToken(token, SECTION_CONTEXT[section]);
+  if (!verified) return null;
+  return sessionFromToken(verified as unknown as AccessToken);
 }

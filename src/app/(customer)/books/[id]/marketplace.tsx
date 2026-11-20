@@ -263,7 +263,7 @@ function OfferAccordionItem({
               {offer.seller.name}
             </span>
             <Link
-              href={`/seller/${offer.seller.id}`}
+              href={`/shops/${offer.seller.id}`}
               className="inline-flex shrink-0 rounded-sm text-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
               aria-label={`Visit ${offer.seller.name} storefront`}
               title="Visit storefront"

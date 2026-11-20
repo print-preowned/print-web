@@ -7,19 +7,12 @@ import {
   type PaymentInitiateResponse,
 } from "@customer/api";
 import type { BaseResponse } from "@/lib/model";
+import { sectionUrl } from "@/lib/sections";
 
+/** Payment returns to the storefront's host. */
 function buildPublicAppUrl(path: string): string {
-  let baseUrl = "";
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
-  if (configured) {
-    baseUrl = configured;
-  }
-  if (typeof window !== "undefined" && !baseUrl) {
-    baseUrl = window.location.origin;
-  }
-
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  return baseUrl ? `${baseUrl}${normalized}` : normalized;
+  return sectionUrl("store", normalized);
 }
 
 /** Customer return URL after Flutterwave redirect checkout (must be HTTPS in sandbox/live). */

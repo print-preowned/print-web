@@ -26,7 +26,7 @@ function sellerInventoryPath(
   if (trimmed) params.set("q", trimmed);
   if (page > 1) params.set("page", String(page));
   const qs = params.toString();
-  return qs ? `/seller/${sellerId}?${qs}` : `/seller/${sellerId}`;
+  return qs ? `/shops/${sellerId}?${qs}` : `/shops/${sellerId}`;
 }
 
 type SellerInventoryProps = {

@@ -13,16 +13,25 @@ import { SellerForm } from "./seller-form";
 import { Seller, readSellers, deleteSeller } from "@/lib/api/seller";
 import { apiFetch, apiErrorToast } from "@/lib/api";
 import { useAuth, useSellerId } from "@/lib/auth/context";
-import { useSwitchContext } from "@/components/context-switcher";
+import { switchStore } from "@/lib/auth/seller-session";
+import { LOGIN_PATH } from "@/lib/sections";
 import type { PaginatedResponse } from "@/lib/model";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export function SellerAccountsTable() {
-  const router = useRouter();
-  const { session, refreshSession } = useAuth();
+  const { session } = useAuth();
   const currentSellerId = useSellerId();
-  const { handleSwitchContext, isSwitching } = useSwitchContext({ targetContext: "SELLER" });
+  const [isSwitching, setIsSwitching] = useState(false);
+
+  const handleSwitch = async (sellerId: string) => {
+    setIsSwitching(true);
+    try {
+      await switchStore(sellerId);
+    } catch (error) {
+      apiErrorToast(error, "Couldn't switch store");
+      setIsSwitching(false);
+    }
+  };
   const [page, setPage] = useState(1);
   const { drawer, openDrawer, closeDrawer } = useFormDrawer();
 
@@ -37,14 +46,10 @@ export function SellerAccountsTable() {
       const { endpoint } = deleteSeller(id);
       return apiFetch(endpoint, { method: "DELETE" });
     },
-    onSuccess: async (_data, id) => {
-      await refreshSession();
+    onSuccess: () => {
+      // The store's sessions end with it, including this one.
       toast.success("Storefront deleted");
-      if (id === currentSellerId) {
-        router.push("/");
-        return;
-      }
-      query.refetch();
+      window.location.assign(LOGIN_PATH.seller);
     },
     onError: (error: Error) => {
       apiErrorToast(error, "Failed to delete storefront");
@@ -108,7 +113,7 @@ export function SellerAccountsTable() {
               {!isCurrent && (
                 <DropdownMenuItem
                   disabled={isSwitching}
-                  onClick={() => void handleSwitchContext(row.original.id)}
+                  onClick={() => void handleSwitch(row.original.id)}
                 >
                   Switch
                 </DropdownMenuItem>

@@ -1,252 +1,86 @@
 /**
- * Route Configuration System
+ * Route protection, one table per section.
  *
- * Centralized route protection configuration following PRINT Authorization & Context Model
- *
- * This eliminates the need to pass props to RouteGuard on every page.
- * Routes are protected based on their path pattern.
+ * The section decides which session cookie is read and which token context is
+ * required, so a rule only says whether the page is public and which seller
+ * privileges it needs. Pages not listed need a signed-in session of their
+ * section.
  */
 
-import { TokenContext } from "./token";
+import type { Section } from "../sections";
 
-const PUBLIC_SELLER_SHOP =
-  /^\/seller\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/.*)?$/i;
-
-export interface RouteConfig {
-  /** If true, route requires a valid token; if false/omitted, route is public */
-  requireAuth?: boolean;
-  requiredContext?: TokenContext;
-  requiredPrivileges?: string[];
-  requireOwner?: boolean;
-  redirectTo?: string;
+export interface RouteRule {
+  /** Open to anyone; no session needed. */
+  public?: boolean;
+  /** Seller privileges the session must hold. */
+  privileges?: string[];
 }
 
-/**
- * Route configuration map
- * Keys are path patterns (supports wildcards with *)
- */
-export const routeConfig: Record<string, RouteConfig> = {
-  // Public routes (no requireAuth)
-  "/": {},
-  "/login": {},
-  "/register": {},
-  "/forgot-password": {},
-  "/reset-password": {},
-  // Store invitations: the page itself handles signed-in and signed-out visitors.
-  "/invite": {},
+const PUBLIC: RouteRule = { public: true };
+const SIGNED_IN: RouteRule = {};
 
-  "/change-password": {
-    requireAuth: true,
-    redirectTo: "/login",
-  },
-
-  // Customer routes (public access - e-commerce site)
-  "/books": { requiredContext: "CUSTOMER" },
-  "/books/*": { requiredContext: "CUSTOMER" },
-  // Public seller shop (/seller/{uuid}) is matched in getRouteConfig.
-  "/cart": {},
-  "/checkout": {
-    requireAuth: true,
-    requiredContext: "CUSTOMER",
-    redirectTo: "/login",
-  },
-  "/orders": {
-    requireAuth: true,
-    requiredContext: "CUSTOMER",
-    redirectTo: "/login",
-  },
-  "/orders/*": {
-    requireAuth: true,
-    requiredContext: "CUSTOMER",
-    redirectTo: "/login",
-  },
-
-  // Seller routes (require SELLER context)
-  "/seller/*": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    redirectTo: "/login",
-  },
-
-  // Seller users (require specific privilege)
-  "/seller/users": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    requiredPrivileges: ["READ_SELLER_USER"],
-    redirectTo: "/login",
-  },
-
-  // Seller inventory
-  "/seller/inventory": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    requiredPrivileges: ["READ_SELLER_INVENTORY"],
-    redirectTo: "/login",
-  },
-
-  // Seller orders (require READ_ORDER privilege)
-  "/seller/orders": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    requiredPrivileges: ["READ_ORDER"],
-    redirectTo: "/login",
-  },
-  "/seller/orders/*": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    requiredPrivileges: ["READ_ORDER"],
-    redirectTo: "/login",
-  },
-
-  // Seller accounts list
-  "/seller/accounts": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    redirectTo: "/login",
-  },
-
-  // Owner-only routes
-  "/seller/settings": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    requireOwner: true,
-    redirectTo: "/login",
-  },
-
-  // Seller account (current seller details; edit requires owner)
-  "/seller/account": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    redirectTo: "/login",
-  },
-
-  // Dashboard (require auth, any context)
-  "/seller/dashboard": {
-    requireAuth: true,
-    requiredContext: "SELLER",
-    redirectTo: "/login",
-  },
-
-  // Account page (require auth)
-  "/account": {
-    requiredContext: "CUSTOMER",
-    requireAuth: true,
-    redirectTo: "/login",
-  },
-  "/account/addresses": {
-    requireAuth: true,
-    requiredContext: "CUSTOMER",
-    redirectTo: "/login",
-  },
-
-  // Admin routes (require PLATFORM context - separate from regular UI)
-  "/admin/*": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
-
-  // Admin login (public)
-  "/admin/login": {},
-
-  // Admin password reset (public)
-  "/admin/forgot-password": {},
-  "/admin/reset-password": {},
-  "/admin/change-password": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
-
-  // Invite acceptance and rejection (public)
-  "/admin/invite/accept": {},
-  "/admin/invite/reject": {},
-
-  // Admin books pages
-  "/admin/books": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
-  "/admin/books/*": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
-
-  // Admin authors pages
-  "/admin/authors": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
-  "/admin/authors/*": {
-    requireAuth: true,
-    requiredContext: "PLATFORM",
-    redirectTo: "/admin/login",
-  },
+const STORE_ROUTES: Record<string, RouteRule> = {
+  "/": PUBLIC,
+  "/login": PUBLIC,
+  "/register": PUBLIC,
+  "/forgot-password": PUBLIC,
+  "/reset-password": PUBLIC,
+  "/books": PUBLIC,
+  "/books/*": PUBLIC,
+  "/shops/*": PUBLIC,
+  "/cart": PUBLIC,
+  "/change-password": SIGNED_IN,
+  "/checkout": SIGNED_IN,
+  "/orders": SIGNED_IN,
+  "/orders/*": SIGNED_IN,
+  "/account": SIGNED_IN,
+  "/account/*": SIGNED_IN,
 };
 
-/**
- * Get route configuration for a given path
- * Supports wildcard matching
- */
-export function getRouteConfig(pathname: string): RouteConfig | null {
-  // Exact match first
-  if (routeConfig[pathname]) {
-    return routeConfig[pathname];
-  }
+const SELLER_ROUTES: Record<string, RouteRule> = {
+  "/seller/login": PUBLIC,
+  "/seller/forgot-password": PUBLIC,
+  "/seller/reset-password": PUBLIC,
+  // Store invitations: the page handles signed-in and signed-out visitors.
+  "/seller/invite": PUBLIC,
+  "/seller/users": { privileges: ["READ_SELLER_USER"] },
+  "/seller/inventory": { privileges: ["READ_SELLER_INVENTORY"] },
+  "/seller/inventory/*": { privileges: ["READ_SELLER_INVENTORY"] },
+  "/seller/orders": { privileges: ["READ_ORDER"] },
+  "/seller/orders/*": { privileges: ["READ_ORDER"] },
+};
 
-  // Public shop: /seller/{uuid} must not inherit /seller/* SELLER auth
-  if (PUBLIC_SELLER_SHOP.test(pathname)) {
-    return { requiredContext: "CUSTOMER" };
-  }
+const ADMIN_ROUTES: Record<string, RouteRule> = {
+  "/admin/login": PUBLIC,
+  "/admin/forgot-password": PUBLIC,
+  "/admin/reset-password": PUBLIC,
+  "/admin/invite/accept": PUBLIC,
+  "/admin/invite/reject": PUBLIC,
+};
 
-  // Wildcard matching
-  for (const [pattern, config] of Object.entries(routeConfig)) {
-    if (pattern.includes("*")) {
-      const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
-      if (regex.test(pathname)) {
-        return config;
-      }
-    }
-  }
+const TABLES: Record<Section, Record<string, RouteRule>> = {
+  store: STORE_ROUTES,
+  seller: SELLER_ROUTES,
+  admin: ADMIN_ROUTES,
+};
 
-  // Default: require auth for unknown routes
-  // Context-aware default redirect
-  if (pathname.startsWith("/admin")) {
-    return {
-      requireAuth: true,
-      requiredContext: "PLATFORM",
-      redirectTo: "/admin/login",
-    };
-  } else if (pathname.startsWith("/seller")) {
-    return {
-      requireAuth: true,
-      requiredContext: "SELLER",
-      redirectTo: "/login",
-    };
-  } else {
-    return {
-      requireAuth: true,
-      redirectTo: "/login",
-    };
-  }
+function wildcardMatches(pattern: string, pathname: string): boolean {
+  const regex = new RegExp(
+    "^" + pattern.split("*").map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$",
+  );
+  return regex.test(pathname);
 }
 
 /**
- * Check if a route is public (no auth required)
+ * The rule for a page: an exact entry first, then the most specific wildcard
+ * (longest pattern), then "signed in to this section".
  */
-export function isPublicRoute(pathname: string): boolean {
-  const config = getRouteConfig(pathname);
-  return config != null && config.requireAuth !== true;
+export function getRouteRule(pathname: string, section: Section): RouteRule {
+  const table = TABLES[section];
+  if (table[pathname]) return table[pathname];
+  const wildcard = Object.keys(table)
+    .filter((pattern) => pattern.includes("*"))
+    .sort((a, b) => b.length - a.length)
+    .find((pattern) => wildcardMatches(pattern, pathname));
+  return wildcard ? table[wildcard] : SIGNED_IN;
 }
-
-/**
- * Check if a route requires authentication
- */
-export function requiresAuth(pathname: string): boolean {
-  const config = getRouteConfig(pathname);
-  return config?.requireAuth === true;
-}
-

@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { useOnboardingSwitch } from "@/components/onboarding-switch";
+import { backToAdmin } from "@/lib/auth/seller-session";
 import { useOnboardingGrantId, useSellerId } from "@/lib/auth/context";
 import { apiFetch } from "@/lib/api";
 import { readSellerById, type Seller } from "@/lib/api/seller";
@@ -12,7 +13,7 @@ import type { BaseResponse } from "@/lib/model";
 export function OnboardingBanner() {
   const grantId = useOnboardingGrantId();
   const sellerId = useSellerId();
-  const { backToAdmin, pending } = useOnboardingSwitch();
+  const [pending, setPending] = useState(false);
   const seller = useQuery({
     queryKey: ["seller", sellerId],
     queryFn: () =>
@@ -33,7 +34,10 @@ export function OnboardingBanner() {
         size="sm"
         variant="outline"
         disabled={pending}
-        onClick={() => void backToAdmin()}
+        onClick={() => {
+          setPending(true);
+          void backToAdmin();
+        }}
       >
         Back to admin
       </Button>

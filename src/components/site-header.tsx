@@ -19,7 +19,7 @@ import { Moon, Sun } from "lucide-react";
 import { Fragment } from "react";
 import { resolveHeaderBreadcrumbs } from "@/lib/site-header-titles";
 
-export function SiteHeader() {
+export function SiteHeader({ homeHref }: { homeHref: string }) {
   const pathname = usePathname() ?? "";
   const crumbs = resolveHeaderBreadcrumbs(pathname);
   const { theme, setTheme } = useTheme();
@@ -30,7 +30,7 @@ export function SiteHeader() {
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1 md:hidden" />
         <Link
-          href="/seller/dashboard"
+          href={homeHref}
           className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-base font-semibold hover:bg-muted"
         >
           <IconInnerShadowTop className="size-5 shrink-0" />
