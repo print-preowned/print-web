@@ -6,12 +6,10 @@ import { AUTH_COOKIE_NAME, PROFILE_COOKIE_NAME } from "./lib/cookies";
 import {
   HOME_PATH,
   LOGIN_PATH,
+  PAGES_FOLDER,
   SECTION_CONTEXT,
   SECTION_HEADER,
   sectionForHost,
-  sectionForPath,
-  sectionUrl,
-  type Section,
 } from "./lib/sections";
 
 function clearSessionCookies(response: NextResponse, request: NextRequest) {
@@ -25,31 +23,18 @@ function clearSessionCookies(response: NextResponse, request: NextRequest) {
   return response;
 }
 
-function redirectToLogin(section: Section, request: NextRequest, expired: boolean) {
-  const url = new URL(LOGIN_PATH[section], request.url);
+function redirectToLogin(request: NextRequest, expired: boolean) {
+  const url = new URL(LOGIN_PATH, request.url);
   url.searchParams.set("redirect", request.nextUrl.pathname + request.nextUrl.search);
   if (expired) url.searchParams.set("reason", "session_expired");
   const response = NextResponse.redirect(url);
   return expired ? clearSessionCookies(response, request) : response;
 }
 
-/**
- * Redirect to another section's host.
- *
- * Next rewrites a redirect whose target matches the server's own address
- * (request.nextUrl, e.g. http://localhost:3000) into a relative one, which
- * would keep the browser on the current section's host. That only happens on
- * a local run, where the storefront is localhost; there, send a page that
- * moves the browser instead.
- */
-function redirectAcrossHosts(url: string, request: NextRequest) {
-  if (new URL(url).host !== request.nextUrl.host) {
-    return new NextResponse(null, { status: 307, headers: { Location: url } });
-  }
-  const escaped = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-  return new NextResponse(
-    `<!doctype html><meta http-equiv="refresh" content="0;url=${escaped}"><a href="${escaped}">Continue</a>`,
-    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
+/** The seller and admin page folders are internal; no host serves them by that path. */
+function isPagesFolder(pathname: string): boolean {
+  return Object.values(PAGES_FOLDER).some(
+    (folder) => folder !== "" && (pathname === folder || pathname.startsWith(`${folder}/`)),
   );
 }
 
@@ -59,44 +44,47 @@ function hasPrivileges(payload: VerifiedPayload, required: string[]): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   // Each section has its own host, and the host decides. Trust only Host:
   // the hosting/CDN must pass the original one through.
   const section = sectionForHost(request.headers.get("host"));
   if (!section) return new NextResponse("Not found", { status: 404 });
 
-  if (!pathname.startsWith("/api/")) {
-    // A page of another section lives on that section's host.
-    const owner = sectionForPath(pathname);
-    if (owner !== section) {
-      if (section !== "store" && (pathname === "/" || pathname === "/login")) {
-        const page = pathname === "/" ? HOME_PATH[section] : LOGIN_PATH[section];
-        return NextResponse.redirect(new URL(page, request.url));
-      }
-      return redirectAcrossHosts(sectionUrl(owner, pathname + search), request);
-    }
-  }
-
   // Route handlers and server components read the section from this header.
   // Overwrite whatever the browser sent so a request can't claim another section.
   const forwarded = new Headers(request.headers);
   forwarded.set(SECTION_HEADER, section);
-  const next = () => NextResponse.next({ request: { headers: forwarded } });
 
-  if (pathname.startsWith("/api/")) return next();
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next({ request: { headers: forwarded } });
+  }
+
+  if (isPagesFolder(pathname)) return new NextResponse("Not found", { status: 404 });
+  if (pathname === "/" && section !== "store") {
+    return NextResponse.redirect(new URL(HOME_PATH[section], request.url));
+  }
+
+  // Pages keep their clean URL in the browser and are served from the
+  // section's folder (seller.<domain>/orders → src/app/seller/.../orders).
+  const page = () => {
+    if (PAGES_FOLDER[section] === "") return NextResponse.next({ request: { headers: forwarded } });
+    const url = request.nextUrl.clone();
+    url.pathname = `${PAGES_FOLDER[section]}${pathname}`;
+    return NextResponse.rewrite(url, { request: { headers: forwarded } });
+  };
 
   const rule = getRouteRule(pathname, section);
-  if (rule.public) return next();
+  if (rule.public) return page();
 
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  if (!token) return redirectToLogin(section, request, false);
+  if (!token) return redirectToLogin(request, false);
 
   const payload = await verifyAccessToken(token, SECTION_CONTEXT[section]);
-  if (!payload) return redirectToLogin(section, request, true);
+  if (!payload) return redirectToLogin(request, true);
 
-  if (section === "admin" && payload.pwd_chg === true && pathname !== "/admin/change-password") {
-    return NextResponse.redirect(new URL("/admin/change-password", request.url));
+  if (section === "admin" && payload.pwd_chg === true && pathname !== "/change-password") {
+    return NextResponse.redirect(new URL("/change-password", request.url));
   }
 
   const lacksPrivileges = rule.privileges && !hasPrivileges(payload, rule.privileges);
@@ -104,7 +92,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(HOME_PATH[section], request.url));
   }
 
-  return next();
+  return page();
 }
 
 export const config = {

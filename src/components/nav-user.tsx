@@ -35,15 +35,12 @@ import { logout } from "@/lib/auth/logout"
 
 export function NavUser({
   user,
-  accountHref = "/account",
 }: {
   user: {
     name: string
     email: string
     avatar: string
   }
-  /** Override account link (e.g. "/admin/account" for platform users) */
-  accountHref?: string
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -98,7 +95,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push(accountHref)}>
+              <DropdownMenuItem onClick={() => router.push("/account")}>
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>

@@ -15,7 +15,7 @@ export default function AdminEditAuthorPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const back = () => router.push("/admin/authors");
+  const back = () => router.push("/authors");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["author", id],

@@ -66,7 +66,7 @@ export default function UnresolvedAuthorsPage() {
           with that name is linked at once.
         </p>
         <Button asChild variant="outline">
-          <Link href="/admin/authors">All authors</Link>
+          <Link href="/authors">All authors</Link>
         </Button>
       </div>
 

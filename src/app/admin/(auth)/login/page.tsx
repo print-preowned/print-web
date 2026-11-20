@@ -22,7 +22,7 @@ export default async function LoginPage({
           section="admin"
           reason={reason}
           redirect={redirect}
-          forgotPasswordHref="/admin/forgot-password"
+          forgotPasswordHref="/forgot-password"
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm mt-6">

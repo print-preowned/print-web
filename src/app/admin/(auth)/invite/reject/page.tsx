@@ -97,7 +97,7 @@ function RejectInviteContent() {
         <p className="text-center text-sm text-muted-foreground">
           Changed your mind?{" "}
           <Link
-            href={`/admin/invite/accept?token=${encodeURIComponent(token)}`}
+            href={`/invite/accept?token=${encodeURIComponent(token)}`}
             className="underline underline-offset-4 hover:text-primary"
           >
             Accept invitation instead

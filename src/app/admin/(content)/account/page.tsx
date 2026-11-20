@@ -79,7 +79,7 @@ export default function AdminAccountPage() {
       setTransferOpen(false);
       queryClient.invalidateQueries({ queryKey: ["platform-users"] });
       clearAuth();
-      router.push("/admin/login");
+      router.push("/login");
     } catch (error) {
       console.error("Transfer super admin error:", error);
     } finally {

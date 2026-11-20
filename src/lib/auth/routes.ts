@@ -1,5 +1,6 @@
 /**
- * Route protection, one table per section.
+ * Route protection, one table per section, keyed by the paths people see on
+ * that section's host (seller.<domain>/orders is "/orders" in the seller table).
  *
  * The section decides which session cookie is read and which token context is
  * required, so a rule only says whether the page is public and which seller
@@ -38,24 +39,24 @@ const STORE_ROUTES: Record<string, RouteRule> = {
 };
 
 const SELLER_ROUTES: Record<string, RouteRule> = {
-  "/seller/login": PUBLIC,
-  "/seller/forgot-password": PUBLIC,
-  "/seller/reset-password": PUBLIC,
+  "/login": PUBLIC,
+  "/forgot-password": PUBLIC,
+  "/reset-password": PUBLIC,
   // Store invitations: the page handles signed-in and signed-out visitors.
-  "/seller/invite": PUBLIC,
-  "/seller/users": { privileges: ["READ_SELLER_USER"] },
-  "/seller/inventory": { privileges: ["READ_SELLER_INVENTORY"] },
-  "/seller/inventory/*": { privileges: ["READ_SELLER_INVENTORY"] },
-  "/seller/orders": { privileges: ["READ_ORDER"] },
-  "/seller/orders/*": { privileges: ["READ_ORDER"] },
+  "/invite": PUBLIC,
+  "/users": { privileges: ["READ_SELLER_USER"] },
+  "/inventory": { privileges: ["READ_SELLER_INVENTORY"] },
+  "/inventory/*": { privileges: ["READ_SELLER_INVENTORY"] },
+  "/orders": { privileges: ["READ_ORDER"] },
+  "/orders/*": { privileges: ["READ_ORDER"] },
 };
 
 const ADMIN_ROUTES: Record<string, RouteRule> = {
-  "/admin/login": PUBLIC,
-  "/admin/forgot-password": PUBLIC,
-  "/admin/reset-password": PUBLIC,
-  "/admin/invite/accept": PUBLIC,
-  "/admin/invite/reject": PUBLIC,
+  "/login": PUBLIC,
+  "/forgot-password": PUBLIC,
+  "/reset-password": PUBLIC,
+  "/invite/accept": PUBLIC,
+  "/invite/reject": PUBLIC,
 };
 
 const TABLES: Record<Section, Record<string, RouteRule>> = {

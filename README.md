@@ -34,8 +34,8 @@ src/
   app/
     (auth)/           # Customer login, register, password flows
     (customer)/       # Public storefront and account
-    seller/           # Seller workspace (inventory, orders, account)
-    admin/            # Platform admin (auth + content)
+    seller/           # Seller workspace, served at the root of the seller host
+    admin/            # Platform admin, served at the root of the admin host
     api/
       auth/           # Session cookie routes
       proxy/          # Authenticated backend proxy
@@ -112,8 +112,8 @@ npm run dev
 | --- | --- |
 | Storefront | http://localhost:3000 |
 | Storefront login | http://localhost:3000/login |
-| Seller login | http://seller.localhost:3000/seller/login |
-| Admin login | http://admin.localhost:3000/admin/login |
+| Seller login | http://seller.localhost:3000/login |
+| Admin login | http://admin.localhost:3000/login |
 
 ### Build
 
@@ -126,7 +126,7 @@ npm start
 
 The app has three sections: the storefront, the seller portal and admin. Each has its own host, its own sign-in, its own HttpOnly session cookie and its own token audience. One account can be signed in to all three at once, and signing out of one leaves the others alone. There is no switching between sections inside the app; links between them are full page loads.
 
-1. Middleware works out the section from the host, sends a page of another section to that section's host, sets the `x-print-section` request header, and checks the page against that section's route table in `src/lib/auth/routes.ts`.
+1. Middleware works out the section from the host, sets the `x-print-section` request header, and checks the page against that section's route table in `src/lib/auth/routes.ts`. URLs carry no section prefix: `seller.<domain>/orders` is served from `src/app/seller/`, and `/seller/...` or `/admin/...` paths get a 404 on every host.
 2. Each section signs in through `/api/auth/login`, which calls that section's API login and sets that section's cookie. A seller on several stores picks one; the API's single-use ticket waits in an HttpOnly cookie for `/api/auth/select-store`.
 3. Client `apiFetch` calls go through `/api/proxy/...`, which sends the current section's token.
 4. Staff enter a store under an onboarding grant from admin: admin gets a single-use code and the seller section exchanges it at `/api/auth/handoff`. The admin session is untouched.

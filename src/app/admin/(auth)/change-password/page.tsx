@@ -17,7 +17,7 @@ export default function AdminChangePasswordPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChangePasswordForm redirectTo="/admin/books" isFirstLogin />
+        <ChangePasswordForm redirectTo="/books" isFirstLogin />
       </CardContent>
     </Card>
   );

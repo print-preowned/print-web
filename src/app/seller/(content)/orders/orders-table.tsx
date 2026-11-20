@@ -44,7 +44,7 @@ export function OrdersTable() {
       header: "Reference",
       cell: ({ row }) => (
         <Link
-          href={`/seller/orders/${row.original.id}`}
+          href={`/orders/${row.original.id}`}
           className="font-medium text-primary hover:underline"
         >
           {row.original.reference}
@@ -94,7 +94,7 @@ export function OrdersTable() {
       id: "actions",
       cell: ({ row }) => (
         <Button variant="outline" size="sm" asChild>
-          <Link href={`/seller/orders/${row.original.id}`}>View</Link>
+          <Link href={`/orders/${row.original.id}`}>View</Link>
         </Button>
       ),
       enableHiding: false,

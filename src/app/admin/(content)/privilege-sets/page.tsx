@@ -90,7 +90,7 @@ export default function AdminPrivilegeSetsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuItem asChild>
-              <Link href={`/admin/privilege-sets/${row.original.id}/edit`}>
+              <Link href={`/privilege-sets/${row.original.id}/edit`}>
                 Edit
               </Link>
             </DropdownMenuItem>
@@ -127,7 +127,7 @@ export default function AdminPrivilegeSetsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/admin/privilege-sets/create">
+          <Link href="/privilege-sets/create">
           <Plus className="mr-2 h-4 w-4" />
           Create privilege set
           </Link>

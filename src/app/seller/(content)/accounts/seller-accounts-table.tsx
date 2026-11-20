@@ -49,7 +49,7 @@ export function SellerAccountsTable() {
     onSuccess: () => {
       // The store's sessions end with it, including this one.
       toast.success("Storefront deleted");
-      window.location.assign(LOGIN_PATH.seller);
+      window.location.assign(LOGIN_PATH);
     },
     onError: (error: Error) => {
       apiErrorToast(error, "Failed to delete storefront");

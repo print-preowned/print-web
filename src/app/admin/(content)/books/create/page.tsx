@@ -5,7 +5,7 @@ import { AdminCreateBookForm } from "../create-form";
 
 export default function AdminCreateBookPage() {
   const router = useRouter();
-  const back = () => router.push("/admin/books");
+  const back = () => router.push("/books");
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">

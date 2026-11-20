@@ -64,7 +64,7 @@ export function InviteForm() {
     onSuccess: (response, data) => {
       toast.success(response.message || `Invitation email sent to ${data.email}`);
       queryClient.invalidateQueries({ queryKey: ["platform-invites"] });
-      router.push("/admin/users");
+      router.push("/users");
     },
     onError: (error: Error) => {
       apiErrorToast(error, "Failed to create invite");
@@ -159,7 +159,7 @@ export function InviteForm() {
           type="button"
           variant="outline"
           disabled={isLoading}
-          onClick={() => router.push("/admin/users")}
+          onClick={() => router.push("/users")}
         >
           Cancel
         </Button>

@@ -31,7 +31,7 @@ export default async function SellerLoginPage({
           reason={reason}
           redirect={redirect}
           inviteToken={invite ?? null}
-          forgotPasswordHref="/seller/forgot-password"
+          forgotPasswordHref="/forgot-password"
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-center text-sm mt-6">

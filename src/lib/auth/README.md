@@ -3,18 +3,24 @@
 The app has three sections. Each has its own host, sign-in, session cookie and
 token audience, and a page only ever sees the session of its own section.
 
-| Section | Host | Paths | Token context | Token audience |
+| Section | Host | Pages folder | Token context | Token audience |
 |---|---|---|---|---|
-| store | `NEXT_PUBLIC_STORE_URL` | everything else | `CUSTOMER` | `print-store` |
-| seller | `NEXT_PUBLIC_SELLER_URL` | `/seller/*` | `SELLER` | `print-seller` |
-| admin | `NEXT_PUBLIC_ADMIN_URL` | `/admin/*` | `PLATFORM` | `print-admin` |
+| store | `NEXT_PUBLIC_STORE_URL` | `src/app` (outside the two below) | `CUSTOMER` | `print-store` |
+| seller | `NEXT_PUBLIC_SELLER_URL` | `src/app/seller` | `SELLER` | `print-seller` |
+| admin | `NEXT_PUBLIC_ADMIN_URL` | `src/app/admin` | `PLATFORM` | `print-admin` |
 
 ## How a request finds its section
 
 The `Host` header decides. `src/middleware.ts` looks the host up, answers an
-unknown host with a 404, and sends a page of another section to that section's
-host. It then overwrites the `x-print-section` request header, which route
-handlers and server components read with `getSection()` (`section-server.ts`).
+unknown host with a 404, and overwrites the `x-print-section` request header,
+which route handlers and server components read with `getSection()`
+(`section-server.ts`).
+
+URLs carry no section prefix. The middleware serves `seller.<domain>/orders`
+from the seller pages folder without changing the URL, so links, redirects and
+`usePathname()` all use the clean path. The folders' own paths (`/seller/...`,
+`/admin/...`) get a 404 on every host. A link into another section uses
+`sectionUrl(section, path)`.
 
 Every `/api` route is reachable on every host, so handlers that belong to one
 section check `getSection()` themselves (for example, select-store is
@@ -22,10 +28,10 @@ seller-only).
 
 ## Route rules (`routes.ts`)
 
-One table per section. A rule only says whether the page is public and which
-seller privileges it needs; the section decides the cookie and the
-required context. Exact paths win, then the longest wildcard. Unlisted pages
-need a signed-in session of their section.
+One table per section, keyed by the clean paths of that host. A rule only says
+whether the page is public and which seller privileges it needs; the section
+decides the cookie and the required context. Exact paths win, then the longest
+wildcard. Unlisted pages need a signed-in session of their section.
 
 ## Sessions
 

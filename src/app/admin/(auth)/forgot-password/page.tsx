@@ -23,7 +23,7 @@ export default function AdminForgotPasswordPage() {
       </CardContent>
       <CardFooter className="text-center text-sm">
         Remember your password?{" "}
-        <Link href="/admin/login" className="underline underline-offset-4">
+        <Link href="/login" className="underline underline-offset-4">
           Login
         </Link>
       </CardFooter>

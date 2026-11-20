@@ -53,7 +53,7 @@ function AddToInventory() {
               Added {added.length} book{added.length === 1 ? "" : "s"}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/seller/inventory">View inventory</Link>
+              <Link href="/inventory">View inventory</Link>
             </Button>
           </div>
           <ul className="text-muted-foreground space-y-1 text-sm">

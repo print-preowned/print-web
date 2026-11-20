@@ -46,7 +46,7 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
       });
 
       toast.success("Account created successfully! Please login.");
-      router.push("/admin/login");
+      router.push("/login");
     } catch (error: unknown) {
       console.error("Accept invite error:", error);
       // Error toast is handled by apiFetch
@@ -144,7 +144,7 @@ export function AcceptInviteForm({ token, email }: AcceptInviteFormProps) {
         <p className="text-center text-sm text-muted-foreground">
           Not interested?{" "}
           <Link
-            href={`/admin/invite/reject?token=${encodeURIComponent(token)}`}
+            href={`/invite/reject?token=${encodeURIComponent(token)}`}
             className="underline underline-offset-4 hover:text-primary"
           >
             Decline invitation

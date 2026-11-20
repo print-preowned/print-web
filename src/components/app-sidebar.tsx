@@ -59,12 +59,11 @@ type Props = React.ComponentProps<typeof Sidebar> & {
       url: string;
       icon: keyof typeof NAV_ICONS;
     }[];
-    accountHref: string
   };
 };
 
 export function AppSidebar({ data, ...props }: Props) {
-  const { user, accountHref } = data;
+  const { user } = data;
   const navMain = data.navMain.map((item) => ({
     ...item,
     icon: NAV_ICONS[item.icon],
@@ -94,7 +93,6 @@ export function AppSidebar({ data, ...props }: Props) {
       <SidebarFooter>
         <NavUser
           user={user}
-          accountHref={accountHref}
         />
       </SidebarFooter>
     </Sidebar>

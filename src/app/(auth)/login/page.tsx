@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <div className="text-muted-foreground">
           Selling on PRINT?{" "}
-          <a href={sectionUrl("seller", "/seller/login")} className="underline underline-offset-4">
+          <a href={sectionUrl("seller", "/login")} className="underline underline-offset-4">
             Sign in to your store
           </a>
         </div>

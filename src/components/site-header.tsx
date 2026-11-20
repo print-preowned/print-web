@@ -18,10 +18,11 @@ import { IconInnerShadowTop } from "@tabler/icons-react";
 import { Moon, Sun } from "lucide-react";
 import { Fragment } from "react";
 import { resolveHeaderBreadcrumbs } from "@/lib/site-header-titles";
+import { HOME_PATH } from "@/lib/sections";
 
-export function SiteHeader({ homeHref }: { homeHref: string }) {
+export function SiteHeader({ section }: { section: "seller" | "admin" }) {
   const pathname = usePathname() ?? "";
-  const crumbs = resolveHeaderBreadcrumbs(pathname);
+  const crumbs = resolveHeaderBreadcrumbs(pathname, section);
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
 
@@ -30,7 +31,7 @@ export function SiteHeader({ homeHref }: { homeHref: string }) {
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1 md:hidden" />
         <Link
-          href={homeHref}
+          href={HOME_PATH[section]}
           className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-base font-semibold hover:bg-muted"
         >
           <IconInnerShadowTop className="size-5 shrink-0" />

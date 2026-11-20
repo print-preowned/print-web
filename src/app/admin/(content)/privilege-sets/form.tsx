@@ -65,7 +65,7 @@ export function AdminPrivilegeSetForm({
   privilegeSet,
 }: PrivilegeSetFormProps) {
   const router = useRouter();
-  const back = () => router.push("/admin/privilege-sets");
+  const back = () => router.push("/privilege-sets");
   const queryClient = useQueryClient();
   const isEditing = !!privilegeSet;
   const [selectedPrivileges, setSelectedPrivileges] = useState<string[]>([]);

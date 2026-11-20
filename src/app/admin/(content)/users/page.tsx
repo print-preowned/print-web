@@ -48,7 +48,7 @@ export default function AdminPlatformUsersPage() {
             <TabsTrigger value="invites">Recent invites</TabsTrigger>
           </TabsList>
           <Button asChild>
-            <Link href="/admin/users/invite">
+            <Link href="/users/invite">
               <UserPlus className="mr-2 h-4 w-4" />
               Invite user
             </Link>

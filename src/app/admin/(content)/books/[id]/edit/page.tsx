@@ -15,7 +15,7 @@ export default function AdminEditBookPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const back = () => router.push("/admin/books");
+  const back = () => router.push("/books");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["book", id],

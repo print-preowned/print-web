@@ -247,7 +247,7 @@ export default function AdminBooksPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuItem asChild>
-              <Link href={`/admin/books/${row.original.id}/edit`}>Edit</Link>
+              <Link href={`/books/${row.original.id}/edit`}>Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -286,7 +286,7 @@ export default function AdminBooksPage() {
           </div>
           <div className="flex gap-2">
             <Button asChild>
-              <Link href="/admin/books/create">
+              <Link href="/books/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Book
               </Link>

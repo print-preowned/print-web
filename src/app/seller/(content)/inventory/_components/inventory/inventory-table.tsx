@@ -273,7 +273,7 @@ export function InventoryTable({
         <ScannerBar
           onScan={(isbn) =>
             router.push(
-              `/seller/inventory/create?isbn=${encodeURIComponent(isbn)}`,
+              `/inventory/create?isbn=${encodeURIComponent(isbn)}`,
             )
           }
         />
@@ -327,7 +327,7 @@ export function InventoryTable({
               })}
             </ToggleGroup>
             <Button asChild>
-              <Link href="/seller/inventory/create">
+              <Link href="/inventory/create">
                 <PlusCircleIcon className="mr-2 size-4" />
                 Add to inventory
               </Link>

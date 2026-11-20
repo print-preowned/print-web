@@ -17,31 +17,30 @@ const sidebarData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/seller/dashboard",
+      url: "/dashboard",
       icon: "dashboard",
     },
     {
       title: "Inventory",
-      url: "/seller/inventory",
+      url: "/inventory",
       icon: "listDetails",
     },
     {
       title: "Orders",
-      url: "/seller/orders",
+      url: "/orders",
       icon: "folder",
     },
     {
       title: "Team",
-      url: "/seller/users",
+      url: "/users",
       icon: "users",
     },
     {
       title: "Accounts",
-      url: "/seller/accounts",
+      url: "/accounts",
       icon: "buildingStore",
     },
   ],
-  accountHref: "/seller/account",
 };
 
 export default async function SellerLayout({ children }: { children: ReactNode }) {
@@ -66,7 +65,7 @@ export default async function SellerLayout({ children }: { children: ReactNode }
         } as CSSProperties
       }
     >
-      <SiteHeader homeHref="/seller/dashboard" />
+      <SiteHeader section="seller" />
       {/* <div className="flex min-h-[calc(100svh-var(--header-height))] flex-1"></div> */}
       {/* Main row: only this region scrolls (inset), not the header */}
       <div className="flex min-h-0 flex-1 overflow-hidden">

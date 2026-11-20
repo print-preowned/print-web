@@ -9,16 +9,16 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/context";
 import { apiErrorToast, apiFetch } from "@/lib/api";
 import type { Session } from "@/lib/auth/token";
-import { HOME_PATH, sectionForPath, type Section } from "@/lib/sections";
+import { HOME_PATH, type Section } from "@/lib/sections";
 
 type StoreOption = { id: string; name: string; logo?: string | null };
 
 /**
- * Only paths in this section, so a crafted link can't send people elsewhere
- * after login. The browser parses it, so tricks like "//evil.com" or
- * "/\evil.com" resolve to their real host and are rejected.
+ * Only paths on this host, which is this section, so a crafted link can't send
+ * people elsewhere after login. The browser parses it, so tricks like
+ * "//evil.com" or "/\evil.com" resolve to their real host and are rejected.
  */
-function safeRedirect(redirect: string | null | undefined, section: Section) {
+function safeRedirect(redirect: string | null | undefined) {
   if (!redirect || !redirect.startsWith("/")) return null;
   // Any fixed base works (this also runs on the server, where there's no window):
   // if the parsed URL still has the base's origin, `redirect` was a path on this site.
@@ -26,7 +26,6 @@ function safeRedirect(redirect: string | null | undefined, section: Section) {
   try {
     const url = new URL(redirect, base);
     if (url.origin !== base) return null;
-    if (sectionForPath(url.pathname) !== section) return null;
     return url.pathname + url.search + url.hash;
   } catch {
     return null;
@@ -34,7 +33,7 @@ function safeRedirect(redirect: string | null | undefined, section: Section) {
 }
 
 function destination(section: Section, session: Session | null, returnTo: string | null) {
-  if (section === "admin" && session?.passwordChangeRequired) return "/admin/change-password";
+  if (section === "admin" && session?.passwordChangeRequired) return "/change-password";
   return returnTo ?? HOME_PATH[section];
 }
 
@@ -56,7 +55,7 @@ export function LoginForm({
   inviteToken?: string | null;
   forgotPasswordHref: string;
 }) {
-  const returnTo = safeRedirect(redirect, section);
+  const returnTo = safeRedirect(redirect);
   const sessionExpired = reason === "session_expired";
   const { session, isLoading, refreshSession } = useAuth();
   const { handleSubmit, register } = useForm();

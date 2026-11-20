@@ -9,7 +9,7 @@ import { applyAuthCookie, getAuthTokenFromRequest } from "@/lib/auth/server-cook
  * opens the store. The admin session is not touched.
  */
 export async function GET(request: NextRequest) {
-  const failed = "/seller/login?reason=handoff_failed";
+  const failed = "/login?reason=handoff_failed";
   if ((await getSection()) !== "seller") return redirectOnThisHost(failed);
   const code = request.nextUrl.searchParams.get("code");
   if (!code) return redirectOnThisHost(failed);
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       method: "POST",
       body: { code },
     });
-    return applyAuthCookie(redirectOnThisHost("/seller/inventory"), res.token, request);
+    return applyAuthCookie(redirectOnThisHost("/inventory"), res.token, request);
   } catch {
     return redirectOnThisHost(failed);
   }

@@ -7,7 +7,7 @@
  * in the current context and are shown as a dismissible access banner.
  */
 
-import { currentSection, LOGIN_PATH } from "../sections";
+import { LOGIN_PATH } from "../sections";
 
 export const AUTH_FORCE_LOGOUT_EVENT = "print:auth-force-logout";
 
@@ -23,12 +23,10 @@ export async function endSectionSession(): Promise<void> {
 /** Clears React session immediately, then clears cookie and redirects. */
 async function logoutAndRedirect(hasExpiredSession = true): Promise<void> {
   if (typeof window === "undefined") return;
-  const section = currentSection();
   window.dispatchEvent(new CustomEvent(AUTH_FORCE_LOGOUT_EVENT));
   await endSectionSession();
 
-  const loginPath = LOGIN_PATH[section];
-  window.location.href = hasExpiredSession ? `${loginPath}?reason=session_expired` : loginPath;
+  window.location.href = hasExpiredSession ? `${LOGIN_PATH}?reason=session_expired` : LOGIN_PATH;
 }
 
 export async function forceLogout() {

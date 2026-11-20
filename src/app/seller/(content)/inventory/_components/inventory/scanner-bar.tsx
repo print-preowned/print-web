@@ -88,7 +88,7 @@ export function ScannerBar({ onScan }: Props) {
             {
               id: "batch-scan",
               description: `${event.count ?? 0} book${event.count === 1 ? "" : "s"} in batch`,
-              action: { label: "Review", onClick: () => router.push("/seller/inventory/scan") },
+              action: { label: "Review", onClick: () => router.push("/inventory/scan") },
             },
           );
           return;
@@ -148,7 +148,7 @@ export function ScannerBar({ onScan }: Props) {
         await mutateAsync(releaseScanStationClaim(station.id));
       }
       await invalidateStations();
-      if (next === "batch") router.push("/seller/inventory/scan");
+      if (next === "batch") router.push("/inventory/scan");
     } catch {
       // toasted
     }
@@ -238,7 +238,7 @@ export function ScannerBar({ onScan }: Props) {
         <div className="ml-auto flex gap-2">
           {mode === "batch" ? (
             <Button asChild size="sm">
-              <Link href="/seller/inventory/scan">Review batch</Link>
+              <Link href="/inventory/scan">Review batch</Link>
             </Button>
           ) : null}
           <Button
@@ -294,7 +294,7 @@ export function ScannerBar({ onScan }: Props) {
         footer={
           <>
             <Button asChild variant="outline">
-              <Link href="/seller/inventory/scan">Review batch</Link>
+              <Link href="/inventory/scan">Review batch</Link>
             </Button>
             <Button
               type="button"

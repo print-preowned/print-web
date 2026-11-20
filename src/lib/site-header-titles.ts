@@ -4,38 +4,42 @@ export type HeaderCrumb = {
 };
 
 /**
- * Exact path → friendly label. Nested named pages must be listed so raw
- * segments like "scan" / "create" never appear in the trail.
+ * Exact path → friendly label, per section. Nested named pages must be listed
+ * so raw segments like "scan" / "create" never appear in the trail.
  */
-const PATH_LABELS: Record<string, string> = {
-  "/admin/users/invite": "Invite user",
-  "/admin/invite/accept": "Accept invite",
-  "/admin/invite/reject": "Decline invite",
-  "/seller/accounts": "Accounts",
-  "/seller/privileges": "Privileges",
-  "/seller/dashboard": "Dashboard",
-  "/seller/inventory": "Inventory",
-  "/seller/inventory/scan": "Scan batch",
-  "/seller/orders": "Orders",
-  "/seller/users": "Team",
-  "/seller/account": "Account",
-  "/seller/roles": "Roles",
-  "/admin/account": "Account",
-  "/admin/users": "User accounts",
-  "/admin/books": "Books",
-  "/admin/books/create": "Create book",
-  "/admin/authors": "Authors",
-  "/admin/authors/create": "Create author",
-  "/admin/authors/unresolved": "Unresolved author names",
-  "/admin/genres": "Genres",
-  "/admin/publishers": "Publishers",
-  "/admin/series": "Series",
-  "/admin/subjects": "Subjects",
-  "/admin/privilege-sets": "Privilege sets",
-  "/admin/settings": "Settings",
+const PATH_LABELS: Record<"seller" | "admin", Record<string, string>> = {
+  seller: {
+    "/accounts": "Accounts",
+    "/privileges": "Privileges",
+    "/dashboard": "Dashboard",
+    "/inventory": "Inventory",
+    "/inventory/scan": "Scan batch",
+    "/orders": "Orders",
+    "/users": "Team",
+    "/account": "Account",
+    "/roles": "Roles",
+  },
+  admin: {
+    "/users/invite": "Invite user",
+    "/invite/accept": "Accept invite",
+    "/invite/reject": "Decline invite",
+    "/account": "Account",
+    "/users": "User accounts",
+    "/books": "Books",
+    "/books/create": "Create book",
+    "/authors": "Authors",
+    "/authors/create": "Create author",
+    "/authors/unresolved": "Unresolved author names",
+    "/genres": "Genres",
+    "/publishers": "Publishers",
+    "/series": "Series",
+    "/subjects": "Subjects",
+    "/privilege-sets": "Privilege sets",
+    "/settings": "Settings",
+  },
 };
 
-const APP_ROOTS = new Set(["/seller", "/admin"]);
+const SECTION_LABEL = { seller: "Seller", admin: "Admin" } as const;
 
 function normalizePathname(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {
@@ -45,15 +49,18 @@ function normalizePathname(pathname: string): string {
 }
 
 /**
- * Walk cumulative segments under /seller or /admin (skipping the app root).
- * Known paths use PATH_LABELS; unknown segments are treated as resource ids.
+ * Walk cumulative path segments. Known paths use the section's PATH_LABELS;
+ * unknown segments are treated as resource ids.
  * Trailing `/edit` is omitted so the dynamic id is the current crumb
  * (Books → {id}).
  */
-export function resolveHeaderBreadcrumbs(pathname: string): HeaderCrumb[] {
+export function resolveHeaderBreadcrumbs(
+  pathname: string,
+  section: "seller" | "admin",
+): HeaderCrumb[] {
   const path = normalizePathname(pathname);
   const parts = path.split("/").filter(Boolean);
-  if (parts.length === 0) return [{ label: "" }];
+  if (parts.length === 0) return [{ label: SECTION_LABEL[section] }];
 
   const omitTrailingEdit =
     parts.length >= 2 && parts[parts.length - 1] === "edit";
@@ -64,23 +71,18 @@ export function resolveHeaderBreadcrumbs(pathname: string): HeaderCrumb[] {
 
   for (let i = 0; i < walkParts.length; i++) {
     cumulative += `/${walkParts[i]}`;
-    if (APP_ROOTS.has(cumulative)) continue;
-
-    const label = PATH_LABELS[cumulative] ?? walkParts[i]!;
+    const label = PATH_LABELS[section][cumulative] ?? walkParts[i]!;
     const isLast = i === walkParts.length - 1;
     crumbs.push(isLast ? { label } : { label, href: cumulative });
-  }
-
-  if (crumbs.length === 0) {
-    if (path.startsWith("/seller")) return [{ label: "Seller" }];
-    if (path.startsWith("/admin")) return [{ label: "Admin" }];
-    return [{ label: "" }];
   }
 
   return crumbs;
 }
 
-export function resolveHeaderTitleFromPathname(pathname: string): string {
-  const crumbs = resolveHeaderBreadcrumbs(pathname);
+export function resolveHeaderTitleFromPathname(
+  pathname: string,
+  section: "seller" | "admin",
+): string {
+  const crumbs = resolveHeaderBreadcrumbs(pathname, section);
   return crumbs[crumbs.length - 1]?.label ?? "";
 }

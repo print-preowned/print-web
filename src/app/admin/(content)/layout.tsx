@@ -16,51 +16,50 @@ const sidebarData = {
   navMain: [
     {
       title: "Books",
-      url: "/admin/books",
+      url: "/books",
       icon: "books",
     },
     {
       title: "Authors",
-      url: "/admin/authors",
+      url: "/authors",
       icon: "ballpen",
     },
     {
       title: "Genres",
-      url: "/admin/genres",
+      url: "/genres",
       icon: "tags",
     },
     {
       title: "Publishers",
-      url: "/admin/publishers",
+      url: "/publishers",
       icon: "building",
     },
     {
       title: "Series",
-      url: "/admin/series",
+      url: "/series",
       icon: "library",
     },
     {
       title: "Subjects",
-      url: "/admin/subjects",
+      url: "/subjects",
       icon: "bookmark",
     },
     {
       title: "Onboarding",
-      url: "/admin/onboarding",
+      url: "/onboarding",
       icon: "buildingStore",
     },
     {
       title: "Users",
-      url: "/admin/users",
+      url: "/users",
       icon: "users",
     },
     {
       title: "Privilege sets",
-      url: "/admin/privilege-sets",
+      url: "/privilege-sets",
       icon: "shieldLock",
     },
   ],
-  accountHref: "/admin/account",
 };
 export default async function AdminLayout({
   children,
@@ -89,7 +88,7 @@ export default async function AdminLayout({
       >
         <AppSidebar data={sidebarDataWithUser} />
         <SidebarInset>
-          <SiteHeader homeHref="/admin/books" />
+          <SiteHeader section="admin" />
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="container flex flex-col gap-4 py-4 px-8 mx-auto md:gap-6 md:py-6">

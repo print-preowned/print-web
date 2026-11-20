@@ -216,7 +216,7 @@ export default function ScanBatchPage() {
     try {
       await mutateAsync(endScanSession(stationId));
       await queryClient.invalidateQueries({ queryKey: scanStationKeys.all });
-      router.push("/seller/inventory");
+      router.push("/inventory");
     } catch {
       // toasted
     }
@@ -294,7 +294,7 @@ export default function ScanBatchPage() {
         <h1 className="text-xl font-semibold">Scan batch</h1>
         <p className="text-muted-foreground text-sm">
           You don&apos;t have a scanner yet.{" "}
-          <Link href="/seller/inventory" className="underline">
+          <Link href="/inventory" className="underline">
             Set one up from your inventory
           </Link>
           .

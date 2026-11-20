@@ -68,7 +68,7 @@ export function Actions({ session }: ActionsProps) {
                 {session.hasSeller && (
                   // The seller portal is its own section with its own sign-in.
                   <DropdownMenuItem asChild>
-                    <a href={sectionUrl("seller", "/seller/login")}>
+                    <a href={sectionUrl("seller", "/login")}>
                       <Store className="mr-2 h-4 w-4" />
                       Seller portal
                     </a>

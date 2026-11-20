@@ -50,24 +50,25 @@ export function sectionForHost(host: string | null | undefined): Section | null 
   return SECTIONS.find((section) => new URL(ORIGINS[section]).host === wanted) ?? null;
 }
 
-/** Which section a page path belongs to. Each section's pages live under its own prefix. */
-export function sectionForPath(pathname: string): Section {
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "admin";
-  if (pathname === "/seller" || pathname.startsWith("/seller/")) return "seller";
-  return "store";
-}
+/**
+ * Where each section's pages live in src/app. The middleware serves them at
+ * the root of the section's own host (seller.<domain>/orders is
+ * src/app/seller/.../orders), so URLs and links never include this folder.
+ */
+export const PAGES_FOLDER: Record<Section, string> = {
+  store: "",
+  seller: "/seller",
+  admin: "/admin",
+};
 
 export const HOME_PATH: Record<Section, string> = {
   store: "/",
-  seller: "/seller/dashboard",
-  admin: "/admin/books",
+  seller: "/dashboard",
+  admin: "/books",
 };
 
-export const LOGIN_PATH: Record<Section, string> = {
-  store: "/login",
-  seller: "/seller/login",
-  admin: "/admin/login",
-};
+/** Every section signs in at /login on its own host. */
+export const LOGIN_PATH = "/login";
 
 export const SECTION_NAME: Record<Section, string> = {
   store: "PRINT",

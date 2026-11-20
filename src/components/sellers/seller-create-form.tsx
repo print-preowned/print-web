@@ -56,7 +56,7 @@ export function CreateSellerForm({
         description: "Sign in to the seller portal to add a logo and list books.",
         action: {
           label: "Seller portal",
-          onClick: () => window.location.assign(sectionUrl("seller", "/seller/login")),
+          onClick: () => window.location.assign(sectionUrl("seller", "/login")),
         },
       });
       onSuccess?.();

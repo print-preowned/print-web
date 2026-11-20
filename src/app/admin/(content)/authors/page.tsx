@@ -114,7 +114,7 @@ export default function AdminAuthorsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32">
             <DropdownMenuItem asChild>
-              <Link href={`/admin/authors/${row.original.id}/edit`}>Edit</Link>
+              <Link href={`/authors/${row.original.id}/edit`}>Edit</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -147,10 +147,10 @@ export default function AdminAuthorsPage() {
           </div>
           <div className="flex gap-2 mb-4">
             <Button asChild variant="outline">
-              <Link href="/admin/authors/unresolved">Unresolved names</Link>
+              <Link href="/authors/unresolved">Unresolved names</Link>
             </Button>
             <Button asChild>
-              <Link href="/admin/authors/create">
+              <Link href="/authors/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Author
               </Link>

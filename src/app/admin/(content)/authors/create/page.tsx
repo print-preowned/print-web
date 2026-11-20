@@ -5,7 +5,7 @@ import { AdminAuthorForm } from "../form";
 
 export default function AdminCreateAuthorPage() {
   const router = useRouter();
-  const back = () => router.push("/admin/authors");
+  const back = () => router.push("/authors");
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">

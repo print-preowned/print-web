@@ -33,5 +33,5 @@ export async function enterStoreFromAdmin(grantId: string): Promise<void> {
 /** Leave an onboarding session and go back to admin, which is still signed in. */
 export async function backToAdmin(): Promise<void> {
   await endSectionSession();
-  window.location.assign(sectionUrl("admin", "/admin/onboarding"));
+  window.location.assign(sectionUrl("admin", "/onboarding"));
 }

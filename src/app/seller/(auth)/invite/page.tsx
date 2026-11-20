@@ -87,7 +87,7 @@ function InviteContent() {
           <SignedIn invite={invite} token={token} />
         ) : invite.has_account ? (
           <Button asChild className="w-full">
-            <Link href={`/seller/login?invite=${encodeURIComponent(token)}`}>
+            <Link href={`/login?invite=${encodeURIComponent(token)}`}>
               Sign in as {invite.email} to accept
             </Link>
           </Button>
